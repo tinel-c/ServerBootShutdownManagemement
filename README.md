@@ -48,13 +48,13 @@ The system uses MQTT as a central message broker to coordinate commands between 
    
    ```bash
    # Edit environment variables
-   sudo nano /opt/dell_t310_management/config/.env
+   sudo nano /opt/dell_server_management/config/.env
    
    # Edit MQTT configuration
-   sudo nano /opt/dell_t310_management/config/mqtt_config.yaml
+   sudo nano /opt/dell_server_management/config/mqtt_config.yaml
    
    # Edit server configuration
-   sudo nano /opt/dell_t310_management/config/server_config.yaml
+   sudo nano /opt/dell_server_management/config/server_config.yaml
    ```
 
 4. **Enable and start services:**
@@ -203,16 +203,16 @@ wakeonlan 00:11:22:33:44:55
 
 ```bash
 # Boot via WoL
-python3 /opt/dell_t310_management/scripts/boot/wol_boot.py --mac 00:11:22:33:44:55
+python3 /opt/dell_server_management/scripts/boot/wol_boot.py --mac 00:11:22:33:44:55
 
 # Boot via IPMI
-python3 /opt/dell_t310_management/scripts/boot/ipmi_boot.py
+python3 /opt/dell_server_management/scripts/boot/ipmi_boot.py
 
 # Graceful shutdown
-python3 /opt/dell_t310_management/scripts/shutdown/graceful_shutdown.py
+python3 /opt/dell_server_management/scripts/shutdown/graceful_shutdown.py
 
 # Force shutdown (requires --confirm)
-python3 /opt/dell_t310_management/scripts/shutdown/force_shutdown.py --confirm
+python3 /opt/dell_server_management/scripts/shutdown/force_shutdown.py --confirm
 ```
 
 ## Troubleshooting

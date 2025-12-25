@@ -47,7 +47,7 @@ Common issues and solutions for the Dell T310 Management System.
    ```
 
 5. **Verify credentials:**
-   - Check `/opt/dell_t310_management/config/.env`
+   - Check `/opt/dell_server_management/config/.env`
    - Ensure `MQTT_PASSWORD` is correct
 
 6. **Check MQTT broker logs:**
@@ -77,7 +77,7 @@ Common issues and solutions for the Dell T310 Management System.
 
 3. **Update .env file:**
    ```bash
-   sudo nano /opt/dell_t310_management/config/.env
+   sudo nano /opt/dell_server_management/config/.env
    # Update MQTT_PASSWORD
    ```
 
@@ -123,7 +123,7 @@ Common issues and solutions for the Dell T310 Management System.
    ```
 
 5. **Verify credentials:**
-   - Check `/opt/dell_t310_management/config/.env`
+   - Check `/opt/dell_server_management/config/.env`
    - Ensure `IPMI_HOST`, `IPMI_USERNAME`, `IPMI_PASSWORD` are correct
 
 6. **Check IPMI user list:**
@@ -180,7 +180,7 @@ Common issues and solutions for the Dell T310 Management System.
 2. **Verify MAC address is correct:**
    ```bash
    # Check MAC address in configuration
-   cat /opt/dell_t310_management/config/server_config.yaml | grep mac_address
+   cat /opt/dell_server_management/config/server_config.yaml | grep mac_address
    
    # Verify with actual MAC address (when server is on)
    ip link show
@@ -229,29 +229,29 @@ Common issues and solutions for the Dell T310 Management System.
 
 3. **Check Python dependencies:**
    ```bash
-   cd /opt/dell_t310_management
+   cd /opt/dell_server_management
    source venv/bin/activate
    pip list
    ```
 
 4. **Reinstall dependencies:**
    ```bash
-   cd /opt/dell_t310_management
+   cd /opt/dell_server_management
    source venv/bin/activate
    pip install -r requirements.txt --force-reinstall
    ```
 
 5. **Check file permissions:**
    ```bash
-   ls -la /opt/dell_t310_management/scripts/
-   chmod +x /opt/dell_t310_management/scripts/boot/*.py
-   chmod +x /opt/dell_t310_management/scripts/shutdown/*.py
-   chmod +x /opt/dell_t310_management/scripts/status/*.py
+   ls -la /opt/dell_server_management/scripts/
+   chmod +x /opt/dell_server_management/scripts/boot/*.py
+   chmod +x /opt/dell_server_management/scripts/shutdown/*.py
+   chmod +x /opt/dell_server_management/scripts/status/*.py
    ```
 
 6. **Verify configuration files exist:**
    ```bash
-   ls -la /opt/dell_t310_management/config/
+   ls -la /opt/dell_server_management/config/
    ```
 
 ---
@@ -288,7 +288,7 @@ Common issues and solutions for the Dell T310 Management System.
 
 4. **Run script manually for debugging:**
    ```bash
-   cd /opt/dell_t310_management
+   cd /opt/dell_server_management
    source venv/bin/activate
    python3 scripts/boot/mqtt_boot_listener.py
    ```
@@ -349,7 +349,7 @@ Common issues and solutions for the Dell T310 Management System.
    ```
 
 2. **Verify Proxmox credentials:**
-   - Check `/opt/dell_t310_management/config/.env`
+   - Check `/opt/dell_server_management/config/.env`
    - Test login to Proxmox web interface
 
 3. **Check VM guest agents:**
@@ -408,7 +408,7 @@ Common issues and solutions for the Dell T310 Management System.
 
 1. **Edit .env file:**
    ```bash
-   sudo nano /opt/dell_t310_management/config/.env
+   sudo nano /opt/dell_server_management/config/.env
    ```
 
 2. **Set log level to DEBUG:**
@@ -454,21 +454,21 @@ sudo journalctl -u mosquitto -f
 
 **Test MQTT client:**
 ```bash
-cd /opt/dell_t310_management
+cd /opt/dell_server_management
 source venv/bin/activate
 python3 scripts/utils/mqtt_client.py
 ```
 
 **Test IPMI wrapper:**
 ```bash
-cd /opt/dell_t310_management
+cd /opt/dell_server_management
 source venv/bin/activate
 python3 scripts/utils/ipmi_wrapper.py
 ```
 
 **Test WoL boot:**
 ```bash
-cd /opt/dell_t310_management
+cd /opt/dell_server_management
 source venv/bin/activate
 python3 scripts/boot/wol_boot.py --mac <mac-address>
 ```

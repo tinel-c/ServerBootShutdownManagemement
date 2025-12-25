@@ -176,7 +176,7 @@ sudo ./install.sh
 
 The installation script will:
 - Install system dependencies (Python, ipmitool, wakeonlan)
-- Create installation directory (`/opt/dell_t310_management`)
+- Create installation directory (`/opt/dell_server_management`)
 - Set up Python virtual environment
 - Install Python packages
 - Copy configuration templates
@@ -190,10 +190,10 @@ The installation script will:
 
 ```bash
 # Copy example file
-sudo cp /opt/dell_t310_management/config/.env.example /opt/dell_t310_management/config/.env
+sudo cp /opt/dell_server_management/config/.env.example /opt/dell_server_management/config/.env
 
 # Edit with your credentials
-sudo nano /opt/dell_t310_management/config/.env
+sudo nano /opt/dell_server_management/config/.env
 ```
 
 Update the following values:
@@ -223,13 +223,13 @@ LOG_FILE=/var/log/dell_t310_management.log
 **Important:** Set restrictive permissions on `.env`:
 
 ```bash
-sudo chmod 600 /opt/dell_t310_management/config/.env
+sudo chmod 600 /opt/dell_server_management/config/.env
 ```
 
 ### Step 2: Configure MQTT Settings
 
 ```bash
-sudo nano /opt/dell_t310_management/config/mqtt_config.yaml
+sudo nano /opt/dell_server_management/config/mqtt_config.yaml
 ```
 
 Update the broker host:
@@ -244,7 +244,7 @@ mqtt:
 ### Step 3: Configure Server Settings
 
 ```bash
-sudo nano /opt/dell_t310_management/config/server_config.yaml
+sudo nano /opt/dell_server_management/config/server_config.yaml
 ```
 
 Verify all settings match your hardware:
@@ -299,7 +299,7 @@ All services should show `active (running)`.
 
 ```bash
 # Manually test IPMI
-cd /opt/dell_t310_management
+cd /opt/dell_server_management
 source venv/bin/activate
 python3 scripts/utils/ipmi_wrapper.py
 ```
@@ -361,7 +361,7 @@ mosquitto_pub -h localhost -t "dell/t310/command/shutdown" -u dell_t310 -P <pass
 sudo openssl req -new -x509 -days 365 -extensions v3_ca -keyout /etc/mosquitto/ca.key -out /etc/mosquitto/ca.crt
 
 # Update mqtt_config.yaml
-sudo nano /opt/dell_t310_management/config/mqtt_config.yaml
+sudo nano /opt/dell_server_management/config/mqtt_config.yaml
 ```
 
 Set `tls.enabled: true` and configure certificate paths.
@@ -381,7 +381,7 @@ sudo ufw allow from 192.168.1.0/24 to any port 623 proto udp
 sudo apt update && sudo apt upgrade
 
 # Update Python packages
-cd /opt/dell_t310_management
+cd /opt/dell_server_management
 source venv/bin/activate
 pip install --upgrade -r requirements.txt
 ```
@@ -413,7 +413,7 @@ Backup configuration files regularly:
 
 ```bash
 # Create backup script
-sudo nano /opt/dell_t310_management/backup.sh
+sudo nano /opt/dell_server_management/backup.sh
 ```
 
 ```bash
@@ -422,7 +422,7 @@ BACKUP_DIR="/backup/dell_t310_management"
 DATE=$(date +%Y%m%d_%H%M%S)
 
 mkdir -p "$BACKUP_DIR"
-tar -czf "$BACKUP_DIR/config_$DATE.tar.gz" /opt/dell_t310_management/config/
+tar -czf "$BACKUP_DIR/config_$DATE.tar.gz" /opt/dell_server_management/config/
 ```
 
 ---

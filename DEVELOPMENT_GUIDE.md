@@ -408,8 +408,8 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/opt/dell_t310_management
-ExecStart=/usr/bin/python3 /opt/dell_t310_management/scripts/boot/mqtt_boot_listener.py
+WorkingDirectory=/opt/dell_server_management
+ExecStart=/usr/bin/python3 /opt/dell_server_management/scripts/boot/mqtt_boot_listener.py
 Restart=always
 RestartSec=10
 StandardOutput=journal

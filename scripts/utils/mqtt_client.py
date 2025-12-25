@@ -43,9 +43,9 @@ class MQTTClientWrapper:
             tls_config: TLS configuration dictionary
         """
         self.broker_host = broker_host
-        self.broker_port = broker_port
-        self.keepalive = keepalive
-        self.qos = qos
+        self.broker_port = int(broker_port)
+        self.keepalive = int(keepalive)
+        self.qos = int(qos)
         self.use_tls = use_tls
         self.tls_config = tls_config or {}
         

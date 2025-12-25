@@ -793,7 +793,7 @@ ipmitool -I lanplus -H 192.168.1.100 -U admin -P password user list
 
 ## License
 
-[Specify your license here - MIT, GPL, etc.]
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ---
 
@@ -856,5 +856,5 @@ sudo journalctl -u service_name -f
 ---
 
 **Document Version:** 1.0  
-**Last Updated:** 2025-12-25  
+**Last Updated:** 2025-12-26  
 **Author:** Constantin Bogza

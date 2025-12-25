@@ -304,11 +304,15 @@ For issues and questions, please refer to:
 
 **GitHub:** https://github.com/tinel-c/ServerBootShutdownManagemement
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## Author
 
-[Your Name]
+**Constantin Bogza**
 
 ---
 
 **Version:** 1.0.0  
-**Last Updated:** 2025-12-25
+**Last Updated:** 2025-12-26

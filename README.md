@@ -11,6 +11,12 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 - 🔄 **Auto-Restart** - Systemd services with automatic restart
 - 📝 **Comprehensive Logging** - Detailed logs for troubleshooting
 
+## System Architecture
+
+![System Architecture](docs/architecture_diagram.png)
+
+The system uses MQTT as a central message broker to coordinate commands between control clients and multiple servers. Each server runs an MQTT listener that subscribes to server-specific topics and executes boot/shutdown commands using the appropriate management interface (IPMI for Dell T310, iLO for HP DL360p).
+
 ## Quick Start
 
 ### Prerequisites

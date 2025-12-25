@@ -37,6 +37,9 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 print_info "Starting Dell & HP Server Management System installation..."
 
 # Step 1: Install system dependencies
@@ -62,7 +65,6 @@ cd "$INSTALL_DIR"
 
 # Step 3: Copy project files
 print_info "Step 3: Copying project files..."
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
 
 # Step 4: Create Python virtual environment

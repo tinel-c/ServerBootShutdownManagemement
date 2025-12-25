@@ -799,9 +799,9 @@ ipmitool -I lanplus -H 192.168.1.100 -U admin -P password user list
 
 ## Support & Contact
 
-**Project Repository:** [GitHub URL]
-**Issue Tracker:** [GitHub Issues URL]
-**Documentation:** [Documentation URL]
+**Project Repository:** https://github.com/tinel-c/ServerBootShutdownManagemement
+**Issue Tracker:** https://github.com/tinel-c/ServerBootShutdownManagemement/issues
+**Documentation:** https://github.com/tinel-c/ServerBootShutdownManagemement/tree/main/docs
 
 ---
 

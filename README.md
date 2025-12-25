@@ -26,8 +26,8 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
-   cd ServerBootShutdownMangement
+   git clone https://github.com/tinel-c/ServerBootShutdownManagemement.git
+   cd ServerBootShutdownManagemement
    ```
 
 2. **Run the installation script:**
@@ -298,7 +298,11 @@ ServerBootShutdownMangement/
 For issues and questions, please refer to:
 - [Development Guide](DEVELOPMENT_GUIDE.md)
 - [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
-- GitHub Issues (if applicable)
+- [GitHub Issues](https://github.com/tinel-c/ServerBootShutdownManagemement/issues)
+
+## Repository
+
+**GitHub:** https://github.com/tinel-c/ServerBootShutdownManagemement
 
 ## Author
 

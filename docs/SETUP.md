@@ -156,12 +156,12 @@ mosquitto_pub -h localhost -t test/topic -m "Hello MQTT" -u dell_t310 -P <passwo
 ### Step 1: Download the Project
 
 ```bash
-# Clone or download the project
+# Clone the repository
 cd /tmp
-git clone <repository-url> ServerBootShutdownMangement
+git clone https://github.com/tinel-c/ServerBootShutdownManagemement.git
 # OR download and extract ZIP file
 
-cd ServerBootShutdownMangement
+cd ServerBootShutdownManagemement
 ```
 
 ### Step 2: Run Installation Script

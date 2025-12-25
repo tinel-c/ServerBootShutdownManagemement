@@ -1,0 +1,46 @@
+servers:
+  # Dell T310 Server with IPMI
+  - name: "Dell T310"
+    type: "ipmi"
+    mac_address: "${T310_MAC_ADDRESS}"  # From environment variable
+    mqtt_prefix: "dell/t310"
+    
+    ipmi:
+      host: "${T310_IPMI_HOST}"  # From environment variable
+      username: "${T310_IPMI_USERNAME}"  # From environment variable
+      password: "${T310_IPMI_PASSWORD}"  # From environment variable
+      interface: "lanplus"
+    
+    proxmox:
+      api_url: "https://${T310_PROXMOX_HOST}:8006/api2/json"  # From environment variable
+      username: "${T310_PROXMOX_USERNAME}"  # From environment variable
+      password: "${T310_PROXMOX_PASSWORD}"  # From environment variable
+      verify_ssl: false
+    
+    shutdown:
+      graceful_timeout: 300  # seconds
+      vm_shutdown_timeout: 120  # seconds
+    
+    monitoring:
+      status_interval: 30  # seconds
+      health_check_interval: 60  # seconds
+
+  # HP DL360p Server with iLO
+  - name: "HP DL360p"
+    type: "ilo"
+    mac_address: "${DL360P_MAC_ADDRESS}"  # From environment variable
+    mqtt_prefix: "hp/dl360p"
+    
+    ilo:
+      host: "${DL360P_ILO_HOST}"  # From environment variable
+      username: "${DL360P_ILO_USERNAME}"  # From environment variable
+      password: "${DL360P_ILO_PASSWORD}"  # From environment variable
+      verify_ssl: false
+    
+    shutdown:
+      graceful_timeout: 300  # seconds
+    
+    monitoring:
+      status_interval: 30  # seconds
+      health_check_interval: 60  # seconds
+

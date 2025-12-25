@@ -1,0 +1,26 @@
+mqtt:
+  broker:
+    host: "${MQTT_BROKER_HOST}"  # From environment variable
+    port: "${MQTT_BROKER_PORT}"  # From environment variable
+    keepalive: 60
+  
+  authentication:
+    username: "${MQTT_USERNAME}"  # From environment variable
+    password: "${MQTT_PASSWORD}"  # From environment variable
+  
+  tls:
+    enabled: false
+    ca_certs: "/path/to/ca.crt"
+    certfile: "/path/to/client.crt"
+    keyfile: "/path/to/client.key"
+  
+  topics:
+    command_boot: "dell/t310/command/boot"
+    command_shutdown: "dell/t310/command/shutdown"
+    command_status: "dell/t310/command/status"
+    status: "dell/t310/status"
+    logs: "dell/t310/logs"
+    response: "dell/t310/response"
+  
+  qos: 1
+  retain: false

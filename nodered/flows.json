@@ -98,7 +98,7 @@
         "width": 0,
         "height": 0,
         "passthru": false,
-        "tooltip": "",
+        "tooltip": "Wake-on-LAN Boot",
         "color": "",
         "bgcolor": "",
         "className": "",
@@ -121,22 +121,50 @@
         "z": "tab_dashboard",
         "group": "ui_group_dell",
         "name": "SHUTDOWN Dell T310",
-        "label": "GRACEFUL SHUTDOWN",
+        "label": "PROXMOX SHUTDOWN",
         "order": 2,
         "width": 0,
         "height": 0,
         "passthru": false,
-        "tooltip": "",
+        "tooltip": "Graceful VM + Host Shutdown",
         "color": "",
-        "bgcolor": "red",
+        "bgcolor": "#ff9800",
         "className": "",
-        "icon": "stop",
+        "icon": "pause",
         "payload": "{\"action\": \"shutdown\", \"type\": \"graceful\"}",
         "payloadType": "json",
         "topic": "dell/t310/command/shutdown",
         "topicType": "str",
         "x": 180,
         "y": 160,
+        "wires": [
+            [
+                "mqtt_out_dell"
+            ]
+        ]
+    },
+    {
+        "id": "btn_dell_force_shutdown",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_dell",
+        "name": "FORCE SHUTDOWN Dell T310",
+        "label": "FORCE SHUTDOWN",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Hard Power Off via IPMI",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "stop",
+        "payload": "{\"action\": \"shutdown\", \"type\": \"force\"}",
+        "payloadType": "json",
+        "topic": "dell/t310/command/shutdown",
+        "topicType": "str",
+        "x": 200,
+        "y": 220,
         "wires": [
             [
                 "mqtt_out_dell"
@@ -175,7 +203,7 @@
         "rh": 0,
         "inputs": 0,
         "x": 160,
-        "y": 240,
+        "y": 300,
         "wires": [
             [
                 "text_dell_status"
@@ -187,7 +215,7 @@
         "type": "ui-text",
         "z": "tab_dashboard",
         "group": "ui_group_dell",
-        "order": 3,
+        "order": 4,
         "width": 0,
         "height": 0,
         "name": "Dell Status",
@@ -196,7 +224,7 @@
         "layout": "row-spread",
         "className": "",
         "x": 490,
-        "y": 240,
+        "y": 300,
         "wires": []
     },
     {
@@ -210,7 +238,7 @@
         "width": 0,
         "height": 0,
         "passthru": false,
-        "tooltip": "",
+        "tooltip": "iLO Power On",
         "color": "",
         "bgcolor": "",
         "className": "",
@@ -220,7 +248,7 @@
         "topic": "hp/dl360p/command/boot",
         "topicType": "str",
         "x": 170,
-        "y": 340,
+        "y": 400,
         "wires": [
             [
                 "mqtt_out_hp"
@@ -233,12 +261,12 @@
         "z": "tab_dashboard",
         "group": "ui_group_hp",
         "name": "SHUTDOWN HP DL360p",
-        "label": "GRACEFUL SHUTDOWN",
+        "label": "PROXMOX SHUTDOWN",
         "order": 2,
         "width": 0,
         "height": 0,
         "passthru": false,
-        "tooltip": "",
+        "tooltip": "Graceful VM + Host Shutdown",
         "color": "",
         "bgcolor": "#ff9800",
         "className": "",
@@ -248,7 +276,7 @@
         "topic": "hp/dl360p/command/shutdown",
         "topicType": "str",
         "x": 190,
-        "y": 400,
+        "y": 460,
         "wires": [
             [
                 "mqtt_out_hp"
@@ -276,7 +304,7 @@
         "topic": "hp/dl360p/command/shutdown",
         "topicType": "str",
         "x": 210,
-        "y": 460,
+        "y": 520,
         "wires": [
             [
                 "mqtt_out_hp"
@@ -298,7 +326,7 @@
         "expiry": "",
         "broker": "mqtt_broker_local",
         "x": 620,
-        "y": 380,
+        "y": 440,
         "wires": []
     },
     {
@@ -315,7 +343,7 @@
         "rh": 0,
         "inputs": 0,
         "x": 170,
-        "y": 520,
+        "y": 600,
         "wires": [
             [
                 "text_hp_status"
@@ -336,7 +364,7 @@
         "layout": "row-spread",
         "className": "",
         "x": 490,
-        "y": 520,
+        "y": 600,
         "wires": []
     },
     {
@@ -353,7 +381,7 @@
         "rh": 0,
         "inputs": 0,
         "x": 160,
-        "y": 620,
+        "y": 700,
         "wires": [
             [
                 "func_log_accumulator"
@@ -372,7 +400,7 @@
         "finalize": "",
         "libs": [],
         "x": 340,
-        "y": 620,
+        "y": 700,
         "wires": [
             [
                 "ui_template_logs"
@@ -387,7 +415,7 @@
         "name": "Rolling Log",
         "order": 1,
         "width": "12",
-        "height": "6",
+        "height": "10",
         "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div v-for=\"line in msg.payload.slice().reverse()\" :key=\"line.timestamp\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #fff;\">[{{line.action || 'INFO'}}]</span> \n        <span :class=\"{'text-success': line.success, 'text-danger': !line.success}\">{{line.message || JSON.stringify(line)}}</span>\n    </div>\n</div>\n\n<style>\n.text-success { color: #4caf50; }\n.text-danger { color: #f44336; }\n</style>",
         "storeOutMessages": true,
         "fwdInMessages": true,
@@ -395,7 +423,7 @@
         "templateScope": "local",
         "className": "",
         "x": 520,
-        "y": 620,
+        "y": 700,
         "wires": [
             []
         ]

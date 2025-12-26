@@ -280,9 +280,17 @@ def load_config() -> Dict[str, Any]:
     
     # Calculate config directory first
     config_dir = Path(__file__).parent.parent.parent / "config"
+    env_path = config_dir / ".env"
     
     # Load environment variables from .env file in config directory
-    load_dotenv(dotenv_path=config_dir / ".env")
+    if env_path.exists():
+        # logger is not available here unless we move import or pass it, but print works for startup
+        print(f"Loading environment from: {env_path}")
+        load_dotenv(dotenv_path=env_path)
+    else:
+        print(f"WARNING: .env file not found at: {env_path}")
+        # Try loading from current directory as fallback
+        load_dotenv()
     
     config = {}
     
@@ -308,10 +316,19 @@ def load_config() -> Dict[str, Any]:
             return [replace_env_vars(item) for item in obj]
         elif isinstance(obj, str) and obj.startswith('${') and obj.endswith('}'):
             env_var = obj[2:-1]
-            return os.getenv(env_var, obj)
+            val = os.getenv(env_var)
+            if val is None:
+                print(f"WARNING: Environment variable {env_var} not set! Keeping placeholder.")
+                return obj
+            return val
         return obj
     
     config = replace_env_vars(config)
+    
+    # Validate critical config
+    broker_port = config.get('mqtt', {}).get('broker', {}).get('port')
+    if isinstance(broker_port, str) and broker_port.startswith('${'):
+        raise ValueError(f"Configuration Error: MQTT_BROKER_PORT not resolved. Value: {broker_port}. Check your .env file.")
     
     return config
 

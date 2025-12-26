@@ -236,12 +236,25 @@ class BootListener:
         """Start the boot listener."""
         logger.info("Starting boot listener...")
         
-        # Connect to MQTT broker
         if not self.mqtt_client.connect():
             logger.error("Failed to connect to MQTT broker")
             return False
+            
+        # Setup MQTT Logging
+        try:
+            from mqtt_logger import MQTTHandler
+            # We access the raw paho client from the wrapper
+            mqtt_handler = MQTTHandler(
+                self.mqtt_client.client, 
+                service_name="boot-listener",
+                topic="system/logs"
+            )
+            logging.getLogger().addHandler(mqtt_handler)
+            logger.info("Centralized MQTT logging enabled")
+        except Exception as e:
+            logger.error(f"Failed to setup MQTT logging: {e}")
         
-        # Subscribe to boot command topics for all servers
+        # Subscribe to boot topics for all servers
         for server_name, server_info in self.server_managers.items():
             mqtt_prefix = server_info['config'].get('mqtt_prefix', '')
             boot_topic = f"{mqtt_prefix}/command/boot"

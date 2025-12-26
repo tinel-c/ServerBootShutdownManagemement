@@ -166,7 +166,7 @@ A pre-configured Node-RED dashboard is available to control your servers via a G
    docker-compose up -d
    ```
 
-3. Open your browser and go to: http://localhost:1880/ui
+3. Open your browser and go to: http://localhost:1880/dashboard/home
 
 ### Configuration
 The `flows.json` file is automatically loaded and includes:

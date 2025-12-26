@@ -1,11 +1,64 @@
 [
     {
-        "id": "tab_dashboard",
-        "type": "tab",
-        "label": "Server Management",
-        "disabled": false,
-        "info": "",
-        "env": []
+        "id": "ui_base",
+        "type": "ui-base",
+        "name": "Server Management",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ]
+    },
+    {
+        "id": "ui_page_home",
+        "type": "ui-page",
+        "name": "Home",
+        "ui": "ui_base",
+        "path": "/home",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "default",
+        "order": 1
+    },
+    {
+        "id": "ui_group_dell",
+        "type": "ui-group",
+        "name": "Dell T310 Control",
+        "page": "ui_page_home",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_hp",
+        "type": "ui-group",
+        "name": "HP DL360p Control",
+        "page": "ui_page_home",
+        "width": "6",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_logs",
+        "type": "ui-group",
+        "name": "Log Console",
+        "page": "ui_page_home",
+        "width": "12",
+        "height": "1",
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
     },
     {
         "id": "mqtt_broker_local",
@@ -35,158 +88,21 @@
         "sessionExpiry": ""
     },
     {
-        "id": "ui_group_dell",
-        "type": "ui_group",
-        "name": "Dell T310 Control",
-        "tab": "ui_tab_home",
-        "order": 1,
-        "disp": true,
-        "width": "6",
-        "collapse": false
-    },
-    {
-        "id": "ui_group_hp",
-        "type": "ui_group",
-        "name": "HP DL360p Control",
-        "tab": "ui_tab_home",
-        "order": 2,
-        "disp": true,
-        "width": "6",
-        "collapse": false
-    },
-    {
-        "id": "ui_group_logs",
-        "type": "ui_group",
-        "name": "Log Console",
-        "tab": "ui_tab_home",
-        "order": 3,
-        "disp": true,
-        "width": "12",
-        "collapse": false
-    },
-    {
-        "id": "ui_tab_home",
-        "type": "ui_tab",
-        "name": "Server Control",
-        "icon": "dashboard",
-        "order": 1,
-        "disabled": false,
-        "hidden": false
-    },
-    {
-        "id": "ui_base",
-        "type": "ui_base",
-        "theme": {
-            "name": "theme-dark",
-            "lightTheme": {
-                "default": "#0094CE",
-                "baseColor": "#0094CE",
-                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
-                "edited": true,
-                "reset": false
-            },
-            "darkTheme": {
-                "default": "#097479",
-                "baseColor": "#097479",
-                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
-                "edited": true,
-                "reset": false
-            },
-            "customTheme": {
-                "name": "Untitled Theme 1",
-                "default": "#4B7930",
-                "baseColor": "#4B7930",
-                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
-            },
-            "themeState": {
-                "base-color": {
-                    "default": "#097479",
-                    "value": "#097479",
-                    "edited": true
-                },
-                "page-titlebar-backgroundColor": {
-                    "value": "#097479",
-                    "edited": false
-                },
-                "page-backgroundColor": {
-                    "value": "#111111",
-                    "edited": false
-                },
-                "page-sidebar-backgroundColor": {
-                    "value": "#333333",
-                    "edited": false
-                },
-                "group-textColor": {
-                    "value": "#097479",
-                    "edited": false
-                },
-                "group-borderColor": {
-                    "value": "#555555",
-                    "edited": false
-                },
-                "group-backgroundColor": {
-                    "value": "#333333",
-                    "edited": false
-                },
-                "widget-textColor": {
-                    "value": "#eeeeee",
-                    "edited": false
-                },
-                "widget-backgroundColor": {
-                    "value": "#097479",
-                    "edited": false
-                },
-                "widget-borderColor": {
-                    "value": "#333333",
-                    "edited": false
-                },
-                "base-font": {
-                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
-                }
-            },
-            "angularTheme": {
-                "primary": "indigo",
-                "accents": "blue",
-                "warn": "red",
-                "background": "grey",
-                "palette": "light"
-            }
-        },
-        "site": {
-            "name": "Node-RED Dashboard",
-            "hideToolbar": "false",
-            "allowSwipe": "false",
-            "lockMenu": "false",
-            "allowTempTheme": "true",
-            "dateFormat": "DD/MM/YYYY",
-            "sizes": {
-                "sx": 48,
-                "sy": 48,
-                "gx": 6,
-                "gy": 6,
-                "cx": 6,
-                "cy": 6,
-                "px": 0,
-                "py": 0
-            }
-        }
-    },
-    {
         "id": "btn_dell_boot",
-        "type": "ui_button",
+        "type": "ui-button",
         "z": "tab_dashboard",
-        "name": "BOOT Dell T310",
         "group": "ui_group_dell",
+        "name": "BOOT Dell T310",
+        "label": "BOOT SERVER",
         "order": 1,
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "BOOT SERVER",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
-        "icon": "fa-power-off",
+        "icon": "power-off",
         "payload": "{\"action\": \"boot\", \"method\": \"wol\"}",
         "payloadType": "json",
         "topic": "dell/t310/command/boot",
@@ -201,20 +117,20 @@
     },
     {
         "id": "btn_dell_shutdown",
-        "type": "ui_button",
+        "type": "ui-button",
         "z": "tab_dashboard",
-        "name": "SHUTDOWN Dell T310",
         "group": "ui_group_dell",
+        "name": "SHUTDOWN Dell T310",
+        "label": "GRACEFUL SHUTDOWN",
         "order": 2,
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "GRACEFUL SHUTDOWN",
         "tooltip": "",
         "color": "",
         "bgcolor": "red",
         "className": "",
-        "icon": "fa-stop",
+        "icon": "stop",
         "payload": "{\"action\": \"shutdown\", \"type\": \"graceful\"}",
         "payloadType": "json",
         "topic": "dell/t310/command/shutdown",
@@ -268,7 +184,7 @@
     },
     {
         "id": "text_dell_status",
-        "type": "ui_text",
+        "type": "ui-text",
         "z": "tab_dashboard",
         "group": "ui_group_dell",
         "order": 3,
@@ -285,20 +201,20 @@
     },
     {
         "id": "btn_hp_boot",
-        "type": "ui_button",
+        "type": "ui-button",
         "z": "tab_dashboard",
-        "name": "BOOT HP DL360p",
         "group": "ui_group_hp",
+        "name": "BOOT HP DL360p",
+        "label": "BOOT SERVER",
         "order": 1,
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "BOOT SERVER",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
-        "icon": "fa-power-off",
+        "icon": "power-off",
         "payload": "{\"action\": \"boot\", \"method\": \"ilo\"}",
         "payloadType": "json",
         "topic": "hp/dl360p/command/boot",
@@ -313,20 +229,20 @@
     },
     {
         "id": "btn_hp_shutdown",
-        "type": "ui_button",
+        "type": "ui-button",
         "z": "tab_dashboard",
-        "name": "SHUTDOWN HP DL360p",
         "group": "ui_group_hp",
+        "name": "SHUTDOWN HP DL360p",
+        "label": "GRACEFUL SHUTDOWN",
         "order": 2,
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "GRACEFUL SHUTDOWN",
         "tooltip": "",
         "color": "",
         "bgcolor": "red",
         "className": "",
-        "icon": "fa-stop",
+        "icon": "stop",
         "payload": "{\"action\": \"shutdown\", \"type\": \"graceful\"}",
         "payloadType": "json",
         "topic": "hp/dl360p/command/shutdown",
@@ -380,7 +296,7 @@
     },
     {
         "id": "text_hp_status",
-        "type": "ui_text",
+        "type": "ui-text",
         "z": "tab_dashboard",
         "group": "ui_group_hp",
         "order": 3,
@@ -418,14 +334,14 @@
     },
     {
         "id": "ui_template_logs",
-        "type": "ui_template",
+        "type": "ui-template",
         "z": "tab_dashboard",
         "group": "ui_group_logs",
         "name": "Rolling Log",
         "order": 1,
         "width": "12",
         "height": "6",
-        "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div ng-repeat=\"line in msg.payload | limitTo: -20 track by $index\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #fff;\">[{{line.action}}]</span> \n        <span ng-class=\"{'text-success': line.success, 'text-danger': !line.success}\">{{line.message}}</span>\n    </div>\n</div>",
+        "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div v-for=\"line in msg.payload.slice(-20)\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #fff;\">[{{line.action}}]</span> \n        <span :class=\"{'text-success': line.success, 'text-danger': !line.success}\">{{line.message}}</span>\n    </div>\n</div>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,
@@ -436,5 +352,13 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "tab_dashboard",
+        "type": "tab",
+        "label": "Server Management",
+        "disabled": false,
+        "info": "",
+        "env": []
     }
 ]

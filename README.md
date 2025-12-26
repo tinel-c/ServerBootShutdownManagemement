@@ -150,6 +150,32 @@ mosquitto_sub -h <mqtt-broker> -t "hp/dl360p/status" -v
 
 Status messages are published every 30 seconds (configurable).
 
+
+## 🖥️ Node-RED Dashboard
+
+A pre-configured Node-RED dashboard is available to control your servers via a GUI.
+
+### Setup
+1. Navigate to the `nodered` directory:
+   ```bash
+   cd nodered
+   ```
+
+2. Start Node-RED using Docker:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. Open your browser and go to: http://localhost:1880/ui
+
+### Configuration
+The `flows.json` file is automatically loaded and includes:
+- **Dell T310 Control**: Boot, Graceful Shutdown, Status
+- **HP DL360p Control**: Boot, Graceful Shutdown, Status
+- **Log Console**: Real-time view of MQTT responses
+
+*Note: The setup assumes the MQTT broker is running on the host machine (`localhost:1883`). If your broker is elsewhere, update the "Local Broker" configuration in Node-RED.*
+
 ## Configuration
 
 ### Environment Variables (.env)

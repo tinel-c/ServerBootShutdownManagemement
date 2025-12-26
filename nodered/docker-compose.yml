@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  node-red:
+    image: nodered/node-red:latest
+    container_name: node-red-dashboard
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    environment:
+      - TZ=Europe/Bucharest
+    volumes:
+      - ./data:/data
+    network_mode: host
+    volumes:
+      - ./data:/data
+

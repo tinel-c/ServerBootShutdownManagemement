@@ -52,6 +52,23 @@ def shutdown_proxmox_vms(
             verify_ssl=verify_ssl
         )
         
+        # Get HA resources to identify HA-managed VMs
+        ha_vm_ids = set()
+        try:
+            # HA resources typically return a list of dicts with 'sid' like 'vm:100'
+            # We catch errors just in case HA is not configured or accessible
+            ha_resources = proxmox.cluster.ha.resources.get()
+            for resource in ha_resources:
+                sid = resource.get('sid', '')
+                if sid.startswith('vm:'):
+                    # Extract ID from 'vm:100'
+                    ha_vm_ids.add(str(sid.split(':')[1]))
+            
+            if ha_vm_ids:
+                logger.info(f"Identified HA-managed VMs (skipping explicit shutdown): {', '.join(ha_vm_ids)}")
+        except Exception as e:
+            logger.debug(f"Could not fetch HA resources (normal for standalone nodes): {e}")
+
         # Get all nodes
         nodes = proxmox.nodes.get()
         
@@ -69,6 +86,11 @@ def shutdown_proxmox_vms(
                 status = vm.get('status', 'unknown')
                 
                 if status == 'running':
+                    # Check if HA managed
+                    if str(vm_id) in ha_vm_ids:
+                        logger.info(f"Skipping explicit shutdown for HA-managed VM: {vm_name} (ID: {vm_id})")
+                        continue
+
                     logger.info(f"Shutting down VM: {vm_name} (ID: {vm_id})")
                     try:
                         proxmox.nodes(node_name).qemu(vm_id).status.shutdown.post()

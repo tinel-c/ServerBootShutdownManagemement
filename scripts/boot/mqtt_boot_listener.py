@@ -20,6 +20,7 @@ from mqtt_client import MQTTClientWrapper
 from server_factory import get_all_server_managers
 from logger import get_logger
 import wol_boot
+import ensure_proxmox_boot
 
 logger = get_logger(__name__)
 
@@ -144,13 +145,48 @@ class BootListener:
                 # Wait for boot
                 logger.info(f"Waiting for {server_name} to boot...")
                 if manager.wait_for_power_state("on", timeout=120):
-                    logger.info(f"{server_name} booted successfully")
+                    logger.info(f"{server_name} booted successfully (Power is ON)")
+                    
+                    # Verify Proxmox and VMs if configured
+                    if 'proxmox' in server_config:
+                        logger.info(f"Initiating Proxmox boot verification for {server_name}...")
+                        proxmox_config = server_config.get('proxmox', {})
+                        
+                        # api_url parsing
+                        api_url = proxmox_config.get('api_url', '')
+                        proxmox_host = api_url.replace('/api2/json', '').replace('https://', '').replace(':8006', '')
+                        
+                        ensure_proxmox_boot.ensure_proxmox_up(
+                            proxmox_host=proxmox_host,
+                            username=proxmox_config.get('username'),
+                            password=proxmox_config.get('password'),
+                            timeout=600, # 10 minutes
+                            verify_ssl=proxmox_config.get('verify_ssl', False)
+                        )
+                    
                     return True
                 else:
                     logger.warning(f"{server_name} boot verification timed out")
                     return False
             
-            return False
+            # For WOL, we can also try to verify Proxmox if configured
+            if method == 'wol' and 'proxmox' in server_config:
+                 logger.info(f"WOL packet sent. waiting for Proxmox availability for {server_name}...")
+                 proxmox_config = server_config.get('proxmox', {})
+                 
+                 # api_url parsing
+                 api_url = proxmox_config.get('api_url', '')
+                 proxmox_host = api_url.replace('/api2/json', '').replace('https://', '').replace(':8006', '')
+                 
+                 ensure_proxmox_boot.ensure_proxmox_up(
+                    proxmox_host=proxmox_host,
+                    username=proxmox_config.get('username'),
+                    password=proxmox_config.get('password'),
+                    timeout=600, # 10 minutes
+                    verify_ssl=proxmox_config.get('verify_ssl', False)
+                 )
+            
+            return True
             
         except Exception as e:
             logger.error(f"Error executing boot for {server_name}: {e}")

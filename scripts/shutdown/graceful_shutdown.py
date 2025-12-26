@@ -146,8 +146,9 @@ def shutdown_proxmox_node(
             if status == 'online':
                 logger.info(f"Sending shutdown command to node: {node_name}")
                 try:
-                    # Execute 'shutdown' command on the node
-                    proxmox.nodes(node_name).status.shutdown.post()
+                    # Execute 'shutdown' command on the node via status endpoint
+                    # Correct API: POST /nodes/{node}/status with parameter command='shutdown'
+                    proxmox.nodes(node_name).status.post(command='shutdown')
                     logger.info(f"Shutdown command sent to node {node_name}")
                 except Exception as e:
                     logger.error(f"Failed to shutdown node {node_name} via API: {e}")

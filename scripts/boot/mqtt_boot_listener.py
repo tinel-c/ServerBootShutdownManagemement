@@ -278,11 +278,11 @@ def load_config() -> Dict[str, Any]:
     import yaml
     from dotenv import load_dotenv
     
-    # Load environment variables
-    load_dotenv()
-    
-    # Load YAML configuration
+    # Calculate config directory first
     config_dir = Path(__file__).parent.parent.parent / "config"
+    
+    # Load environment variables from .env file in config directory
+    load_dotenv(dotenv_path=config_dir / ".env")
     
     config = {}
     

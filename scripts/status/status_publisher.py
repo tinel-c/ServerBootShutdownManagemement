@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Status publisher for Dell T310 Management System.
+Status publisher for Dell & HP Server Management System.
 Publishes server status to MQTT at regular intervals.
+Supports multiple servers (IPMI and iLO).
 """
 
 import sys
@@ -17,7 +18,7 @@ from typing import Dict, Any, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent / "utils"))
 
 from mqtt_client import MQTTClientWrapper
-from ipmi_wrapper import IPMIWrapper
+from server_factory import get_all_server_managers
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,142 +40,114 @@ class StatusPublisher:
         
         # Extract configuration
         mqtt_config = config.get('mqtt', {})
-        self.server_config = config.get('server', {})
         self.monitoring_config = config.get('monitoring', {})
         
         # Create MQTT client
         self.mqtt_client = MQTTClientWrapper(
             broker_host=mqtt_config.get('broker', {}).get('host'),
             broker_port=mqtt_config.get('broker', {}).get('port', 1883),
-            client_id="dell_t310_status_publisher",
+            client_id="server_status_publisher",
             username=mqtt_config.get('authentication', {}).get('username'),
             password=mqtt_config.get('authentication', {}).get('password'),
             keepalive=mqtt_config.get('broker', {}).get('keepalive', 60),
             qos=mqtt_config.get('qos', 1)
         )
         
-        self.status_topic = mqtt_config.get('topics', {}).get('status', 'dell/t310/status')
+        # Global publish interval (default fallback)
         self.publish_interval = self.monitoring_config.get('status_interval', 30)
         
-        # Create IPMI wrapper
-        ipmi_config = self.server_config.get('ipmi', {})
-        self.ipmi = IPMIWrapper(
-            host=ipmi_config.get('host'),
-            username=ipmi_config.get('username'),
-            password=ipmi_config.get('password')
-        )
+        # Initialize server managers
+        try:
+            self.server_managers = get_all_server_managers(config)
+            logger.info(f"Initialized {len(self.server_managers)} server manager(s)")
+        except Exception as e:
+            logger.error(f"Failed to initialize server managers: {e}")
+            self.server_managers = {}
         
         logger.info("Status publisher initialized")
     
-    def get_server_status(self) -> Dict[str, Any]:
+    def get_server_status(self, server_name: str, manager_info: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Get current server status.
+        Get current status for a specific server.
         
+        Args:
+            server_name: Name of the server
+            manager_info: Dictionary containing 'config' and 'manager'
+            
         Returns:
             Dictionary with server status information
         """
+        server_config = manager_info['config']
+        manager = manager_info['manager']
+        
         status = {
             "timestamp": datetime.now().isoformat(),
-            "server_name": self.server_config.get('name', 'Dell T310'),
+            "server_name": server_name,
+            "server_type": server_config.get('type', 'unknown'),
             "server_state": "unknown",
             "uptime": None,
-            "cpu_usage": None,
-            "memory_usage": None,
-            "temperature": None,
-            "power_status": None
+            "power_status": None,
+            "health": None
         }
         
         try:
             # Get power status
-            power_status = self.ipmi.get_power_status()
+            # Both IPMIWrapper and ILOWrapper implement get_power_status()
+            power_status = manager.get_power_status()
             status["power_status"] = power_status
             
             if power_status == "on":
                 status["server_state"] = "online"
                 
-                # Get chassis status for additional info
-                chassis_status = self.ipmi.get_chassis_status()
-                if chassis_status:
-                    # Extract uptime if available
-                    if "System Power" in chassis_status:
-                        status["power_info"] = chassis_status["System Power"]
+                # Extended status based on server type
+                if server_config.get('type') == 'ilo':
+                    # iLO specific status
+                    # Assuming ILOWrapper has get_server_health() or similar
+                    # For now just basic status
+                    pass
+                    
+                elif server_config.get('type') == 'ipmi':
+                    # IPMI specific status
+                    # Get chassis status if available
+                    if hasattr(manager, 'get_chassis_status'):
+                        chassis_status = manager.get_chassis_status()
+                        if chassis_status and "System Power" in chassis_status:
+                            status["power_info"] = chassis_status["System Power"]
                 
-                # Try to get system metrics if psutil is available
-                try:
-                    import psutil
-                    
-                    # CPU usage
-                    status["cpu_usage"] = psutil.cpu_percent(interval=1)
-                    
-                    # Memory usage
-                    memory = psutil.virtual_memory()
-                    status["memory_usage"] = memory.percent
-                    status["memory_total_gb"] = round(memory.total / (1024**3), 2)
-                    status["memory_used_gb"] = round(memory.used / (1024**3), 2)
-                    
-                    # Disk usage
-                    disk = psutil.disk_usage('/')
-                    status["disk_usage"] = disk.percent
-                    status["disk_total_gb"] = round(disk.total / (1024**3), 2)
-                    status["disk_used_gb"] = round(disk.used / (1024**3), 2)
-                    
-                    # Uptime
-                    boot_time = psutil.boot_time()
-                    uptime_seconds = time.time() - boot_time
-                    status["uptime"] = int(uptime_seconds)
-                    status["uptime_formatted"] = self._format_uptime(uptime_seconds)
-                    
-                except ImportError:
-                    logger.debug("psutil not available, skipping system metrics")
-                except Exception as e:
-                    logger.warning(f"Error getting system metrics: {e}")
+                # Try to get system metrics (requires guest agent or similar, usually only possible via Proxmox API or SSH)
+                # Since we don't have proxmox client here for status, we skip deep system metrics
+                # unless we want to instantiate it specifically for T310.
+                # For now, we keep it simple conformant with multi-server architecture.
                 
             elif power_status == "off":
                 status["server_state"] = "offline"
             
         except Exception as e:
-            logger.error(f"Error getting server status: {e}")
+            logger.error(f"Error getting status for {server_name}: {e}")
             status["server_state"] = "error"
             status["error"] = str(e)
         
         return status
     
-    def _format_uptime(self, seconds: float) -> str:
-        """
-        Format uptime in human-readable format.
-        
-        Args:
-            seconds: Uptime in seconds
-            
-        Returns:
-            Formatted uptime string
-        """
-        days = int(seconds // 86400)
-        hours = int((seconds % 86400) // 3600)
-        minutes = int((seconds % 3600) // 60)
-        
-        parts = []
-        if days > 0:
-            parts.append(f"{days}d")
-        if hours > 0:
-            parts.append(f"{hours}h")
-        if minutes > 0:
-            parts.append(f"{minutes}m")
-        
-        return " ".join(parts) if parts else "< 1m"
-    
-    def publish_status(self):
-        """Publish current server status to MQTT."""
-        try:
-            status = self.get_server_status()
-            
-            if self.mqtt_client.publish(self.status_topic, status):
-                logger.debug(f"Status published: {status['server_state']}")
-            else:
-                logger.warning("Failed to publish status")
+    def publish_all_statuses(self):
+        """Publish status for all servers to MQTT."""
+        for server_name, manager_info in self.server_managers.items():
+            try:
+                # Determine topic
+                mqtt_prefix = manager_info['config'].get('mqtt_prefix', f"server/{server_name}")
+                status_topic = f"{mqtt_prefix}/status"
                 
-        except Exception as e:
-            logger.error(f"Error publishing status: {e}")
+                # Get status
+                status = self.get_server_status(server_name, manager_info)
+                
+                # Publish
+                if self.mqtt_client.publish(status_topic, status):
+                    logger.debug(f"Status published for {server_name}: {status['server_state']}")
+                else:
+                    logger.warning(f"Failed to publish status for {server_name}")
+                    
+            except Exception as e:
+                logger.error(f"Error publishing status for {server_name}: {e}")
     
     def start(self):
         """Start the status publisher."""
@@ -191,7 +164,7 @@ class StatusPublisher:
         # Main loop
         try:
             while self.running:
-                self.publish_status()
+                self.publish_all_statuses()
                 time.sleep(self.publish_interval)
                 
         except KeyboardInterrupt:

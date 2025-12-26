@@ -65,7 +65,29 @@ cd "$INSTALL_DIR"
 
 # Step 3: Copy project files
 print_info "Step 3: Copying project files..."
+
+# Check for existing .env and back it up
+if [ -f "$INSTALL_DIR/config/.env" ]; then
+    print_warn "Found existing .env configuration. Preserving it..."
+    # Create temp backup
+    cp "$INSTALL_DIR/config/.env" /tmp/dell_server_management_env.bak
+    HAS_EXISTING_ENV=true
+else
+    HAS_EXISTING_ENV=false
+fi
+
+# Copy files
 cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
+
+# Restore .env if it existed
+if [ "$HAS_EXISTING_ENV" = true ]; then
+    print_info "Restoring preserved .env configuration..."
+    mv /tmp/dell_server_management_env.bak "$INSTALL_DIR/config/.env"
+    
+    # Ensure permissions are still correct
+    chmod 600 "$INSTALL_DIR/config/.env"
+    print_info "Configuration preserved."
+fi
 
 # Step 4: Create Python virtual environment
 print_info "Step 4: Creating Python virtual environment..."

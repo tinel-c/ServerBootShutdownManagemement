@@ -307,19 +307,30 @@ def load_config() -> Dict[str, Any]:
                 config.update(server_config)
     
     # Replace environment variable placeholders
+    import re
+    
     def replace_env_vars(obj, path=""):
         if isinstance(obj, dict):
             return {k: replace_env_vars(v, f"{path}.{k}") for k, v in obj.items()}
         elif isinstance(obj, list):
             return [replace_env_vars(item, f"{path}[{i}]") for i, item in enumerate(obj)]
-        elif isinstance(obj, str) and obj.startswith('${') and obj.endswith('}'):
-            env_var = obj[2:-1]
-            val = os.getenv(env_var)
-            if val is None:
-                logger.error(f"CRITICAL: Environment variable {env_var} NOT SET (path: {path})")
-                return obj # Keep placeholder to trigger validation error later
-            logger.debug(f"Resolved {obj} -> {'***' if 'PASS' in env_var or 'KEY' in env_var else val}")
-            return val
+        elif isinstance(obj, str) and '${' in obj:
+            # Regex to find all ${VAR} patterns
+            pattern = r'\$\{([^}]+)\}'
+            
+            def replacer(match):
+                env_var = match.group(1)
+                val = os.getenv(env_var)
+                if val is None:
+                    logger.error(f"CRITICAL: Environment variable {env_var} NOT SET (path: {path})")
+                    return match.group(0) # Keep placeholder
+                
+                # Check if it's sensitive
+                is_sensitive = 'PASS' in env_var or 'KEY' in env_var
+                logger.debug(f"Resolved {env_var} in '{path}' -> {'***' if is_sensitive else val}")
+                return val
+            
+            return re.sub(pattern, replacer, obj)
         return obj
     
     config = replace_env_vars(config)

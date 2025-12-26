@@ -309,18 +309,29 @@ def load_config() -> Dict[str, Any]:
             config.update(server_config)
     
     # Replace environment variable placeholders
-    def replace_env_vars(obj):
+    import re
+    
+    def replace_env_vars(obj, path=""):
         if isinstance(obj, dict):
-            return {k: replace_env_vars(v) for k, v in obj.items()}
+            return {k: replace_env_vars(v, f"{path}.{k}") for k, v in obj.items()}
         elif isinstance(obj, list):
-            return [replace_env_vars(item) for item in obj]
-        elif isinstance(obj, str) and obj.startswith('${') and obj.endswith('}'):
-            env_var = obj[2:-1]
-            val = os.getenv(env_var)
-            if val is None:
-                print(f"WARNING: Environment variable {env_var} not set! Keeping placeholder.")
-                return obj
-            return val
+            return [replace_env_vars(item, f"{path}[{i}]") for i, item in enumerate(obj)]
+        elif isinstance(obj, str) and '${' in obj:
+            # Regex to find all ${VAR} patterns
+            pattern = r'\$\{([^}]+)\}'
+            
+            def replacer(match):
+                env_var = match.group(1)
+                # Boot listener usually has minimal logging in load_config context, 
+                # but we can try to access os or just return raw
+                val = os.getenv(env_var)
+                if val is None:
+                    print(f"CRITICAL: Environment variable {env_var} NOT SET (path: {path})")
+                    return match.group(0) # Keep placeholder
+                
+                return val
+            
+            return re.sub(pattern, replacer, obj)
         return obj
     
     config = replace_env_vars(config)

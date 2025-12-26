@@ -106,36 +106,29 @@ def shutdown_proxmox_vms(
 
 
 def shutdown_proxmox_host(
-    ipmi_host: str,
-    ipmi_username: str,
-    ipmi_password: str,
+    manager: any,
     force: bool = False
 ) -> bool:
     """
-    Shutdown Proxmox host via IPMI.
+    Shutdown Proxmox host via management interface (IPMI/iLO).
     
     Args:
-        ipmi_host: IPMI interface IP address
-        ipmi_username: IPMI username
-        ipmi_password: IPMI password
+        manager: Manager instance (IPMIWrapper or ILOWrapper)
         force: Force shutdown (hard power off)
         
     Returns:
         True if shutdown successful, False otherwise
     """
     try:
-        logger.info(f"Shutting down Proxmox host via IPMI: {ipmi_host}")
-        
-        # Create IPMI wrapper
-        ipmi = IPMIWrapper(ipmi_host, ipmi_username, ipmi_password)
+        logger.info(f"Shutting down Proxmox host via {manager.__class__.__name__}: {manager.host}")
         
         # Shutdown the host
         if force:
             logger.warning("Performing FORCE shutdown")
-            success = ipmi.power_off(force=True)
+            success = manager.power_off(force=True)
         else:
-            logger.info("Performing graceful shutdown")
-            success = ipmi.power_off(force=False)
+            logger.info("Performing graceful shutdown (ACPI power button)")
+            success = manager.power_off(force=False)
         
         if success:
             logger.info("Host shutdown command sent successfully")
@@ -153,9 +146,7 @@ def graceful_shutdown(
     proxmox_host: str,
     proxmox_username: str,
     proxmox_password: str,
-    ipmi_host: str,
-    ipmi_username: str,
-    ipmi_password: str,
+    manager: any,
     vm_timeout: int = 120,
     host_delay: int = 30,
     verify_ssl: bool = False
@@ -167,9 +158,7 @@ def graceful_shutdown(
         proxmox_host: Proxmox host IP or hostname
         proxmox_username: Proxmox username
         proxmox_password: Proxmox password
-        ipmi_host: IPMI interface IP address
-        ipmi_username: IPMI username
-        ipmi_password: IPMI password
+        manager: Manager instance (IPMIWrapper or ILOWrapper)
         vm_timeout: Timeout for VM shutdown (seconds)
         host_delay: Delay before host shutdown (seconds)
         verify_ssl: Verify SSL certificate
@@ -177,7 +166,7 @@ def graceful_shutdown(
     Returns:
         True if shutdown successful, False otherwise
     """
-    logger.info("Starting graceful shutdown sequence")
+    logger.info(f"Starting graceful shutdown sequence for host: {manager.host}")
     
     # Step 1: Shutdown VMs
     logger.info("Step 1: Shutting down VMs...")
@@ -196,7 +185,7 @@ def graceful_shutdown(
     
     # Step 3: Shutdown Proxmox host
     logger.info("Step 3: Shutting down Proxmox host...")
-    if not shutdown_proxmox_host(ipmi_host, ipmi_username, ipmi_password):
+    if not shutdown_proxmox_host(manager):
         logger.error("Failed to shutdown Proxmox host")
         return False
     
@@ -274,13 +263,19 @@ if __name__ == "__main__":
         sys.exit(1)
     
     # Perform graceful shutdown
+    if args.ipmi_host:
+        from ipmi_wrapper import IPMIWrapper
+        manager = IPMIWrapper(args.ipmi_host, args.ipmi_user, args.ipmi_password)
+    else:
+        # Fallback/Default to manual testing with iLO if wanted, or error
+        logger.error("No manager credentials provided (--ipmi-host etc.)")
+        sys.exit(1)
+        
     success = graceful_shutdown(
         args.proxmox_host,
         args.proxmox_user,
         args.proxmox_password,
-        args.ipmi_host,
-        args.ipmi_user,
-        args.ipmi_password,
+        manager=manager,
         vm_timeout=args.vm_timeout,
         host_delay=args.host_delay,
         verify_ssl=not args.no_verify_ssl

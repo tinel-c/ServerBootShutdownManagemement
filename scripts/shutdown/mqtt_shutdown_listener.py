@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-MQTT shutdown listener for Dell T310 Management System.
+MQTT shutdown listener for Multi-Server Management System.
 Listens for shutdown commands via MQTT and executes appropriate shutdown method.
+Supports Dell T310 (IPMI) and HP DL360p (iLO) servers.
 """
 
 import sys
@@ -10,15 +11,15 @@ import json
 import signal
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "utils"))
 
 from mqtt_client import MQTTClientWrapper
+from server_factory import get_all_server_managers
 from logger import get_logger
 import graceful_shutdown
-import force_shutdown
 
 logger = get_logger(__name__)
 
@@ -36,24 +37,28 @@ class ShutdownListener:
         self.config = config
         self.mqtt_client = None
         self.running = False
+        self.server_managers = {}
         
         # Extract configuration
         mqtt_config = config.get('mqtt', {})
-        self.server_config = config.get('server', {})
+        
+        # Get all server managers
+        try:
+            self.server_managers = get_all_server_managers(config)
+            logger.info(f"Initialized {len(self.server_managers)} server manager(s)")
+        except Exception as e:
+            logger.error(f"Failed to initialize server managers: {e}")
         
         # Create MQTT client
         self.mqtt_client = MQTTClientWrapper(
             broker_host=mqtt_config.get('broker', {}).get('host'),
             broker_port=mqtt_config.get('broker', {}).get('port', 1883),
-            client_id="dell_t310_shutdown_listener",
+            client_id="multi_server_shutdown_listener",
             username=mqtt_config.get('authentication', {}).get('username'),
             password=mqtt_config.get('authentication', {}).get('password'),
             keepalive=mqtt_config.get('broker', {}).get('keepalive', 60),
             qos=mqtt_config.get('qos', 1)
         )
-        
-        self.shutdown_topic = mqtt_config.get('topics', {}).get('command_shutdown', 'dell/t310/command/shutdown')
-        self.response_topic = mqtt_config.get('topics', {}).get('response', 'dell/t310/response')
         
         logger.info("Shutdown listener initialized")
     
@@ -91,11 +96,12 @@ class ShutdownListener:
             logger.error(f"Error validating message: {e}")
             return None
     
-    def execute_shutdown(self, shutdown_type: str, timeout: int = 300) -> bool:
+    def execute_shutdown(self, server_name: str, shutdown_type: str, timeout: int = 300) -> bool:
         """
         Execute shutdown command using specified type.
         
         Args:
+            server_name: Name of the server to shutdown
             shutdown_type: Shutdown type ('graceful' or 'force')
             timeout: Timeout for graceful shutdown (seconds)
             
@@ -103,47 +109,58 @@ class ShutdownListener:
             True if shutdown initiated successfully, False otherwise
         """
         try:
+            # Get server info
+            server_info = self.server_managers.get(server_name)
+            if not server_info:
+                logger.error(f"Server not found: {server_name}")
+                return False
+            
+            server_config = server_info['config']
+            manager = server_info['manager']
+            
             if shutdown_type == 'graceful':
-                logger.info("Executing graceful shutdown...")
+                logger.info(f"Executing GRACEFUL shutdown for {server_name}...")
                 
-                proxmox_config = self.server_config.get('proxmox', {})
-                ipmi_config = self.server_config.get('ipmi', {})
-                shutdown_config = self.server_config.get('shutdown', {})
-                
-                return graceful_shutdown.graceful_shutdown(
-                    proxmox_host=proxmox_config.get('api_url', '').replace('/api2/json', '').replace('https://', '').replace(':8006', ''),
-                    proxmox_username=proxmox_config.get('username'),
-                    proxmox_password=proxmox_config.get('password'),
-                    ipmi_host=ipmi_config.get('host'),
-                    ipmi_username=ipmi_config.get('username'),
-                    ipmi_password=ipmi_config.get('password'),
-                    vm_timeout=shutdown_config.get('vm_shutdown_timeout', 120),
-                    host_delay=30,
-                    verify_ssl=proxmox_config.get('verify_ssl', False)
-                )
+                # Special handling for servers with Proxmox configuration
+                if 'proxmox' in server_config:
+                    proxmox_config = server_config.get('proxmox', {})
+                    
+                    # api_url parsing logic (moved from listener to be more flexible)
+                    api_url = proxmox_config.get('api_url', '')
+                    proxmox_host = api_url.replace('/api2/json', '').replace('https://', '').replace(':8006', '')
+                    
+                    return graceful_shutdown.graceful_shutdown(
+                        proxmox_host=proxmox_host,
+                        proxmox_username=proxmox_config.get('username'),
+                        proxmox_password=proxmox_config.get('password'),
+                        manager=manager,
+                        vm_timeout=server_config.get('shutdown', {}).get('vm_shutdown_timeout', 120),
+                        host_delay=30,
+                        verify_ssl=proxmox_config.get('verify_ssl', False)
+                    )
+                else:
+                    # Generic graceful shutdown via ACPI power button press
+                    logger.info(f"No Proxmox config found for {server_name}, falling back to ACPI power button press")
+                    return manager.power_off(force=False)
                 
             elif shutdown_type == 'force':
-                logger.warning("Executing FORCE shutdown...")
+                logger.warning(f"Executing FORCE shutdown for {server_name}...")
                 
-                ipmi_config = self.server_config.get('ipmi', {})
-                
-                return force_shutdown.force_shutdown(
-                    host=ipmi_config.get('host'),
-                    username=ipmi_config.get('username'),
-                    password=ipmi_config.get('password')
-                )
+                # Use the manager directly for force shutdown
+                return manager.power_off(force=True)
             
             return False
             
         except Exception as e:
-            logger.error(f"Error executing shutdown: {e}")
+            logger.error(f"Error executing shutdown for {server_name}: {e}")
             return False
     
-    def send_response(self, request_id: str, success: bool, message: str):
+    def send_response(self, response_topic: str, request_id: str, success: bool, message: str):
         """
         Send response message to MQTT.
         
         Args:
+            response_topic: Topic to send response to
             request_id: Original request ID
             success: Whether operation was successful
             message: Response message
@@ -156,7 +173,7 @@ class ShutdownListener:
             "timestamp": datetime.now().isoformat()
         }
         
-        self.mqtt_client.publish(self.response_topic, response)
+        self.mqtt_client.publish(response_topic, response)
         logger.info(f"Response sent: {message}")
     
     def on_shutdown_command(self, topic: str, payload: str):
@@ -168,6 +185,21 @@ class ShutdownListener:
             payload: Message payload
         """
         logger.info(f"Shutdown command received on topic: {topic}")
+        
+        # Identify server from topic prefix
+        server_name = None
+        response_topic = None
+        
+        for name, info in self.server_managers.items():
+            mqtt_prefix = info['config'].get('mqtt_prefix', '')
+            if topic.startswith(mqtt_prefix):
+                server_name = name
+                response_topic = f"{mqtt_prefix}/response"
+                break
+        
+        if not server_name:
+            logger.error(f"No server found for topic: {topic}")
+            return
         
         # Validate message
         message = self.validate_message(payload)
@@ -181,19 +213,21 @@ class ShutdownListener:
         
         # Send acknowledgment
         self.send_response(
+            response_topic,
             request_id,
             True,
-            f"Shutdown command received. Initiating {shutdown_type} shutdown..."
+            f"Shutdown command received for {server_name}. Initiating {shutdown_type} shutdown..."
         )
         
-        # Execute shutdown (this will disconnect us, so send response first)
-        success = self.execute_shutdown(shutdown_type, timeout)
+        # Execute shutdown
+        success = self.execute_shutdown(server_name, shutdown_type, timeout)
         
         if not success:
             self.send_response(
+                response_topic,
                 request_id,
                 False,
-                f"Failed to execute {shutdown_type} shutdown"
+                f"Failed to execute {shutdown_type} shutdown for {server_name}"
             )
     
     def start(self):
@@ -205,13 +239,18 @@ class ShutdownListener:
             logger.error("Failed to connect to MQTT broker")
             return False
         
-        # Subscribe to shutdown command topic
-        if not self.mqtt_client.subscribe(self.shutdown_topic, self.on_shutdown_command):
-            logger.error("Failed to subscribe to shutdown topic")
-            return False
+        # Subscribe to shutdown topics for all servers
+        for server_name, server_info in self.server_managers.items():
+            mqtt_prefix = server_info['config'].get('mqtt_prefix', '')
+            shutdown_topic = f"{mqtt_prefix}/command/shutdown"
+            
+            if not self.mqtt_client.subscribe(shutdown_topic, self.on_shutdown_command):
+                logger.error(f"Failed to subscribe to shutdown topic for {server_name}: {shutdown_topic}")
+            else:
+                logger.info(f"Subscribed to shutdown topic for {server_name}: {shutdown_topic}")
         
         self.running = True
-        logger.info(f"Shutdown listener started. Listening on topic: {self.shutdown_topic}")
+        logger.info(f"Shutdown listener started for {len(self.server_managers)} server(s)")
         
         # Keep running
         try:

@@ -37,8 +37,15 @@ servers:
       password: "${DL360P_ILO_PASSWORD}"  # From environment variable
       verify_ssl: false
     
+    proxmox:
+      api_url: "https://${DL360P_PROXMOX_HOST}:8006/api2/json"  # From environment variable
+      username: "${DL360P_PROXMOX_USERNAME}"  # From environment variable
+      password: "${DL360P_PROXMOX_PASSWORD}"  # From environment variable
+      verify_ssl: false
+    
     shutdown:
       graceful_timeout: 300  # seconds
+      vm_shutdown_timeout: 120  # seconds
     
     monitoring:
       status_interval: 30  # seconds

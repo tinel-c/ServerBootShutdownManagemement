@@ -157,7 +157,7 @@
         "correl": "",
         "expiry": "",
         "broker": "mqtt_broker_local",
-        "x": 520,
+        "x": 620,
         "y": 120,
         "wires": []
     },
@@ -240,15 +240,43 @@
         "passthru": false,
         "tooltip": "",
         "color": "",
-        "bgcolor": "red",
+        "bgcolor": "#ff9800",
         "className": "",
-        "icon": "stop",
+        "icon": "pause",
         "payload": "{\"action\": \"shutdown\", \"type\": \"graceful\"}",
         "payloadType": "json",
         "topic": "hp/dl360p/command/shutdown",
         "topicType": "str",
         "x": 190,
         "y": 400,
+        "wires": [
+            [
+                "mqtt_out_hp"
+            ]
+        ]
+    },
+    {
+        "id": "btn_hp_force_shutdown",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_hp",
+        "name": "FORCE SHUTDOWN HP DL360p",
+        "label": "FORCE SHUTDOWN",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Hard Power Off via iLO",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "stop",
+        "payload": "{\"action\": \"shutdown\", \"type\": \"force\"}",
+        "payloadType": "json",
+        "topic": "hp/dl360p/command/shutdown",
+        "topicType": "str",
+        "x": 210,
+        "y": 460,
         "wires": [
             [
                 "mqtt_out_hp"
@@ -269,8 +297,8 @@
         "correl": "",
         "expiry": "",
         "broker": "mqtt_broker_local",
-        "x": 520,
-        "y": 360,
+        "x": 620,
+        "y": 380,
         "wires": []
     },
     {
@@ -287,7 +315,7 @@
         "rh": 0,
         "inputs": 0,
         "x": 170,
-        "y": 480,
+        "y": 520,
         "wires": [
             [
                 "text_hp_status"
@@ -299,7 +327,7 @@
         "type": "ui-text",
         "z": "tab_dashboard",
         "group": "ui_group_hp",
-        "order": 3,
+        "order": 4,
         "width": 0,
         "height": 0,
         "name": "HP Status",
@@ -308,7 +336,7 @@
         "layout": "row-spread",
         "className": "",
         "x": 490,
-        "y": 480,
+        "y": 520,
         "wires": []
     },
     {
@@ -325,7 +353,26 @@
         "rh": 0,
         "inputs": 0,
         "x": 160,
-        "y": 580,
+        "y": 620,
+        "wires": [
+            [
+                "func_log_accumulator"
+            ]
+        ]
+    },
+    {
+        "id": "func_log_accumulator",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Accumulate Logs",
+        "func": "var logs = flow.get(\"dashboard_logs\") || [];\nvar entry = msg.payload;\n\n// Add timestamp if missing\nif (!entry.timestamp) {\n    entry.timestamp = new Date().toLocaleTimeString();\n}\n\n// Infer success if missing\nif (typeof entry.success === 'undefined') {\n    entry.success = !JSON.stringify(entry).toLowerCase().includes('error');\n}\n\nlogs.push(entry);\n\n// Keep last 20\nif (logs.length > 20) {\n    logs = logs.slice(-20);\n}\n\nflow.set(\"dashboard_logs\", logs);\n\n// We must return the ARRAY for the template to loop\nmsg.payload = logs;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 620,
         "wires": [
             [
                 "ui_template_logs"
@@ -341,14 +388,14 @@
         "order": 1,
         "width": "12",
         "height": "6",
-        "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div v-for=\"line in msg.payload.slice(-20)\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #fff;\">[{{line.action}}]</span> \n        <span :class=\"{'text-success': line.success, 'text-danger': !line.success}\">{{line.message}}</span>\n    </div>\n</div>",
+        "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div v-for=\"line in msg.payload.slice().reverse()\" :key=\"line.timestamp\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #fff;\">[{{line.action || 'INFO'}}]</span> \n        <span :class=\"{'text-success': line.success, 'text-danger': !line.success}\">{{line.message || JSON.stringify(line)}}</span>\n    </div>\n</div>\n\n<style>\n.text-success { color: #4caf50; }\n.text-danger { color: #f44336; }\n</style>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 490,
-        "y": 580,
+        "x": 520,
+        "y": 620,
         "wires": [
             []
         ]

@@ -282,10 +282,10 @@ def load_config() -> Dict[str, Any]:
     
     # Load environment variables from .env file in config directory
     if env_path.exists():
-        print(f"Loading environment from: {env_path}")
+        logger.info(f"Loading environment from: {env_path}")
         load_dotenv(dotenv_path=env_path)
     else:
-        print(f"WARNING: .env file not found at: {env_path}")
+        logger.warning(f"Environment file NOT found at: {env_path}")
         load_dotenv()
     
     config = {}
@@ -295,36 +295,49 @@ def load_config() -> Dict[str, Any]:
     if mqtt_config_file.exists():
         with open(mqtt_config_file, 'r') as f:
             mqtt_config = yaml.safe_load(f)
-            config.update(mqtt_config)
+            if mqtt_config:
+                config.update(mqtt_config)
     
     # Load server config
     server_config_file = config_dir / "server_config.yaml"
     if server_config_file.exists():
         with open(server_config_file, 'r') as f:
             server_config = yaml.safe_load(f)
-            config.update(server_config)
+            if server_config:
+                config.update(server_config)
     
     # Replace environment variable placeholders
-    def replace_env_vars(obj):
+    def replace_env_vars(obj, path=""):
         if isinstance(obj, dict):
-            return {k: replace_env_vars(v) for k, v in obj.items()}
+            return {k: replace_env_vars(v, f"{path}.{k}") for k, v in obj.items()}
         elif isinstance(obj, list):
-            return [replace_env_vars(item) for item in obj]
+            return [replace_env_vars(item, f"{path}[{i}]") for i, item in enumerate(obj)]
         elif isinstance(obj, str) and obj.startswith('${') and obj.endswith('}'):
             env_var = obj[2:-1]
             val = os.getenv(env_var)
             if val is None:
-                print(f"WARNING: Environment variable {env_var} not set! Keeping placeholder.")
-                return obj
+                logger.error(f"CRITICAL: Environment variable {env_var} NOT SET (path: {path})")
+                return obj # Keep placeholder to trigger validation error later
+            logger.debug(f"Resolved {obj} -> {'***' if 'PASS' in env_var or 'KEY' in env_var else val}")
             return val
         return obj
     
     config = replace_env_vars(config)
     
-    # Validate critical config
-    broker_port = config.get('mqtt', {}).get('broker', {}).get('port')
-    if isinstance(broker_port, str) and broker_port.startswith('${'):
-        raise ValueError(f"Configuration Error: MQTT_BROKER_PORT not resolved. Value: {broker_port}. Check your .env file.")
+    # Final validation - ensure no placeholders remain in critical fields
+    def check_placeholders(obj, path=""):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                check_placeholders(v, f"{path}.{k}")
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                check_placeholders(item, f"{path}[{i}]")
+        elif isinstance(obj, str) and obj.startswith('${') and obj.endswith('}'):
+            error_msg = f"Configuration Error: Unresolved variable {obj} at {path}. Check your .env file."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+            
+    check_placeholders(config)
     
     return config
 

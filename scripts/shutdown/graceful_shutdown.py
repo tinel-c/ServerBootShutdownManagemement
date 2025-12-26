@@ -105,40 +105,79 @@ def shutdown_proxmox_vms(
         return False
 
 
-def shutdown_proxmox_host(
+def shutdown_proxmox_node(
+    proxmox_host: str,
+    username: str,
+    password: str,
+    verify_ssl: bool = False
+) -> bool:
+    """
+    Shutdown Proxmox node via API (clean OS shutdown).
+    
+    Args:
+        proxmox_host: Proxmox host IP or hostname
+        username: Proxmox username
+        password: Proxmox password
+        verify_ssl: Verify SSL certificate
+        
+    Returns:
+        True if shutdown command accepted, False otherwise
+    """
+    try:
+        from proxmoxer import ProxmoxAPI
+        
+        logger.info(f"Initiating Proxmox Node Shutdown via API: {proxmox_host}")
+        
+        proxmox = ProxmoxAPI(
+            proxmox_host,
+            user=username,
+            password=password,
+            verify_ssl=verify_ssl
+        )
+        
+        # Shutdown all nodes (usually just one in standalone)
+        nodes = proxmox.nodes.get()
+        success = True
+        
+        for node in nodes:
+            node_name = node['node']
+            status = node.get('status', 'unknown')
+            
+            if status == 'online':
+                logger.info(f"Sending shutdown command to node: {node_name}")
+                try:
+                    # Execute 'shutdown' command on the node
+                    proxmox.nodes(node_name).status.shutdown.post()
+                    logger.info(f"Shutdown command sent to node {node_name}")
+                except Exception as e:
+                    logger.error(f"Failed to shutdown node {node_name} via API: {e}")
+                    success = False
+            else:
+                logger.info(f"Node {node_name} is already offline (status: {status})")
+                
+        return success
+
+    except Exception as e:
+        logger.error(f"Error during Proxmox API node shutdown: {e}")
+        return False
+
+
+def shutdown_host_hardware(
     manager: any,
     force: bool = False
 ) -> bool:
     """
-    Shutdown Proxmox host via management interface (IPMI/iLO).
-    
-    Args:
-        manager: Manager instance (IPMIWrapper or ILOWrapper)
-        force: Force shutdown (hard power off)
-        
-    Returns:
-        True if shutdown successful, False otherwise
+    Shutdown host via management interface (IPMI/iLO).
+    Used as fallback or for forced shutdown.
     """
     try:
-        logger.info(f"Shutting down Proxmox host via {manager.__class__.__name__}: {manager.host}")
+        method = "FORCE" if force else "ACPI"
+        logger.info(f"Shutting down host via {manager.__class__.__name__} ({method}): {manager.host}")
         
-        # Shutdown the host
-        if force:
-            logger.warning("Performing FORCE shutdown")
-            success = manager.power_off(force=True)
-        else:
-            logger.info("Performing graceful shutdown (ACPI power button)")
-            success = manager.power_off(force=False)
-        
-        if success:
-            logger.info("Host shutdown command sent successfully")
-            return True
-        else:
-            logger.error("Failed to send shutdown command")
-            return False
+        return manager.power_off(force=force)
             
     except Exception as e:
-        logger.error(f"Error shutting down Proxmox host: {e}")
+        logger.error(f"Error shutting down host hardware: {e}")
         return False
 
 
@@ -183,13 +222,31 @@ def graceful_shutdown(
     logger.info(f"Step 2: Waiting {host_delay} seconds before host shutdown...")
     time.sleep(host_delay)
     
-    # Step 3: Shutdown Proxmox host
-    logger.info("Step 3: Shutting down Proxmox host...")
-    if not shutdown_proxmox_host(manager):
-        logger.error("Failed to shutdown Proxmox host")
+    # Step 3: Shutdown Proxmox Node (OS Level)
+    logger.info("Step 3: Shutting down Proxmox Host (OS Level)...")
+    
+    # Try API shutdown first (cleanest method)
+    api_shutdown_success = shutdown_proxmox_node(
+        proxmox_host,
+        proxmox_username,
+        proxmox_password,
+        verify_ssl=verify_ssl
+    )
+    
+    if api_shutdown_success:
+        logger.info("Proxmox Node shutdown initiated via API. System should power off shortly.")
+        # We assume success if API call worked. 
+        # Ideally we could wait and check if it actually goes down, 
+        # but for now we trust the API unless it threw an error.
+        return True
+    
+    # Fallback to ACPI/IPMI if API failed
+    logger.warning("API shutdown failed. Falling back to IPMI/iLO ACPI shutdown...")
+    if not shutdown_host_hardware(manager, force=False):
+        logger.error("Failed to shutdown host via fallback method")
         return False
     
-    logger.info("Graceful shutdown sequence completed successfully")
+    logger.info("Graceful shutdown sequence completed (via fallback)")
     return True
 
 

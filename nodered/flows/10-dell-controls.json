@@ -1,0 +1,105 @@
+[
+    {
+        "id": "btn_dell_boot",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_dell",
+        "name": "BOOT Dell T310",
+        "label": "BOOT SERVER",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Wake-on-LAN Boot",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "power-off",
+        "payload": "{\"action\": \"boot\", \"method\": \"wol\"}",
+        "payloadType": "json",
+        "topic": "dell/t310/command/boot",
+        "topicType": "str",
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "mqtt_out_dell"
+            ]
+        ]
+    },
+    {
+        "id": "btn_dell_shutdown",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_dell",
+        "name": "SHUTDOWN Dell T310",
+        "label": "PROXMOX SHUTDOWN",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Graceful VM + Host Shutdown",
+        "color": "",
+        "bgcolor": "#ff9800",
+        "className": "",
+        "icon": "pause",
+        "payload": "{\"action\": \"shutdown\", \"type\": \"graceful\"}",
+        "payloadType": "json",
+        "topic": "dell/t310/command/shutdown",
+        "topicType": "str",
+        "x": 180,
+        "y": 160,
+        "wires": [
+            [
+                "mqtt_out_dell"
+            ]
+        ]
+    },
+    {
+        "id": "btn_dell_force_shutdown",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_dell",
+        "name": "FORCE SHUTDOWN Dell T310",
+        "label": "FORCE SHUTDOWN",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Hard Power Off via IPMI",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "stop",
+        "payload": "{\"action\": \"shutdown\", \"type\": \"force\"}",
+        "payloadType": "json",
+        "topic": "dell/t310/command/shutdown",
+        "topicType": "str",
+        "x": 200,
+        "y": 220,
+        "wires": [
+            [
+                "mqtt_out_dell"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_dell",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Dell T310 Command",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 620,
+        "y": 120,
+        "wires": []
+    }
+]
+

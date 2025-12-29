@@ -1,0 +1,105 @@
+[
+    {
+        "id": "btn_hp_boot",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_hp",
+        "name": "BOOT HP DL360p",
+        "label": "BOOT SERVER",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "iLO Power On",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "power-off",
+        "payload": "{\"action\": \"boot\", \"method\": \"ilo\"}",
+        "payloadType": "json",
+        "topic": "hp/dl360p/command/boot",
+        "topicType": "str",
+        "x": 170,
+        "y": 400,
+        "wires": [
+            [
+                "mqtt_out_hp"
+            ]
+        ]
+    },
+    {
+        "id": "btn_hp_shutdown",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_hp",
+        "name": "SHUTDOWN HP DL360p",
+        "label": "PROXMOX SHUTDOWN",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Graceful VM + Host Shutdown",
+        "color": "",
+        "bgcolor": "#ff9800",
+        "className": "",
+        "icon": "pause",
+        "payload": "{\"action\": \"shutdown\", \"type\": \"graceful\"}",
+        "payloadType": "json",
+        "topic": "hp/dl360p/command/shutdown",
+        "topicType": "str",
+        "x": 190,
+        "y": 460,
+        "wires": [
+            [
+                "mqtt_out_hp"
+            ]
+        ]
+    },
+    {
+        "id": "btn_hp_force_shutdown",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_hp",
+        "name": "FORCE SHUTDOWN HP DL360p",
+        "label": "FORCE SHUTDOWN",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Hard Power Off via iLO",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "stop",
+        "payload": "{\"action\": \"shutdown\", \"type\": \"force\"}",
+        "payloadType": "json",
+        "topic": "hp/dl360p/command/shutdown",
+        "topicType": "str",
+        "x": 210,
+        "y": 520,
+        "wires": [
+            [
+                "mqtt_out_hp"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_hp",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "HP DL360p Command",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 620,
+        "y": 440,
+        "wires": []
+    }
+]
+

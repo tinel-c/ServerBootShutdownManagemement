@@ -1,0 +1,85 @@
+[
+    {
+        "id": "mqtt_in_all_response",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "All Responses & Logs",
+        "topic": "system/logs",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 700,
+        "wires": [
+            [
+                "func_log_accumulator"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_in_legacy_responses",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Command Responses",
+        "topic": "+/+/response",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 760,
+        "wires": [
+            [
+                "func_log_accumulator"
+            ]
+        ]
+    },
+    {
+        "id": "func_log_accumulator",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Accumulate Logs",
+        "func": "var logs = flow.get(\"dashboard_logs\") || [];\nvar entry = msg.payload;\n\n// Add timestamp if missing\nif (!entry.timestamp) {\n    entry.timestamp = new Date().toLocaleTimeString();\n}\n\n// Determine style class based on level\nentry.class = \"text-info\";\nif (entry.level === \"WARNING\") entry.class = \"text-warning\";\nif (entry.level === \"ERROR\" || entry.level === \"CRITICAL\") entry.class = \"text-danger\";\nif (entry.success === false) entry.class = \"text-danger\"; // Legacy fallback\nif (entry.success === true) entry.class = \"text-success\";\n\n// Normalize source\nentry.source = entry.service || entry.action || \"SYSTEM\";\n\nlogs.push(entry);\n\n// Keep last 50\nif (logs.length > 50) {\n    logs = logs.slice(-50);\n}\n\nflow.set(\"dashboard_logs\", logs);\n\n// We must return the ARRAY for the template to loop\nmsg.payload = logs;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 720,
+        "wires": [
+            [
+                "ui_template_logs"
+            ]
+        ]
+    },
+    {
+        "id": "ui_template_logs",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_logs",
+        "name": "Rolling Log",
+        "order": 1,
+        "width": "12",
+        "height": "10",
+        "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div v-for=\"line in msg.payload.slice().reverse()\" :key=\"line.timestamp\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #ccc; font-weight: bold;\">[{{line.source}}]</span> \n        <span :class=\"line.class\">{{line.message}}</span>\n    </div>\n</div>\n\n<style>\n.text-info { color: #2196f3; }\n.text-success { color: #4caf50; }\n.text-warning { color: #ff9800; }\n.text-danger { color: #f44336; }\n</style>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 580,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    }
+]
+

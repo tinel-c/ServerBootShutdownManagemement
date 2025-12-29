@@ -1,0 +1,64 @@
+[
+    {
+        "id": "mqtt_in_hp_status",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "HP DL360p Status",
+        "topic": "hp/dl360p/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 600,
+        "wires": [
+            [
+                "func_hp_status_metadata"
+            ]
+        ]
+    },
+    {
+        "id": "func_hp_status_metadata",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "HP Status Metadata",
+        "func": "let metadataKey = \"status_metadata_\" + msg.topic.replace(/\\//g, \"_\");\nlet metadata = flow.get(metadataKey) || {\n    lastReportedMs: null,\n    lastChangedMs: null,\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\nlet newState = msg.payload.server_state;\nlet nowMs = msg.payload.timestamp ? new Date(msg.payload.timestamp).getTime() : Date.now();\n\nmetadata.lastReportedMs = nowMs;\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChangedMs = nowMs;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 600,
+        "wires": [
+            [
+                "template_hp_status"
+            ]
+        ]
+    },
+    {
+        "id": "template_hp_status",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_hp",
+        "name": "HP Status UI",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "format": "<div style=\"display: flex; flex-direction: column; gap: 6px; padding: 10px; background: rgba(30, 30, 30, 0.7); backdrop-filter: blur(8px); border-radius: 10px; border: 1px solid #444; color: #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.3);\">\n    <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;\">\n        <span style=\"font-size: 0.8em; color: #888; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold;\">Server State</span>\n        <span :style=\"statusStyle\" style=\"font-weight: 900; font-size: 1.4em;\">\n            {{msg.payload.server_state ? msg.payload.server_state.toUpperCase() : 'UNKNOWN'}}\n        </span>\n    </div>\n    <div style=\"height: 1px; background: linear-gradient(to right, #555, transparent); margin-bottom: 8px;\"></div>\n    <div style=\"font-size: 0.85em; line-height: 1.6; display: grid; grid-template-columns: auto 1fr; gap: 0 10px;\">\n        <span style=\"color: #777;\">Last Report:</span>\n        <span style=\"color: #ccc; text-align: right; font-family: monospace;\">{{formatDelta(msg.metadata.lastReportedMs)}}</span>\n        \n        <span style=\"color: #777;\">Switched:</span>\n        <span style=\"color: #ccc; text-align: right; font-family: monospace;\">{{formatDelta(msg.metadata.lastChangedMs)}}</span>\n        \n        <span v-if=\"msg.metadata.previousState !== 'Unknown'\" style=\"color: #777;\">Previous:</span>\n        <span v-if=\"msg.metadata.previousState !== 'Unknown'\" style=\"color: #999; text-align: right; font-style: italic;\">{{msg.metadata.previousState}}</span>\n    </div>\n</div>\n\n<script>\nexport default {\n    data() {\n        return {\n            now: Date.now(),\n            timer: null\n        }\n    },\n    mounted() {\n        this.timer = setInterval(() => {\n            this.now = Date.now()\n        }, 1000)\n    },\n    unmounted() {\n        clearInterval(this.timer)\n    },\n    methods: {\n        formatDelta(ms) {\n            if (!ms) return 'Never'\n            const seconds = Math.floor((this.now - ms) / 1000)\n            if (seconds < 2) return 'Just now'\n            if (seconds < 60) return `${seconds}s ago`\n            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`\n            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`\n            return new Date(ms).toLocaleDateString()\n        }\n    },\n    computed: {\n        statusStyle() {\n            const state = this.msg.payload.server_state\n            const color = state === 'online' ? '#4caf50' : (state === 'offline' ? '#f44336' : '#ff9800')\n            return {\n                color: color,\n                textShadow: `0 0 12px ${color}80`\n            }\n        }\n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 600,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    }
+]
+

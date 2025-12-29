@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+  <!-- Title -->
+  <text x="600" y="35" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#2c3e50" text-anchor="middle">
+    Server Management System Architecture
+  </text>
+  
+  <!-- User/Browser -->
+  <g id="user">
+    <rect x="480" y="60" width="240" height="100" rx="10" fill="#ecf0f1" stroke="#34495e" stroke-width="2"/>
+    <text x="600" y="90" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2c3e50" text-anchor="middle">
+      👤 User Browser
+    </text>
+    <text x="600" y="115" font-family="Arial, sans-serif" font-size="12" fill="#7f8c8d" text-anchor="middle">
+      Access Dashboard
+    </text>
+    <text x="600" y="135" font-family="Arial, sans-serif" font-size="11" fill="#3498db" text-anchor="middle">
+      http://automation-server:1880
+    </text>
+  </g>
+  
+  <!-- Arrow from User to Automation Server -->
+  <path d="M 600 160 L 600 200" stroke="#3498db" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+  <text x="620" y="185" font-family="Arial, sans-serif" font-size="10" fill="#7f8c8d">HTTP</text>
+  
+  <!-- Automation Server -->
+  <g id="automation-server">
+    <rect x="300" y="200" width="600" height="280" rx="12" fill="#3498db" stroke="#2980b9" stroke-width="3"/>
+    <text x="600" y="230" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">
+      🖥️ AUTOMATION SERVER (Ubuntu VM)
+    </text>
+    
+    <!-- Node-RED Dashboard -->
+    <g id="nodered">
+      <rect x="320" y="250" width="260" height="90" rx="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+      <text x="450" y="275" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">
+        Node-RED Dashboard
+      </text>
+      <text x="450" y="295" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="middle">
+        • Server Controls (Boot/Shutdown)
+      </text>
+      <text x="450" y="312" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="middle">
+        • Status & Health Monitoring
+      </text>
+      <text x="450" y="330" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+        Port 1880 (Docker)
+      </text>
+    </g>
+    
+    <!-- Mosquitto MQTT Broker -->
+    <g id="mosquitto">
+      <rect x="620" y="250" width="260" height="90" rx="8" fill="#27ae60" stroke="#229954" stroke-width="2"/>
+      <text x="750" y="275" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">
+        Mosquitto MQTT Broker
+      </text>
+      <text x="750" y="295" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="middle">
+        • Message Routing
+      </text>
+      <text x="750" y="312" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="middle">
+        • Command Distribution
+      </text>
+      <text x="750" y="330" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+        Port 1883
+      </text>
+    </g>
+    
+    <!-- Python Scripts -->
+    <g id="python-scripts">
+      <rect x="320" y="360" width="560" height="100" rx="8" fill="#9b59b6" stroke="#8e44ad" stroke-width="2"/>
+      <text x="600" y="385" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">
+        Python Management Scripts
+      </text>
+      <text x="420" y="408" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="start">
+        • mqtt_boot_listener.py
+      </text>
+      <text x="420" y="425" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="start">
+        • mqtt_shutdown_listener.py
+      </text>
+      <text x="420" y="442" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="start">
+        • status_publisher.py
+      </text>
+      <text x="680" y="408" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="start">
+        • health_monitor.py
+      </text>
+      <text x="680" y="425" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="start">
+        • wol_boot.py (WoL)
+      </text>
+      <text x="680" y="442" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1" text-anchor="start">
+        • graceful_shutdown.py
+      </text>
+    </g>
+    
+    <!-- Internal connections -->
+    <path d="M 580 295 L 620 295" stroke="white" stroke-width="2" fill="none" marker-end="url(#arrowwhite)"/>
+    <path d="M 750 340 L 750 360" stroke="white" stroke-width="2" fill="none" marker-end="url(#arrowwhite)"/>
+    <path d="M 450 340 L 450 360" stroke="white" stroke-width="2" fill="none" marker-end="url(#arrowwhite)"/>
+  </g>
+  
+  <!-- Network Cloud -->
+  <g id="network">
+    <ellipse cx="600" cy="540" rx="140" ry="50" fill="#ecf0f1" stroke="#95a5a6" stroke-width="2"/>
+    <text x="600" y="545" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#34495e" text-anchor="middle">
+      🌐 Network
+    </text>
+  </g>
+  
+  <!-- Arrows from Automation Server to Network -->
+  <path d="M 350 480 L 500 510" stroke="#e67e22" stroke-width="3" fill="none" marker-end="url(#arroworange)"/>
+  <text x="380" y="495" font-family="Arial, sans-serif" font-size="10" fill="#e67e22" font-weight="bold">Wake-on-LAN</text>
+  
+  <path d="M 850 480 L 700 510" stroke="#e74c3c" stroke-width="3" fill="none" marker-end="url(#arrowred)"/>
+  <text x="790" y="495" font-family="Arial, sans-serif" font-size="10" fill="#e74c3c" font-weight="bold">iLO Power On</text>
+  
+  <!-- Dell T310 Server -->
+  <g id="dell-server">
+    <rect x="50" y="620" width="480" height="250" rx="10" fill="#27ae60" stroke="#229954" stroke-width="3"/>
+    <text x="290" y="650" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">
+      🖥️ Dell T310 Server
+    </text>
+    
+    <!-- IPMI Interface -->
+    <rect x="80" y="670" width="150" height="80" rx="6" fill="#2c3e50" stroke="#34495e" stroke-width="2"/>
+    <text x="155" y="695" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">
+      IPMI Interface
+    </text>
+    <text x="155" y="715" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • WoL Reception
+    </text>
+    <text x="155" y="732" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • Power Control
+    </text>
+    
+    <!-- Proxmox + Ubuntu VM -->
+    <rect x="260" y="670" width="240" height="80" rx="6" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+    <text x="380" y="695" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">
+      Proxmox VE
+    </text>
+    <text x="380" y="715" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • VM Management
+    </text>
+    <text x="380" y="732" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • Graceful Shutdown via API
+    </text>
+    
+    <!-- Status/Health Publishing -->
+    <rect x="80" y="770" width="420" height="80" rx="6" fill="#9b59b6" stroke="#8e44ad" stroke-width="2"/>
+    <text x="290" y="795" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">
+      MQTT Topics
+    </text>
+    <text x="290" y="815" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      📤 dell/t310/status (30s intervals)
+    </text>
+    <text x="290" y="832" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      📤 dell/t310/health (60s intervals)
+    </text>
+  </g>
+  
+  <!-- HP DL360p Server -->
+  <g id="hp-server">
+    <rect x="670" y="620" width="480" height="250" rx="10" fill="#e67e22" stroke="#d35400" stroke-width="3"/>
+    <text x="910" y="650" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">
+      🖥️ HP DL360p Server
+    </text>
+    
+    <!-- iLO Interface -->
+    <rect x="700" y="670" width="150" height="80" rx="6" fill="#2c3e50" stroke="#34495e" stroke-width="2"/>
+    <text x="775" y="695" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">
+      iLO Interface
+    </text>
+    <text x="775" y="715" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • Remote Power On
+    </text>
+    <text x="775" y="732" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • Power Control
+    </text>
+    
+    <!-- Proxmox + Ubuntu VM -->
+    <rect x="880" y="670" width="240" height="80" rx="6" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+    <text x="1000" y="695" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">
+      Proxmox VE
+    </text>
+    <text x="1000" y="715" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • VM Management
+    </text>
+    <text x="1000" y="732" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      • Graceful Shutdown via API
+    </text>
+    
+    <!-- Status/Health Publishing -->
+    <rect x="700" y="770" width="420" height="80" rx="6" fill="#9b59b6" stroke="#8e44ad" stroke-width="2"/>
+    <text x="910" y="795" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">
+      MQTT Topics
+    </text>
+    <text x="910" y="815" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      📤 hp/dl360p/status (30s intervals)
+    </text>
+    <text x="910" y="832" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1" text-anchor="middle">
+      📤 hp/dl360p/health (60s intervals)
+    </text>
+  </g>
+  
+  <!-- Arrows from Network to Servers -->
+  <path d="M 520 575 L 290 620" stroke="#e67e22" stroke-width="3" fill="none" marker-end="url(#arroworange)"/>
+  <path d="M 680 575 L 910 620" stroke="#e74c3c" stroke-width="3" fill="none" marker-end="url(#arrowred)"/>
+  
+  <!-- Arrows from Servers to Network (Status/Commands) -->
+  <path d="M 290 770 L 290 600" stroke="#9b59b6" stroke-width="2" fill="none" marker-end="url(#arrowpurple)" stroke-dasharray="5,5"/>
+  <path d="M 380 770 L 500 600" stroke="#3498db" stroke-width="2" fill="none" marker-end="url(#arrowblue)" stroke-dasharray="5,5"/>
+  <text x="320" y="685" font-family="Arial, sans-serif" font-size="9" fill="#9b59b6">Status/Health</text>
+  <text x="430" y="685" font-family="Arial, sans-serif" font-size="9" fill="#3498db">Proxmox API</text>
+  
+  <path d="M 910 770 L 910 600" stroke="#9b59b6" stroke-width="2" fill="none" marker-end="url(#arrowpurple)" stroke-dasharray="5,5"/>
+  <path d="M 1000 770 L 700 600" stroke="#3498db" stroke-width="2" fill="none" marker-end="url(#arrowblue)" stroke-dasharray="5,5"/>
+  <text x="940" y="685" font-family="Arial, sans-serif" font-size="9" fill="#9b59b6">Status/Health</text>
+  <text x="840" y="685" font-family="Arial, sans-serif" font-size="9" fill="#3498db">Proxmox API</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3498db"/>
+    </marker>
+    <marker id="arrowred" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#e74c3c"/>
+    </marker>
+    <marker id="arroworange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#e67e22"/>
+    </marker>
+    <marker id="arrowpurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#9b59b6"/>
+    </marker>
+    <marker id="arrowwhite" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="white"/>
+    </marker>
+    <marker id="arrowgreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#27ae60"/>
+    </marker>
+  </defs>
+</svg>
+

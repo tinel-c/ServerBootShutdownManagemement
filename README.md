@@ -15,9 +15,16 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 ## System Architecture
 
-![System Architecture](docs/architecture_diagram.png)
+![System Architecture](docs/architecture_diagram_v2.svg)
 
-The system uses MQTT as a central message broker to coordinate commands between control clients and multiple servers. Each server runs an MQTT listener that subscribes to server-specific topics and executes boot/shutdown commands using the appropriate management interface (IPMI for Dell T310, iLO for HP DL360p).
+The system uses a **centralized automation server** running Node-RED dashboard, Mosquitto MQTT broker, and Python management scripts. Users access the web dashboard to control servers, which sends commands via MQTT. Python scripts execute the commands using appropriate methods:
+
+- **Dell T310**: Wake-on-LAN or IPMI for boot, Proxmox API for graceful shutdown
+- **HP DL360p**: iLO for boot, Proxmox API for graceful shutdown
+
+Status and health monitoring is published back through MQTT to the dashboard for real-time visibility.
+
+**Detailed Documentation**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete system architecture, communication flows, and deployment information.
 
 ## Quick Start
 

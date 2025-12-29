@@ -4,6 +4,7 @@ servers:
     type: "ipmi"
     mac_address: "${T310_MAC_ADDRESS}"  # From environment variable
     mqtt_prefix: "dell/t310"
+    healthcheck_names: "${T310_HEALTHCHECKS}"
     
     ipmi:
       host: "${T310_IPMI_HOST}"  # From environment variable
@@ -30,6 +31,7 @@ servers:
     type: "ilo"
     mac_address: "${DL360P_MAC_ADDRESS}"  # From environment variable
     mqtt_prefix: "hp/dl360p"
+    healthcheck_names: "${DL360P_HEALTHCHECKS}"
     
     ilo:
       host: "${DL360P_ILO_HOST}"  # From environment variable

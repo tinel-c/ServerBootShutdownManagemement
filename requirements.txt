@@ -24,3 +24,4 @@ pytest-mock>=3.10.0
 
 # Utilities
 wakeonlan>=3.0.0
+rich>=13.0.0

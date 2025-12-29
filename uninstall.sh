@@ -56,6 +56,7 @@ services=(
     "mqtt-boot-listener.service"
     "mqtt-shutdown-listener.service"
     "status-publisher.service"
+    "health-monitor.service"
 )
 
 for service in "${services[@]}"; do

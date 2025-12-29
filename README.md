@@ -7,6 +7,8 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 - 🚀 **Remote Boot** - Wake-on-LAN, IPMI (Dell T310), and iLO (HP DL360p) based boot
 - 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
 - 📊 **Status Monitoring** - Real-time server status via MQTT
+- 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
+- 🖥️ **Live Dashboard** - Rich console-based monitoring interface
 - 🔒 **Secure** - TLS/SSL support, credential management
 - 🔄 **Auto-Restart** - Systemd services with automatic restart
 - 📝 **Comprehensive Logging** - Detailed logs for troubleshooting
@@ -346,5 +348,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-12-26
+**Version:** 1.2.0  
+**Last Updated:** 2025-12-29

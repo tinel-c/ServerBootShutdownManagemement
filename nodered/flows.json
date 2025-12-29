@@ -216,42 +216,44 @@
         "wires": []
     },
     {
-        "id": "mqtt_in_dell_status",
-        "type": "mqtt in",
+        "id": "func_dell_status_metadata",
+        "type": "function",
         "z": "tab_dashboard",
-        "name": "Dell T310 Status",
-        "topic": "dell/t310/status",
-        "qos": "1",
-        "datatype": "json",
-        "broker": "mqtt_broker_local",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 160,
+        "name": "Dell Status Metadata",
+        "func": "let metadataKey = \"status_metadata_\" + msg.topic.replace(/\\//g, \"_\");\nlet metadata = flow.get(metadataKey) || {\n    lastReported: \"Never\",\n    lastChanged: \"Never\",\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\nlet newState = msg.payload.server_state;\nlet incomingTimestamp = msg.payload.timestamp;\n\n// Format timestamp for readability if it exists\nlet reportTime = incomingTimestamp ? new Date(incomingTimestamp).toLocaleString() : new Date().toLocaleString();\n\nmetadata.lastReported = reportTime;\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChanged = reportTime;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
         "y": 300,
         "wires": [
             [
-                "text_dell_status"
+                "template_dell_status"
             ]
         ]
     },
     {
-        "id": "text_dell_status",
-        "type": "ui-text",
+        "id": "template_dell_status",
+        "type": "ui-template",
         "z": "tab_dashboard",
         "group": "ui_group_dell",
+        "name": "Dell Status UI",
         "order": 4,
         "width": 0,
         "height": 0,
-        "name": "Dell Status",
-        "label": "Status:",
-        "format": "{{msg.payload.server_state}}",
-        "layout": "row-spread",
+        "format": "<div style=\"display: flex; flex-direction: column; gap: 6px; padding: 10px; background: rgba(30, 30, 30, 0.7); backdrop-filter: blur(8px); border-radius: 10px; border: 1px solid #444; color: #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.3);\">\n    <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;\">\n        <span style=\"font-size: 0.8em; color: #888; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold;\">Server State</span>\n        <span :style=\"{\n            color: msg.payload.server_state === 'online' ? '#4caf50' : (msg.payload.server_state === 'offline' ? '#f44336' : '#ff9800'),\n            fontWeight: '900',\n            fontSize: '1.4em',\n            textShadow: '0 0 12px ' + (msg.payload.server_state === 'online' ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)')\n        }\">\n            {{msg.payload.server_state ? msg.payload.server_state.toUpperCase() : 'UNKNOWN'}}\n        </span>\n    </div>\n    <div style=\"height: 1px; background: linear-gradient(to right, #555, transparent); margin-bottom: 8px;\"></div>\n    <div style=\"font-size: 0.85em; line-height: 1.6; display: grid; grid-template-columns: auto 1fr; gap: 0 10px;\">\n        <span style=\"color: #777;\">Last Report:</span>\n        <span style=\"color: #ccc; text-align: right; font-family: monospace;\">{{msg.metadata.lastReported}}</span>\n        \n        <span style=\"color: #777;\">Switched:</span>\n        <span style=\"color: #ccc; text-align: right; font-family: monospace;\">{{msg.metadata.lastChanged}}</span>\n        \n        <span v-if=\"msg.metadata.previousState !== 'Unknown'\" style=\"color: #777;\">Previous:</span>\n        <span v-if=\"msg.metadata.previousState !== 'Unknown'\" style=\"color: #999; text-align: right; font-style: italic;\">{{msg.metadata.previousState}}</span>\n    </div>\n</div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
         "className": "",
-        "x": 490,
+        "x": 600,
         "y": 300,
-        "wires": []
+        "wires": [
+            []
+        ]
     },
     {
         "id": "btn_hp_boot",
@@ -372,26 +374,49 @@
         "y": 600,
         "wires": [
             [
-                "text_hp_status"
+                "func_hp_status_metadata"
             ]
         ]
     },
     {
-        "id": "text_hp_status",
-        "type": "ui-text",
+        "id": "func_hp_status_metadata",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "HP Status Metadata",
+        "func": "let metadataKey = \"status_metadata_\" + msg.topic.replace(/\\//g, \"_\");\nlet metadata = flow.get(metadataKey) || {\n    lastReported: \"Never\",\n    lastChanged: \"Never\",\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\nlet newState = msg.payload.server_state;\nlet incomingTimestamp = msg.payload.timestamp;\n\n// Format timestamp for readability if it exists\nlet reportTime = incomingTimestamp ? new Date(incomingTimestamp).toLocaleString() : new Date().toLocaleString();\n\nmetadata.lastReported = reportTime;\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChanged = reportTime;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 600,
+        "wires": [
+            [
+                "template_hp_status"
+            ]
+        ]
+    },
+    {
+        "id": "template_hp_status",
+        "type": "ui-template",
         "z": "tab_dashboard",
         "group": "ui_group_hp",
+        "name": "HP Status UI",
         "order": 4,
         "width": 0,
         "height": 0,
-        "name": "HP Status",
-        "label": "Status:",
-        "format": "{{msg.payload.server_state}}",
-        "layout": "row-spread",
+        "format": "<div style=\"display: flex; flex-direction: column; gap: 6px; padding: 10px; background: rgba(30, 30, 30, 0.7); backdrop-filter: blur(8px); border-radius: 10px; border: 1px solid #444; color: #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.3);\">\n    <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;\">\n        <span style=\"font-size: 0.8em; color: #888; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold;\">Server State</span>\n        <span :style=\"{\n            color: msg.payload.server_state === 'online' ? '#4caf50' : (msg.payload.server_state === 'offline' ? '#f44336' : '#ff9800'),\n            fontWeight: '900',\n            fontSize: '1.4em',\n            textShadow: '0 0 12px ' + (msg.payload.server_state === 'online' ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)')\n        }\">\n            {{msg.payload.server_state ? msg.payload.server_state.toUpperCase() : 'UNKNOWN'}}\n        </span>\n    </div>\n    <div style=\"height: 1px; background: linear-gradient(to right, #555, transparent); margin-bottom: 8px;\"></div>\n    <div style=\"font-size: 0.85em; line-height: 1.6; display: grid; grid-template-columns: auto 1fr; gap: 0 10px;\">\n        <span style=\"color: #777;\">Last Report:</span>\n        <span style=\"color: #ccc; text-align: right; font-family: monospace;\">{{msg.metadata.lastReported}}</span>\n        \n        <span style=\"color: #777;\">Switched:</span>\n        <span style=\"color: #ccc; text-align: right; font-family: monospace;\">{{msg.metadata.lastChanged}}</span>\n        \n        <span v-if=\"msg.metadata.previousState !== 'Unknown'\" style=\"color: #777;\">Previous:</span>\n        <span v-if=\"msg.metadata.previousState !== 'Unknown'\" style=\"color: #999; text-align: right; font-style: italic;\">{{msg.metadata.previousState}}</span>\n    </div>\n</div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
         "className": "",
-        "x": 490,
+        "x": 600,
         "y": 600,
-        "wires": []
+        "wires": [
+            []
+        ]
     },
     {
         "id": "mqtt_in_all_response",
@@ -505,7 +530,7 @@
         "order": 1,
         "width": "6",
         "height": "4",
-        "format": "<div v-for=\"check in msg.payload.checks\" :key=\"check.unique_key\" style=\"display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #444; background: #222; margin-bottom: 2px; border-radius: 4px;\">\n    <div style=\"font-weight: bold; color: #eee;\">{{check.name}}</div>\n    <div :style=\"{color: check.status === 'up' ? '#4caf50' : (check.status === 'down' ? '#f44336' : '#ffeb3b'), fontWeight: 'bold'}\">\n        {{check.status.toUpperCase()}}\n    </div>\n</div>",
+        "format": "<div style=\"margin-bottom: 12px; font-size: 0.75em; color: #aaa; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 6px; border-left: 3px solid #4caf50;\">\n    <span style=\"font-weight: bold; letter-spacing: 0.05em;\">REPORT SYNCED</span>\n    <span style=\"color: #eee; font-family: monospace;\">{{msg.payload.timestamp ? new Date(msg.payload.timestamp).toLocaleString() : 'N/A'}}</span>\n</div>\n<div v-for=\"check in msg.payload.checks\" :key=\"check.unique_key\" style=\"display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #444; background: #222; margin-bottom: 2px; border-radius: 4px;\">\n    <div style=\"font-weight: bold; color: #eee;\">{{check.name}}</div>\n    <div :style=\"{color: check.status === 'up' ? '#4caf50' : (check.status === 'down' ? '#f44336' : '#ffeb3b'), fontWeight: 'bold'}\">\n        {{check.status.toUpperCase()}}\n    </div>\n</div>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,
@@ -547,7 +572,7 @@
         "order": 1,
         "width": "6",
         "height": "4",
-        "format": "<div v-for=\"check in msg.payload.checks\" :key=\"check.unique_key\" style=\"display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #444; background: #222; margin-bottom: 2px; border-radius: 4px;\">\n    <div style=\"font-weight: bold; color: #eee;\">{{check.name}}</div>\n    <div :style=\"{color: check.status === 'up' ? '#4caf50' : (check.status === 'down' ? '#f44336' : '#ffeb3b'), fontWeight: 'bold'}\">\n        {{check.status.toUpperCase()}}\n    </div>\n</div>",
+        "format": "<div style=\"margin-bottom: 12px; font-size: 0.75em; color: #aaa; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 6px; border-left: 3px solid #4caf50;\">\n    <span style=\"font-weight: bold; letter-spacing: 0.05em;\">REPORT SYNCED</span>\n    <span style=\"color: #eee; font-family: monospace;\">{{msg.payload.timestamp ? new Date(msg.payload.timestamp).toLocaleString() : 'N/A'}}</span>\n</div>\n<div v-for=\"check in msg.payload.checks\" :key=\"check.unique_key\" style=\"display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #444; background: #222; margin-bottom: 2px; border-radius: 4px;\">\n    <div style=\"font-weight: bold; color: #eee;\">{{check.name}}</div>\n    <div :style=\"{color: check.status === 'up' ? '#4caf50' : (check.status === 'down' ? '#f44336' : '#ffeb3b'), fontWeight: 'bold'}\">\n        {{check.status.toUpperCase()}}\n    </div>\n</div>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,

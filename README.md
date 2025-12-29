@@ -8,7 +8,7 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 - 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
 - 📊 **Status Monitoring** - Real-time server status via MQTT
 - 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
-- 🖥️ **Live Dashboard** - Rich console-based monitoring interface
+- 🖥️ **Premium Dashboard** - Modern Glassmorphism-style Node-RED interface with state tracking
 - 🔒 **Secure** - TLS/SSL support, credential management
 - 🔄 **Auto-Restart** - Systemd services with automatic restart
 - 📝 **Comprehensive Logging** - Detailed logs for troubleshooting
@@ -348,5 +348,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 1.2.0  
+**Version:** 1.3.0  
 **Last Updated:** 2025-12-29

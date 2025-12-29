@@ -9,6 +9,11 @@ We are excited to announce the v1.2.0 release of the **Server Remote Management 
 *   **Environment-Based Mapping**: Easily map servers to multiple HealthChecks.io checks via simple `.env` variables (`T310_HEALTHCHECKS`, `DL360P_HEALTHCHECKS`).
 *   **MQTT Reporting**: Health status is automatically published to MQTT topics (`dell/t310/health`, `hp/dl360p/health`), enabling seamless integration with Node-RED and Home Assistant.
 
+### 🖼️ Node-RED Dashboard Updates
+*   **Health Visualization**: New dedicated UI groups for "Dell T310 Health" and "HP DL360p Health".
+*   **Live Status Lists**: Beautifully rendered lists of individual health checks with real-time status color codes (UP/DOWN/NEW).
+*   **Improved Layout**: Reorganized the dashboard for better usability and status overview.
+
 ### 📊 Live Console Dashboard
 *   **Rich UI**: A new `health_monitor.py` script provides a stunning, live-updating table in your terminal using the `rich` library.
 *   **Real-time Insights**: View check status, last ping times, and state transitions at a glance.

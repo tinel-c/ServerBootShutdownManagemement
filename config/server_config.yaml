@@ -53,3 +53,10 @@ servers:
       status_interval: 30  # seconds
       health_check_interval: 60  # seconds
 
+# Client PC Automation Settings
+client_automation:
+  enabled: true
+  shutdown_grace_period: 300  # seconds (5 minutes)
+  heartbeat_timeout: 120  # seconds
+  target_server: "dell/t310"  # Server to control based on client presence
+

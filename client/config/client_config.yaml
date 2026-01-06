@@ -1,0 +1,29 @@
+client:
+  # Custom client name (optional, uses hostname if not set)
+  custom_name: "${CLIENT_CUSTOM_NAME:}"
+  
+  # Heartbeat interval in seconds
+  heartbeat_interval: ${HEARTBEAT_INTERVAL:60}
+  
+  # Target server to monitor (for status display in tray icon)
+  target_server: "${TARGET_SERVER:dell/t310}"
+  
+  # Enable debug logging
+  debug: ${DEBUG:false}
+
+mqtt:
+  broker:
+    host: "${MQTT_BROKER_HOST:localhost}"  # Override with MQTT_BROKER_HOST env var
+    port: ${MQTT_BROKER_PORT:1883}         # Override with MQTT_BROKER_PORT env var
+    keepalive: 60
+  
+  authentication:
+    username: "${MQTT_USERNAME:}"       # Override with MQTT_USERNAME env var
+    password: "${MQTT_PASSWORD:}"       # Override with MQTT_PASSWORD env var
+  
+  topics:
+    # {client_id} will be replaced with actual client ID
+    presence: "clients/{client_id}/presence"
+    heartbeat: "clients/{client_id}/heartbeat"
+  
+  qos: 1

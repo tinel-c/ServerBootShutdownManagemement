@@ -8,6 +8,8 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 - 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
 - 📊 **Status Monitoring** - Real-time server status via MQTT
 - 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
+- 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
+- 🤖 **Smart Automation** - Auto-boot servers when clients start, auto-shutdown when all clients offline
 - 🖥️ **Premium Dashboard** - Modern Glassmorphism-style Node-RED interface with state tracking
 - 🔒 **Secure** - TLS/SSL support, credential management
 - 🔄 **Auto-Restart** - Systemd services with automatic restart
@@ -160,6 +162,75 @@ mosquitto_sub -h <mqtt-broker> -t "hp/dl360p/status" -v
 Status messages are published every 30 seconds (configurable).
 
 
+## 💻 Client PC Monitoring & Automation
+
+Monitor client PCs and automatically manage server power based on client presence.
+
+### Features
+
+- **Automatic Server Boot** - Servers power on when first client PC starts
+- **Automatic Server Shutdown** - Servers shut down when all clients are offline (with grace period)
+- **Heartbeat Monitoring** - Track active clients in real-time
+- **System Tray Icon** - Color-coded status indicator showing connection and server state
+- **Windows Integration** - Runs on startup via Task Scheduler
+- **Configurable Grace Period** - Prevent rapid power cycling (default: 5 minutes)
+
+### Client Installation
+
+1. **On each Windows PC**, navigate to the `client` directory
+
+2. **Run the installer as Administrator:**
+   ```cmd
+   Right-click install_client.bat → Run as administrator
+   ```
+
+3. **Configure MQTT connection** when prompted:
+   - MQTT Broker Host (e.g., `192.168.1.100`)
+   - MQTT Broker Port (default: `1883`)
+   - MQTT Username
+   - MQTT Password
+
+4. **Restart the PC** or start manually:
+   ```cmd
+   python "C:\Program Files\ClientMonitor\client_monitor.py"
+   ```
+
+**To Uninstall:**
+```cmd
+Right-click client\uninstall_client.bat → Run as administrator
+```
+
+### How It Works
+
+```
+Client PC Startup → Presence Signal → Server Boots (if offline)
+       ↓
+   Heartbeat every 60s → Server stays online
+       ↓
+Client PC Shutdown → Offline Signal → Wait 5 min → Server Shuts Down (if all clients offline)
+```
+
+### Monitoring Clients
+
+View active clients in the Node-RED dashboard:
+- Navigate to http://localhost:1880/dashboard/home
+- Check the "Client PCs" panel
+- See active clients with last seen time
+- Enable/disable automation with toggle switch
+
+### Client MQTT Topics
+
+```bash
+# Monitor client presence
+mosquitto_sub -h <mqtt-broker> -t "clients/+/presence" -v
+
+# Monitor client heartbeats
+mosquitto_sub -h <mqtt-broker> -t "clients/+/heartbeat" -v
+```
+
+**See [client/README_CLIENT.md](client/README_CLIENT.md) for detailed client documentation.**
+
+
 ## 🖥️ Node-RED Dashboard (v2.0 - Modular Architecture)
 
 A modern, feature-rich Node-RED dashboard with **modular architecture** for easy maintenance and scalability.
@@ -206,6 +277,8 @@ New **advanced health monitoring dashboard** with Healthchecks.io integration:
    flows/20-hp-controls.json      # HP DL360p buttons
    flows/21-hp-status.json        # HP DL360p status display
    flows/22-hp-health.json        # HP DL360p health monitoring
+   flows/40-client-tracking.json  # Client PC presence tracking
+   flows/41-client-automation.json # Server automation based on clients
    flows/90-log-console.json      # System log console
    ```
 
@@ -452,7 +525,16 @@ ServerBootShutdownMangement/
 │   ├── status/                # Status monitoring & health checks
 │   └── utils/                 # Utility modules (MQTT, logging)
 ├── systemd/                   # Systemd service files
-├── nodered/                   # Node-RED dashboard (v2.0 modular)
+├── client/                    # Client PC monitoring application
+│   ├── client_monitor.py      # Main client application
+│   ├── install_client.bat     # Windows installation script
+│   ├── uninstall_client.bat   # Windows uninstallation script
+│   ├── requirements_client.txt
+│   ├── config/
+│   │   ├── client_config.yaml
+│   │   └── .env.example
+│   └── README_CLIENT.md       # Client documentation
+├── nodered/                   # Node-RED dashboard (v2.1 modular)
 │   ├── flows/                 # Modular flow files
 │   │   ├── 00-base-config.json
 │   │   ├── 10-dell-controls.json
@@ -461,6 +543,8 @@ ServerBootShutdownMangement/
 │   │   ├── 20-hp-controls.json
 │   │   ├── 21-hp-status.json
 │   │   ├── 22-hp-health.json
+│   │   ├── 40-client-tracking.json    # NEW: Client presence tracking
+│   │   ├── 41-client-automation.json  # NEW: Server automation
 │   │   ├── 90-log-console.json
 │   │   └── README.md
 │   ├── docker-compose.yml
@@ -471,6 +555,7 @@ ServerBootShutdownMangement/
 ├── docs/                      # Documentation
 │   ├── SETUP.md
 │   ├── MQTT_PROTOCOL.md
+│   ├── ARCHITECTURE.md
 │   └── TROUBLESHOOTING.md
 ├── requirements.txt           # Python dependencies
 ├── install.sh                 # Installation script
@@ -539,10 +624,57 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 2.0.0  
-**Last Updated:** 2025-12-29
+**Version:** 2.2.0  
+**Last Updated:** 2026-01-07
 
 ## Changelog
+
+### v2.2.0 (2026-01-07) - Decentralized Health & Idle Shutdown
+**🚀 Robust Automation & Smart Power Management**
+
+#### Major Changes
+- ✨ **Decentralized Status**: Automation flows now operate independently of global context
+- 🏥 **Health-Driven Logic**: Server status derived directly from health check payloads
+- ⚡ **Reactive Idle Shutdown**: Automatically shuts down server if UP but idle (0 clients)
+- 🛡️ **Fail-safe Cancellation**: Immediate shutdown abort if client connects during countdown
+- 🖥️ **Updated Client**: Windows client now syncs with health status (UP/DOWN support)
+
+See `RELEASE_NOTES_v2.2.0.md` for complete details.
+
+---
+
+### v2.1.0 (2026-01-06) - Client PC Monitoring & Automation
+**🎉 Smart Server Power Management**
+
+#### Major Changes
+- ✨ **Client PC Monitoring**: Windows application for automatic server power management
+- 🤖 **Smart Automation**: Auto-boot when clients start, auto-shutdown when all clients offline
+- 📊 **Client Dashboard**: Real-time client presence tracking in Node-RED
+- ⏱️ **Grace Period**: Configurable shutdown delay (default: 5 minutes)
+- 🔧 **Easy Installation**: One-click Windows installer with configuration wizard
+
+#### New Features
+- Python client application for Windows PCs
+- MQTT-based presence and heartbeat monitoring
+- Node-RED automation flows (40-client-tracking, 41-client-automation)
+- Client PCs dashboard panel with live status
+- Automation enable/disable toggle
+- Extended MQTT protocol with client topics
+
+#### Documentation Added
+- `client/README_CLIENT.md` - Client installation and usage guide
+- `RELEASE_NOTES_v2.1.0.md` - This release documentation
+- Updated `README.md` with client PC monitoring section
+- Updated `docs/MQTT_PROTOCOL.md` with client message schemas
+- Updated `docs/ARCHITECTURE.md` with client integration
+
+#### Configuration Updates
+- Added `client_automation` section to `server_config.yaml`
+- Added client topics to `mqtt_config.yaml`
+
+See `RELEASE_NOTES_v2.1.0.md` for complete details.
+
+---
 
 ### v2.0.0 (2025-12-29) - Major Node-RED Dashboard Overhaul
 **🎉 Modular Architecture & Enhanced Health Monitoring**

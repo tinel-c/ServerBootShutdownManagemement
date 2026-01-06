@@ -1,0 +1,237 @@
+[
+    {
+        "id": "ui_group_clients",
+        "type": "ui-group",
+        "name": "Client PCs",
+        "page": "ui_page_home",
+        "width": "6",
+        "height": "1",
+        "order": 6,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "mqtt_in_client_presence",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Client Presence",
+        "topic": "clients/+/presence",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 800,
+        "wires": [
+            [
+                "func_track_client_presence",
+                "debug_client_presence"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_in_client_heartbeat",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Client Heartbeat",
+        "topic": "clients/+/heartbeat",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 840,
+        "wires": [
+            [
+                "func_track_client_heartbeat"
+            ]
+        ]
+    },
+    {
+        "id": "func_track_client_presence",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Track Client Presence",
+        "func": "// Initialize client tracking in flow context\nlet clients = flow.get('clients') || {};\nconst now = new Date();\n\n// Parse incoming message\nconst clientData = msg.payload;\nconst clientId = clientData.client_id || clientData.hostname;\nconst status = clientData.status; // 'online' or 'offline'\n\nif (status === 'online') {\n    // Client came online\n    clients[clientId] = {\n        hostname: clientData.hostname,\n        client_id: clientId,\n        ip_address: clientData.ip_address,\n        last_seen: now.toISOString(),\n        status: 'online',\n        first_seen: clients[clientId]?.first_seen || now.toISOString()\n    };\n    \n    node.status({fill: \"green\", shape: \"dot\", text: `${Object.keys(clients).length} clients online`});\n    \n} else if (status === 'offline') {\n    // Client went offline\n    if (clients[clientId]) {\n        delete clients[clientId];\n    }\n    \n    node.status({fill: \"yellow\", shape: \"dot\", text: `${Object.keys(clients).length} clients online`});\n}\n\n// Save updated client list\nflow.set('clients', clients);\n\n// Prepare output for automation logic\nmsg.payload = {\n    client_id: clientId,\n    status: status,\n    active_clients: Object.keys(clients),\n    client_count: Object.keys(clients).length,\n    timestamp: now.toISOString(),\n    clients: clients\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 800,
+        "wires": [
+            [
+                "func_client_state_change",
+                "ui_template_client_list"
+            ]
+        ]
+    },
+    {
+        "id": "func_track_client_heartbeat",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Last Seen",
+        "func": "// Update last seen timestamp for heartbeat\nlet clients = flow.get('clients') || {};\nconst now = new Date();\n\nconst clientData = msg.payload;\nconst clientId = clientData.client_id || clientData.hostname;\n\nif (clients[clientId]) {\n    clients[clientId].last_seen = now.toISOString();\n    clients[clientId].uptime = clientData.uptime;\n    flow.set('clients', clients);\n}\n\n// Update UI\nmsg.payload = {\n    clients: clients,\n    client_count: Object.keys(clients).length,\n    timestamp: now.toISOString()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 840,
+        "wires": [
+            [
+                "ui_template_client_list"
+            ]
+        ]
+    },
+    {
+        "id": "func_client_state_change",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Detect State Change",
+        "func": "// Detect when we go from 0 to 1+ clients or 1+ to 0 clients\nconst clientCount = msg.payload.client_count;\nconst status = msg.payload.status;\n\nlet previousCount = flow.get('previous_client_count') || 0;\nflow.set('previous_client_count', clientCount);\n\n// Trigger automation events\nif (previousCount === 0 && clientCount > 0) {\n    // First client came online - trigger server boot\n    msg.payload = {\n        event: 'first_client_online',\n        client_id: msg.payload.client_id,\n        client_count: clientCount,\n        timestamp: msg.payload.timestamp\n    };\n    node.status({fill: \"green\", shape: \"dot\", text: \"First client online\"});\n    return [msg, null];\n    \n} else if (previousCount > 0 && clientCount === 0) {\n    // Last client went offline - trigger server shutdown (with grace period)\n    msg.payload = {\n        event: 'last_client_offline',\n        client_id: msg.payload.client_id,\n        client_count: clientCount,\n        timestamp: msg.payload.timestamp\n    };\n    node.status({fill: \"yellow\", shape: \"dot\", text: \"Last client offline\"});\n    return [null, msg];\n    \n} else {\n    // No state change\n    node.status({fill: \"blue\", shape: \"dot\", text: `${clientCount} clients`});\n    return [null, null];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 800,
+        "wires": [
+            [
+                "link_out_first_client"
+            ],
+            [
+                "link_out_last_client"
+            ]
+        ]
+    },
+    {
+        "id": "link_out_first_client",
+        "type": "link out",
+        "z": "tab_dashboard",
+        "name": "First Client Online",
+        "mode": "source",
+        "links": [
+            "link_in_first_client"
+        ],
+        "x": 835,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "link_out_last_client",
+        "type": "link out",
+        "z": "tab_dashboard",
+        "name": "Last Client Offline",
+        "mode": "source",
+        "links": [
+            "link_in_last_client"
+        ],
+        "x": 835,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "ui_template_client_list",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_clients",
+        "page": "",
+        "ui": "",
+        "name": "Client List Display",
+        "order": 1,
+        "width": "6",
+        "height": "4",
+        "head": "",
+        "format": "<template>\n    <div class=\"client-container\">\n        <div class=\"client-header\">\n            <h3>Active Clients: {{ clientCount }}</h3>\n        </div>\n        \n        <div v-if=\"clientCount === 0\" class=\"no-clients\">\n            <p>⚠️ No clients connected</p>\n        </div>\n        \n        <div v-else class=\"client-list\">\n            <div v-for=\"(client, id) in clients\" :key=\"id\" class=\"client-card\">\n                <div class=\"client-icon\">💻</div>\n                <div class=\"client-info\">\n                    <div class=\"client-name\">{{ client.hostname }}</div>\n                    <div class=\"client-details\">\n                        <span class=\"client-ip\">{{ client.ip_address }}</span>\n                        <span class=\"client-time\">{{ formatTime(client.last_seen) }}</span>\n                    </div>\n                </div>\n                <div class=\"client-status online\">●</div>\n            </div>\n        </div>\n    </div>\n</template>\n\n<script>\nexport default {\n    data() {\n        return {\n            clients: {},\n            clientCount: 0,\n            updateInterval: null\n        }\n    },\n    mounted() {\n        // Update relative times every 10 seconds\n        this.updateInterval = setInterval(() => {\n            this.$forceUpdate();\n        }, 10000);\n    },\n    beforeUnmount() {\n        if (this.updateInterval) {\n            clearInterval(this.updateInterval);\n        }\n    },\n    methods: {\n        formatTime(timestamp) {\n            if (!timestamp) return 'Unknown';\n            const now = new Date();\n            const then = new Date(timestamp);\n            const diffMs = now - then;\n            const diffSec = Math.floor(diffMs / 1000);\n            \n            if (diffSec < 60) return `${diffSec}s ago`;\n            if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;\n            if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;\n            return `${Math.floor(diffSec / 86400)}d ago`;\n        }\n    },\n    watch: {\n        msg(newMsg) {\n            if (newMsg && newMsg.payload) {\n                if (newMsg.payload.clients) {\n                    this.clients = newMsg.payload.clients;\n                    this.clientCount = newMsg.payload.client_count;\n                }\n            }\n        }\n    }\n}\n</script>\n\n<style scoped>\n.client-container {\n    padding: 10px;\n    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n}\n\n.client-header h3 {\n    margin: 0 0 15px 0;\n    color: #333;\n    font-size: 18px;\n}\n\n.no-clients {\n    text-align: center;\n    padding: 30px;\n    color: #888;\n    font-size: 16px;\n}\n\n.client-list {\n    display: flex;\n    flex-direction: column;\n    gap: 10px;\n}\n\n.client-card {\n    display: flex;\n    align-items: center;\n    padding: 12px;\n    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n    border-radius: 8px;\n    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n    color: white;\n}\n\n.client-icon {\n    font-size: 24px;\n    margin-right: 12px;\n}\n\n.client-info {\n    flex: 1;\n}\n\n.client-name {\n    font-weight: bold;\n    font-size: 14px;\n    margin-bottom: 4px;\n}\n\n.client-details {\n    display: flex;\n    gap: 15px;\n    font-size: 12px;\n    opacity: 0.9;\n}\n\n.client-status {\n    font-size: 20px;\n    color: #4ade80;\n}\n</style>",
+        "storeOutMessages": false,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 630,
+        "y": 880,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "debug_client_presence",
+        "type": "debug",
+        "z": "tab_dashboard",
+        "name": "Client Presence Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 380,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "inject_cleanup_timer",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Cleanup Every 30s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.5",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 880,
+        "wires": [
+            [
+                "func_cleanup_stale_clients"
+            ]
+        ]
+    },
+    {
+        "id": "func_cleanup_stale_clients",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Cleanup Stale Clients",
+        "func": "// Grace period for heartbeats\nconst GRACE_PERIOD = 150;\nlet clients = flow.get('clients') || {};\nconst now = new Date();\nlet removedCount = 0;\nlet lastRemovedId = '';\n\nfor (const clientId in clients) {\n    const lastSeen = new Date(clients[clientId].last_seen);\n    if ((now - lastSeen) / 1000 > GRACE_PERIOD) {\n        lastRemovedId = clientId;\n        delete clients[clientId];\n        removedCount++;\n    }\n}\n\nconst initialized = context.get('initialized') || false;\nif (removedCount > 0 || !initialized) {\n    flow.set('clients', clients);\n    context.set('initialized', true);\n    msg.payload = {\n        client_id: lastRemovedId || 'system',\n        status: removedCount > 0 ? 'offline' : 'sync',\n        active_clients: Object.keys(clients),\n        client_count: Object.keys(clients).length,\n        timestamp: now.toISOString(),\n        clients: clients\n    };\n    node.status({fill: removedCount > 0 ? \"red\" : \"blue\", shape: \"dot\", text: `Ready (${Object.keys(clients).length} active)`});\n    return [msg, msg];\n}\nreturn null;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 880,
+        "wires": [
+            [
+                "func_client_state_change"
+            ],
+            [
+                "ui_template_client_list"
+            ]
+        ]
+    }
+]

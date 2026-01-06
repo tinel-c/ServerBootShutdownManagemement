@@ -8,6 +8,26 @@ The Server Boot/Shutdown Management System uses a centralized automation server 
 
 ## Components
 
+### 0. Client PC Layer (NEW in v2.1.0)
+
+#### Windows Client PCs
+- **Client Monitor Application**: Python application running on Windows PCs
+  - **Installation**: Installed via `install_client.bat` in `C:\Program Files\ClientMonitor`
+  - **Startup**: Runs automatically on user login via Windows Task Scheduler
+  - **Communication**: MQTT-based presence and heartbeat signals
+  - **Features**:
+    - Sends "online" presence message on startup
+    - Sends heartbeat every 60 seconds
+    - Sends "offline" presence message on shutdown
+    - Automatic reconnection on network interruptions
+    - Logging to `logs/client_monitor.log`
+
+- **MQTT Topics Published**:
+  - `clients/{client_id}/presence` - Startup/shutdown notifications
+  - `clients/{client_id}/heartbeat` - Periodic heartbeat messages
+
+- **Purpose**: Enable automatic server power management based on client PC usage patterns
+
 ### 1. User Interface Layer
 
 #### Web Browser (User Access Point)
@@ -33,8 +53,10 @@ The automation server is an Ubuntu VM that hosts all management components:
     - HP DL360p: iLO boot, graceful/force shutdown
   - **Status Display**: Real-time server state with metadata tracking
   - **Health Monitoring**: Comprehensive health check cards with 16+ data points
+  - **Client Monitoring** (NEW): Track active client PCs in real-time
+  - **Automation Control** (NEW): Enable/disable automatic server power management
   - **Log Console**: Rolling log display (50-entry buffer)
-- **Communication**: Publishes commands to MQTT, subscribes to status/health topics
+- **Communication**: Publishes commands to MQTT, subscribes to status/health/client topics
 
 #### B. Mosquitto MQTT Broker
 - **Technology**: Eclipse Mosquitto
@@ -54,6 +76,11 @@ The automation server is an Ubuntu VM that hosts all management components:
   - hp/dl360p/status (published every 30s)
   - hp/dl360p/health (published every 60s)
   - system/logs (centralized logging)
+  
+  Client PCs (Clients → Dashboard, NEW in v2.1.0):
+  - clients/{client_id}/presence (startup/shutdown)
+  - clients/{client_id}/heartbeat (every 60s)
+  - automation/clients/status (automation state)
   ```
 
 #### C. Python Management Scripts (Systemd Services)
@@ -435,9 +462,9 @@ For critical environments:
 
 ## Version Information
 
-- **Architecture Version**: 2.0
-- **Last Updated**: December 29, 2025
-- **Node-RED Dashboard**: v2.0.0 (modular architecture)
+- **Architecture Version**: 2.1
+- **Last Updated**: January 6, 2026
+- **Node-RED Dashboard**: v2.1.0 (modular architecture with client monitoring)
 - **MQTT Protocol**: v3.1.1 / v5.0
 - **Proxmox API**: v2/json
 
@@ -445,5 +472,6 @@ For critical environments:
 
 **For Implementation Details**: See README.md, SETUP.md, and MQTT_PROTOCOL.md  
 **For Development**: See DEVELOPMENT_GUIDE.md and nodered/NODE_RED_DEVELOPMENT.md  
-**For Troubleshooting**: See TROUBLESHOOTING.md
+**For Troubleshooting**: See TROUBLESHOOTING.md  
+**For Client Setup**: See client/README_CLIENT.md
 

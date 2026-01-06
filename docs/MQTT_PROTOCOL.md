@@ -24,6 +24,14 @@ The system uses MQTT for all remote commands and status updates. All messages ar
 | `dell/t310/response` | Command responses | 1 |
 | `dell/t310/logs` | Log messages | 0 |
 
+### Client PC Topics (Client → Server)
+
+| Topic | Purpose | QoS |
+|-------|---------|-----|
+| `clients/{client_id}/presence` | Client startup/shutdown notifications | 1 |
+| `clients/{client_id}/heartbeat` | Client heartbeat messages | 1 |
+| `automation/clients/status` | Automation status updates | 1 |
+
 ---
 
 ## Message Schemas
@@ -234,6 +242,92 @@ The system uses MQTT for all remote commands and status updates. All messages ar
   "success": false,
   "message": "Failed to shutdown server via IPMI: Connection timeout",
   "timestamp": "2025-12-25T20:00:05+02:00"
+}
+```
+
+---
+
+### Client Presence Message
+
+**Topic:** `clients/{client_id}/presence`
+
+**Schema:**
+```json
+{
+  "status": "online|offline",
+  "hostname": "string",
+  "client_id": "string",
+  "timestamp": "ISO8601 timestamp",
+  "ip_address": "string",
+  "reason": "string (optional)"
+}
+```
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `status` | string | Yes | Client status: "online" or "offline" |
+| `hostname` | string | Yes | Windows hostname |
+| `client_id` | string | Yes | Unique client identifier |
+| `timestamp` | string | Yes | ISO8601 timestamp |
+| `ip_address` | string | Yes | Client IP address |
+| `reason` | string | No | Reason for offline (e.g., "connection_lost") |
+
+**Example (Online):**
+```json
+{
+  "status": "online",
+  "hostname": "DESKTOP-ABC123",
+  "client_id": "desktop-abc123",
+  "timestamp": "2026-01-06T17:30:00+02:00",
+  "ip_address": "192.168.1.50"
+}
+```
+
+**Example (Offline):**
+```json
+{
+  "status": "offline",
+  "hostname": "DESKTOP-ABC123",
+  "client_id": "desktop-abc123",
+  "timestamp": "2026-01-06T18:30:00+02:00",
+  "ip_address": "192.168.1.50"
+}
+```
+
+---
+
+### Client Heartbeat Message
+
+**Topic:** `clients/{client_id}/heartbeat`
+
+**Schema:**
+```json
+{
+  "client_id": "string",
+  "hostname": "string",
+  "timestamp": "ISO8601 timestamp",
+  "uptime": 3600
+}
+```
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `client_id` | string | Yes | Unique client identifier |
+| `hostname` | string | Yes | Windows hostname |
+| `timestamp` | string | Yes | ISO8601 timestamp |
+| `uptime` | integer | Yes | System uptime in seconds |
+
+**Example:**
+```json
+{
+  "client_id": "desktop-abc123",
+  "hostname": "DESKTOP-ABC123",
+  "timestamp": "2026-01-06T17:31:00+02:00",
+  "uptime": 3600
 }
 ```
 

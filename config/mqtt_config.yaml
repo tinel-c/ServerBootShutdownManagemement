@@ -21,6 +21,11 @@ mqtt:
     status: "dell/t310/status"
     logs: "dell/t310/logs"
     response: "dell/t310/response"
+    
+    # Client PC topics
+    client_presence: "clients/+/presence"
+    client_heartbeat: "clients/+/heartbeat"
+    automation_status: "automation/clients/status"
   
   qos: 1
   retain: false

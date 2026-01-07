@@ -79,7 +79,7 @@ Every automation event is now logged with:
 - **Status:** Command status (sent, executed, started, cancelled, applied)
 
 ### Log Display Features
-- **Scrollable window** - Shows last 20 events, stores 50
+- **Scrollable window** - Shows last 8 events, stores 50 (optimized for layout)
 - **Color-coded entries** - Visual differentiation by action type
 - **Emoji indicators** - Quick visual reference
   - 🚀 Boot commands
@@ -161,7 +161,7 @@ Every automation event is now logged with:
 - All automation events logged to flow context
 - Persistent across page refreshes
 - Limited to 50 entries (automatic cleanup)
-- Displays most recent 20 in UI
+- Displays most recent 8 in UI (optimized for layout)
 
 ## 📊 Dashboard Layout
 

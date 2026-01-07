@@ -18,7 +18,7 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 ## System Architecture
 
-![System Architecture](docs/architecture_diagram.png)
+![System Architecture](docs/architecture_diagram_v3.svg)
 
 The system uses a **centralized automation server** running Node-RED dashboard, Mosquitto MQTT broker, and Python management scripts with **smart client-aware automation**.
 

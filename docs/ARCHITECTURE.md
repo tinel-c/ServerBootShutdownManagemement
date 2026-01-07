@@ -4,7 +4,7 @@
 
 The Server Boot/Shutdown Management System uses a centralized automation server architecture where all control, monitoring, and management logic resides on a single Ubuntu VM running Docker containers and Python services.
 
-![System Architecture](architecture_diagram_v2.svg)
+![System Architecture](architecture_diagram_v3.svg)
 
 ## Components
 

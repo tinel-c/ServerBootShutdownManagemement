@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- Definitions -->
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="yellowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Filters for glow effects -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="1400" fill="url(#bgGradient)"/>
+  
+  <!-- Title -->
+  <text x="600" y="40" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#f8fafc" text-anchor="middle">
+    Server Boot/Shutdown Management System
+  </text>
+  <text x="600" y="70" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8" text-anchor="middle">
+    Smart Client-Aware Automation v2.3.0
+  </text>
+  
+  <!-- ======== LAYER 1: USER & CLIENT ======== -->
+  <g id="layer1">
+    <!-- Layer Label -->
+    <rect x="50" y="100" width="1100" height="30" fill="rgba(59, 130, 246, 0.2)" rx="5"/>
+    <text x="600" y="120" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#60a5fa" text-anchor="middle">
+      LAYER 1: USER &amp; CLIENT INTERFACE
+    </text>
+    
+    <!-- Web Browser -->
+    <rect x="80" y="150" width="250" height="150" fill="rgba(59, 130, 246, 0.15)" stroke="#3b82f6" stroke-width="2" rx="10"/>
+    <text x="205" y="180" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#f8fafc" text-anchor="middle">
+      🖥️ Web Browser
+    </text>
+    <text x="205" y="205" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">
+      Dashboard UI
+    </text>
+    <text x="205" y="225" font-family="Arial, sans-serif" font-size="11" fill="#64748b" text-anchor="middle">
+      localhost:1880/dashboard
+    </text>
+    <text x="205" y="250" font-family="Arial, sans-serif" font-size="10" fill="#60a5fa" text-anchor="middle">
+      • Server Controls
+    </text>
+    <text x="205" y="265" font-family="Arial, sans-serif" font-size="10" fill="#60a5fa" text-anchor="middle">
+      • Status Monitoring
+    </text>
+    <text x="205" y="280" font-family="Arial, sans-serif" font-size="10" fill="#60a5fa" text-anchor="middle">
+      • Activity Logs
+    </text>
+    
+    <!-- Client PCs -->
+    <rect x="370" y="150" width="780" height="150" fill="rgba(59, 130, 246, 0.15)" stroke="#60a5fa" stroke-width="2" rx="10"/>
+    <text x="760" y="180" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#f8fafc" text-anchor="middle">
+      💻 Client PCs (Windows)
+    </text>
+    <text x="760" y="205" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">
+      Client Monitor Application (Python)
+    </text>
+    
+    <!-- Client PC 1 -->
+    <rect x="390" y="220" width="180" height="65" fill="rgba(96, 165, 250, 0.1)" stroke="#60a5fa" stroke-width="1" rx="5"/>
+    <text x="480" y="240" font-family="Arial, sans-serif" font-size="11" fill="#f8fafc" text-anchor="middle">PC-001</text>
+    <text x="480" y="255" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">✅ Auto-start on login</text>
+    <text x="480" y="268" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">📡 Heartbeat: 60s</text>
+    <text x="480" y="281" font-family="Arial, sans-serif" font-size="9" fill="#10b981" text-anchor="middle">🟢 Online</text>
+    
+    <!-- Client PC 2 -->
+    <rect x="590" y="220" width="180" height="65" fill="rgba(96, 165, 250, 0.1)" stroke="#60a5fa" stroke-width="1" rx="5"/>
+    <text x="680" y="240" font-family="Arial, sans-serif" font-size="11" fill="#f8fafc" text-anchor="middle">PC-002</text>
+    <text x="680" y="255" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">✅ System tray icon</text>
+    <text x="680" y="268" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">📡 Presence tracking</text>
+    <text x="680" y="281" font-family="Arial, sans-serif" font-size="9" fill="#10b981" text-anchor="middle">🟢 Online</text>
+    
+    <!-- Client PC 3 -->
+    <rect x="790" y="220" width="180" height="65" fill="rgba(96, 165, 250, 0.1)" stroke="#60a5fa" stroke-width="1" rx="5"/>
+    <text x="880" y="240" font-family="Arial, sans-serif" font-size="11" fill="#f8fafc" text-anchor="middle">PC-003</text>
+    <text x="880" y="255" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">✅ Auto-reconnect</text>
+    <text x="880" y="268" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">📡 MQTT messages</text>
+    <text x="880" y="281" font-family="Arial, sans-serif" font-size="9" fill="#10b981" text-anchor="middle">🟢 Online</text>
+  </g>
+  
+  <!-- Arrows from Layer 1 to Layer 2 -->
+  <path d="M 205 300 L 205 370" stroke="#3b82f6" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+  <text x="225" y="335" font-family="Arial, sans-serif" font-size="10" fill="#60a5fa">HTTP</text>
+  
+  <path d="M 760 300 L 760 370" stroke="#60a5fa" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+  <text x="780" y="335" font-family="Arial, sans-serif" font-size="10" fill="#60a5fa">MQTT</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3b82f6" />
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+    </marker>
+    <marker id="arrowYellow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fbbf24" />
+    </marker>
+  </defs>
+  
+  <!-- ======== LAYER 2: AUTOMATION SERVER ======== -->
+  <g id="layer2">
+    <!-- Layer Label -->
+    <rect x="50" y="370" width="1100" height="30" fill="rgba(139, 92, 246, 0.2)" rx="5"/>
+    <text x="600" y="390" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#a78bfa" text-anchor="middle">
+      LAYER 2: AUTOMATION SERVER (Ubuntu VM)
+    </text>
+    
+    <!-- Main Container -->
+    <rect x="80" y="420" width="1070" height="380" fill="rgba(139, 92, 246, 0.1)" stroke="#8b5cf6" stroke-width="3" rx="15"/>
+    
+    <!-- Node-RED Dashboard -->
+    <rect x="100" y="440" width="300" height="180" fill="url(#blueGradient)" stroke="#3b82f6" stroke-width="2" rx="10" filter="url(#glow)"/>
+    <text x="250" y="465" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      Node-RED Dashboard
+    </text>
+    <text x="250" y="485" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      :1880 (Docker Container)
+    </text>
+    <rect x="115" y="500" width="270" height="105" fill="rgba(255,255,255,0.1)" rx="5"/>
+    <text x="250" y="520" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">
+      ✅ Server Control Panels
+    </text>
+    <text x="250" y="535" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">
+      📊 Real-time Status Display
+    </text>
+    <text x="250" y="550" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">
+      🏥 Health Monitoring
+    </text>
+    <text x="250" y="565" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">
+      💻 Client Tracking
+    </text>
+    <text x="250" y="580" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">
+      🤖 Smart Automation
+    </text>
+    <text x="250" y="595" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">
+      📋 Activity Logs
+    </text>
+    
+    <!-- MQTT Broker -->
+    <rect x="430" y="440" width="300" height="180" fill="url(#yellowGradient)" stroke="#fbbf24" stroke-width="2" rx="10" filter="url(#glow)"/>
+    <text x="580" y="465" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">
+      Mosquitto MQTT Broker
+    </text>
+    <text x="580" y="485" font-family="Arial, sans-serif" font-size="11" fill="#422006" text-anchor="middle">
+      :1883 (Central Message Bus)
+    </text>
+    <rect x="445" y="500" width="270" height="105" fill="rgba(0,0,0,0.15)" rx="5"/>
+    <text x="580" y="520" font-family="Arial, sans-serif" font-size="10" fill="#1e293b" text-anchor="middle" font-weight="bold">
+      📡 MQTT Topics:
+    </text>
+    <text x="580" y="538" font-family="Arial, sans-serif" font-size="9" fill="#422006" text-anchor="middle">
+      dell/t310/* | hp/dl360p/*
+    </text>
+    <text x="580" y="553" font-family="Arial, sans-serif" font-size="9" fill="#422006" text-anchor="middle">
+      clients/+/presence
+    </text>
+    <text x="580" y="568" font-family="Arial, sans-serif" font-size="9" fill="#422006" text-anchor="middle">
+      clients/+/heartbeat
+    </text>
+    <text x="580" y="583" font-family="Arial, sans-serif" font-size="9" fill="#422006" text-anchor="middle">
+      system/logs
+    </text>
+    
+    <!-- Smart Automation Box -->
+    <rect x="760" y="440" width="360" height="180" fill="url(#purpleGradient)" stroke="#8b5cf6" stroke-width="2" rx="10" filter="url(#glow)"/>
+    <text x="940" y="465" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      🤖 Smart Automation Engine
+    </text>
+    <text x="940" y="485" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      v2.3.0 - NEW!
+    </text>
+    <rect x="775" y="500" width="330" height="105" fill="rgba(255,255,255,0.1)" rx="5"/>
+    <text x="940" y="518" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">
+      🟢 Client-Aware Boot (auto-detects needs)
+    </text>
+    <text x="940" y="533" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">
+      ⏳ 5-Min Cooldown (prevents spam)
+    </text>
+    <text x="940" y="548" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">
+      ⏱️ Grace Period (5-min countdown)
+    </text>
+    <text x="940" y="563" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">
+      📋 Activity Logging (complete audit trail)
+    </text>
+    <text x="940" y="578" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">
+      ❌ Smart Cancellation (abort if client connects)
+    </text>
+    <text x="940" y="593" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">
+      🔄 Auto-Retry (after cooldown expires)
+    </text>
+    
+    <!-- Python Services -->
+    <rect x="100" y="640" width="1020" height="140" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="2" rx="10"/>
+    <text x="610" y="665" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#10b981" text-anchor="middle">
+      🐍 Python Systemd Services
+    </text>
+    
+    <!-- Service boxes -->
+    <rect x="120" y="680" width="230" height="85" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="1" rx="5"/>
+    <text x="235" y="700" font-family="Arial, sans-serif" font-size="11" fill="#f8fafc" text-anchor="middle">mqtt-boot-listener</text>
+    <text x="235" y="715" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Executes WOL/IPMI/iLO</text>
+    <text x="235" y="730" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">boot commands</text>
+    <text x="235" y="745" font-family="Arial, sans-serif" font-size="9" fill="#10b981" text-anchor="middle">🚀 Boot</text>
+    
+    <rect x="370" y="680" width="230" height="85" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="1" rx="5"/>
+    <text x="485" y="700" font-family="Arial, sans-serif" font-size="11" fill="#f8fafc" text-anchor="middle">mqtt-shutdown-listener</text>
+    <text x="485" y="715" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Graceful/Force shutdown</text>
+    <text x="485" y="730" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">VMs → Proxmox → IPMI</text>
+    <text x="485" y="745" font-family="Arial, sans-serif" font-size="9" fill="#ef4444" text-anchor="middle">⏹️ Shutdown</text>
+    
+    <rect x="620" y="680" width="230" height="85" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="1" rx="5"/>
+    <text x="735" y="700" font-family="Arial, sans-serif" font-size="11" fill="#f8fafc" text-anchor="middle">status-publisher</text>
+    <text x="735" y="715" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">IPMI/iLO monitoring</text>
+    <text x="735" y="730" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Publishes every 30s</text>
+    <text x="735" y="745" font-family="Arial, sans-serif" font-size="9" fill="#60a5fa" text-anchor="middle">📊 Status</text>
+    
+    <rect x="870" y="680" width="230" height="85" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="1" rx="5"/>
+    <text x="985" y="700" font-family="Arial, sans-serif" font-size="11" fill="#f8fafc" text-anchor="middle">health-monitor</text>
+    <text x="985" y="715" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Healthchecks.io API</text>
+    <text x="985" y="730" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Publishes every 60s</text>
+    <text x="985" y="745" font-family="Arial, sans-serif" font-size="9" fill="#f59e0b" text-anchor="middle">🏥 Health</text>
+  </g>
+  
+  <!-- Arrows from Layer 2 to Layer 3 -->
+  <path d="M 300 800 L 300 920" stroke="#10b981" stroke-width="3" fill="none" marker-end="url(#arrowGreen)"/>
+  <text x="320" y="860" font-family="Arial, sans-serif" font-size="10" fill="#10b981">WOL/IPMI</text>
+  
+  <path d="M 900 800 L 900 920" stroke="#10b981" stroke-width="3" fill="none" marker-end="url(#arrowGreen)"/>
+  <text x="920" y="860" font-family="Arial, sans-serif" font-size="10" fill="#10b981">WOL/iLO</text>
+  
+  <!-- ======== LAYER 3: MANAGED SERVERS ======== -->
+  <g id="layer3">
+    <!-- Layer Label -->
+    <rect x="50" y="890" width="1100" height="30" fill="rgba(16, 185, 129, 0.2)" rx="5"/>
+    <text x="600" y="910" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#34d399" text-anchor="middle">
+      LAYER 3: MANAGED SERVERS
+    </text>
+    
+    <!-- Dell T310 Server -->
+    <rect x="80" y="940" width="520" height="400" fill="url(#greenGradient)" stroke="#10b981" stroke-width="3" rx="15" filter="url(#glow)"/>
+    <text x="340" y="975" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      🖥️ Dell T310 Server
+    </text>
+    
+    <!-- Management Section -->
+    <rect x="100" y="990" width="480" height="110" fill="rgba(255,255,255,0.15)" rx="8"/>
+    <text x="340" y="1012" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      Hardware Management
+    </text>
+    <text x="340" y="1032" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      🔌 IPMI Interface (Port :623)
+    </text>
+    <text x="340" y="1050" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      📡 Wake-on-LAN (MAC Address)
+    </text>
+    <text x="340" y="1068" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      ⚡ Power Control (On/Off/Reset)
+    </text>
+    <text x="340" y="1086" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      📊 Power State Monitoring
+    </text>
+    
+    <!-- Software Section -->
+    <rect x="100" y="1115" width="480" height="95" fill="rgba(255,255,255,0.15)" rx="8"/>
+    <text x="340" y="1137" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      Software Stack
+    </text>
+    <text x="340" y="1157" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      🐳 Proxmox VE Hypervisor
+    </text>
+    <text x="340" y="1175" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      🌐 REST API (Port :8006/HTTPS)
+    </text>
+    <text x="340" y="1193" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
+      💾 Virtual Machines
+    </text>
+    
+    <!-- Status Section -->
+    <rect x="100" y="1225" width="480" height="100" fill="rgba(255,255,255,0.2)" rx="8"/>
+    <text x="340" y="1250" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      📡 MQTT Topics
+    </text>
+    <text x="340" y="1270" font-family="Arial, sans-serif" font-size="10" fill="#e0e7ff" text-anchor="middle">
+      Publishes: dell/t310/status
+    </text>
+    <text x="340" y="1285" font-family="Arial, sans-serif" font-size="10" fill="#e0e7ff" text-anchor="middle">
+      Publishes: dell/t310/health
+    </text>
+    <text x="340" y="1300" font-family="Arial, sans-serif" font-size="10" fill="#e0e7ff" text-anchor="middle">
+      Subscribes: dell/t310/command/*
+    </text>
+    <text x="340" y="1315" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#10b981" text-anchor="middle">
+      ✅ Status: ONLINE
+    </text>
+    
+    <!-- HP DL360p Server -->
+    <rect x="630" y="940" width="520" height="400" fill="url(#orangeGradient)" stroke="#f59e0b" stroke-width="3" rx="15" filter="url(#glow)"/>
+    <text x="890" y="975" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      🖥️ HP DL360p Server
+    </text>
+    
+    <!-- Management Section -->
+    <rect x="650" y="990" width="480" height="110" fill="rgba(255,255,255,0.15)" rx="8"/>
+    <text x="890" y="1012" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      Hardware Management
+    </text>
+    <text x="890" y="1032" font-family="Arial, sans-serif" font-size="11" fill="#fef3c7" text-anchor="middle">
+      🔌 iLO Interface (Port :443)
+    </text>
+    <text x="890" y="1050" font-family="Arial, sans-serif" font-size="11" fill="#fef3c7" text-anchor="middle">
+      📡 Remote Power Control
+    </text>
+    <text x="890" y="1068" font-family="Arial, sans-serif" font-size="11" fill="#fef3c7" text-anchor="middle">
+      ⚡ iLO Power Commands
+    </text>
+    <text x="890" y="1086" font-family="Arial, sans-serif" font-size="11" fill="#fef3c7" text-anchor="middle">
+      📊 Power State Monitoring
+    </text>
+    
+    <!-- Software Section -->
+    <rect x="650" y="1115" width="480" height="95" fill="rgba(255,255,255,0.15)" rx="8"/>
+    <text x="890" y="1137" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      Software Stack
+    </text>
+    <text x="890" y="1157" font-family="Arial, sans-serif" font-size="11" fill="#fef3c7" text-anchor="middle">
+      🐳 Proxmox VE Hypervisor
+    </text>
+    <text x="890" y="1175" font-family="Arial, sans-serif" font-size="11" fill="#fef3c7" text-anchor="middle">
+      🌐 REST API (Port :8006/HTTPS)
+    </text>
+    <text x="890" y="1193" font-family="Arial, sans-serif" font-size="11" fill="#fef3c7" text-anchor="middle">
+      💾 Virtual Machines
+    </text>
+    
+    <!-- Status Section -->
+    <rect x="650" y="1225" width="480" height="100" fill="rgba(255,255,255,0.2)" rx="8"/>
+    <text x="890" y="1250" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      📡 MQTT Topics
+    </text>
+    <text x="890" y="1270" font-family="Arial, sans-serif" font-size="10" fill="#fef3c7" text-anchor="middle">
+      Publishes: hp/dl360p/status
+    </text>
+    <text x="890" y="1285" font-family="Arial, sans-serif" font-size="10" fill="#fef3c7" text-anchor="middle">
+      Publishes: hp/dl360p/health
+    </text>
+    <text x="890" y="1300" font-family="Arial, sans-serif" font-size="10" fill="#fef3c7" text-anchor="middle">
+      Subscribes: hp/dl360p/command/*
+    </text>
+    <text x="890" y="1315" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#10b981" text-anchor="middle">
+      ✅ Status: ONLINE
+    </text>
+  </g>
+  
+  <!-- Return arrows (status feedback) -->
+  <path d="M 350 920 L 350 800" stroke="#60a5fa" stroke-width="2" fill="none" marker-end="url(#arrowBlue)" stroke-dasharray="5,5"/>
+  <text x="370" y="860" font-family="Arial, sans-serif" font-size="10" fill="#60a5fa">Status</text>
+  
+  <path d="M 850 920 L 850 800" stroke="#60a5fa" stroke-width="2" fill="none" marker-end="url(#arrowBlue)" stroke-dasharray="5,5"/>
+  <text x="870" y="860" font-family="Arial, sans-serif" font-size="10" fill="#60a5fa">Status</text>
+  
+  <!-- Legend -->
+  <rect x="50" y="1360" width="1100" height="30" fill="rgba(255,255,255,0.05)" rx="5"/>
+  <text x="100" y="1380" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">
+    🚀 Boot Commands | ⏹️ Shutdown Commands | 📊 Status Updates | 📡 MQTT Messages | ⏳ Cooldown Protection | 🤖 Smart Automation
+  </text>
+</svg>
+

@@ -9,8 +9,9 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 - 📊 **Status Monitoring** - Real-time server status via MQTT
 - 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
 - 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
-- 🤖 **Smart Automation** - Auto-boot servers when clients start, auto-shutdown when all clients offline
-- 🖥️ **Premium Dashboard** - Modern Glassmorphism-style Node-RED interface with state tracking
+- 🤖 **Smart Automation** - Client-aware boot, 5-minute grace periods, command cooldown protection
+- 📋 **Activity Logging** - Complete audit trail with triggers, commands, and status changes
+- 🖥️ **Premium Dashboard** - Modern glassmorphism-style Node-RED interface with live countdowns
 - 🔒 **Secure** - TLS/SSL support, credential management
 - 🔄 **Auto-Restart** - Systemd services with automatic restart
 - 📝 **Comprehensive Logging** - Detailed logs for troubleshooting
@@ -19,14 +20,23 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 ![System Architecture](docs/architecture_diagram.png)
 
-The system uses a **centralized automation server** running Node-RED dashboard, Mosquitto MQTT broker, and Python management scripts. Users access the web dashboard to control servers, which sends commands via MQTT. Python scripts execute the commands using appropriate methods:
+The system uses a **centralized automation server** running Node-RED dashboard, Mosquitto MQTT broker, and Python management scripts with **smart client-aware automation**.
 
+### Architecture Highlights:
+- **Client Monitoring**: Windows PCs send presence/heartbeat → Automation detects client needs
+- **Smart Boot**: Server automatically boots when clients connect (if server is down)
+- **Smart Shutdown**: 5-minute grace period when all clients disconnect  
+- **Command Cooldown**: 5-minute protection prevents boot/shutdown spam
+- **Activity Logging**: Complete audit trail of all automation events
+
+### Server Control Methods:
 - **Dell T310**: Wake-on-LAN or IPMI for boot, Proxmox API for graceful shutdown
 - **HP DL360p**: iLO for boot, Proxmox API for graceful shutdown
 
 Status and health monitoring is published back through MQTT to the dashboard for real-time visibility.
 
-**Detailed Documentation**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete system architecture, communication flows, and deployment information.
+**Detailed Documentation**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete system architecture, communication flows, and deployment information.  
+**Architecture Diagram Source**: See [docs/ARCHITECTURE_DIAGRAM_DESCRIPTION.md](docs/ARCHITECTURE_DIAGRAM_DESCRIPTION.md) for diagram specification.
 
 ## Quick Start
 
@@ -624,10 +634,38 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 2.2.0  
+**Version:** 2.3.0  
 **Last Updated:** 2026-01-07
 
 ## Changelog
+
+### v2.3.0 (2026-01-07) - Smart Client-Aware Automation ⭐
+**🤖 Intelligent Server Management with Complete Visibility**
+
+#### Major Features
+- ✨ **Client-Aware Boot**: Server automatically boots when clients need it (DOWN + clients > 0)
+- 🛡️ **5-Minute Cooldown**: Prevents command spam during boot/shutdown operations
+- 📋 **Activity Logging**: Complete audit trail with client triggers, commands, and status changes
+- ⏳ **Visual Cooldown Banner**: Live countdown showing boot/shutdown cooldown status
+- 🔄 **Smart Retry**: Automatically retries boot if server doesn't come up after cooldown
+- 🎨 **Modern Dashboard**: Completely redesigned automation interface with glassmorphism
+
+#### What's New
+- Client-triggered events now appear in activity log (🟢 online, 🔴 offline)
+- Cooldown system prevents duplicate WOL/IPMI commands (respects 5-minute window)
+- Enhanced log display with color-coded entries and emoji indicators
+- Proper shutdown execution after grace period (bug fix from v2.2.0)
+- Full MQTT protocol compliance with all required fields
+
+#### Documentation Added
+- `nodered/AUTOMATION_UPDATE.md` - Complete technical documentation
+- `nodered/SMART_WAKEUP_GUIDE.md` - User guide for smart wake-up feature
+- `nodered/CLIENT_AWARE_BOOT_SUMMARY.md` - Implementation summary
+- `nodered/TRIGGER_LOGGING_UPDATE.md` - Activity logging details
+
+See `nodered/AUTOMATION_UPDATE.md` for complete technical details.
+
+---
 
 ### v2.2.0 (2026-01-07) - Decentralized Health & Idle Shutdown
 **🚀 Robust Automation & Smart Power Management**

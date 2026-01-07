@@ -462,16 +462,49 @@ For critical environments:
 
 ## Version Information
 
-- **Architecture Version**: 2.1
-- **Last Updated**: January 6, 2026
-- **Node-RED Dashboard**: v2.1.0 (modular architecture with client monitoring)
+- **Architecture Version**: 2.3
+- **Last Updated**: January 7, 2026
+- **Node-RED Dashboard**: v2.3.0 (smart automation with activity logging)
 - **MQTT Protocol**: v3.1.1 / v5.0
 - **Proxmox API**: v2/json
+
+## Recent Enhancements (v2.3.0)
+
+### Smart Client-Aware Boot
+The automation system now intelligently manages server power based on client activity:
+
+**Key Features**:
+- **Automatic Boot**: When clients connect but server is down/offline/unknown
+- **Command Cooldown**: 5-minute protection prevents duplicate boot commands
+- **Smart Retry**: Retries boot after cooldown if server still down
+- **Graceful Degradation**: Respects server boot time (~2-3 minutes)
+
+**Implementation**: See `nodered/flows/41-client-automation.json`
+
+### Comprehensive Activity Logging
+Complete visibility into automation decisions:
+
+**Logged Events**:
+- 🟢 Client connections (first client online triggers)
+- 🔴 Client disconnections (last client offline triggers)
+- 🚀 Boot commands (WOL/IPMI with cooldown tracking)
+- ⏱️ Grace periods (5-minute countdown before shutdown)
+- ⏹️ Shutdown executions (graceful with proper routing)
+- ❌ Cancellations (shutdown aborted if client connects)
+- ✅ Configuration changes (automation enable/disable)
+
+**UI Features**:
+- Scrollable activity log (last 20 events displayed, 50 stored)
+- Color-coded borders by event type
+- Status badges (DETECTED, SENT, EXECUTED, CANCELLED)
+- Live cooldown banner with countdown timer
+- Real-time timestamp formatting
 
 ---
 
 **For Implementation Details**: See README.md, SETUP.md, and MQTT_PROTOCOL.md  
 **For Development**: See DEVELOPMENT_GUIDE.md and nodered/NODE_RED_DEVELOPMENT.md  
+**For Smart Automation**: See nodered/SMART_WAKEUP_GUIDE.md and nodered/AUTOMATION_UPDATE.md  
 **For Troubleshooting**: See TROUBLESHOOTING.md  
 **For Client Setup**: See client/README_CLIENT.md
 

@@ -15,7 +15,9 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 5. `20-hp-controls.json`
 6. `21-hp-status.json`
 7. `22-hp-health.json`
-8. `90-log-console.json`
+8. `40-client-tracking.json`
+9. `41-client-automation.json`
+10. `90-log-console.json`
 
 ### Import Instructions
 
@@ -144,6 +146,68 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 **MQTT Topics**:
 - Subscribes: `hp/dl360p/health`
+
+---
+
+### 40-client-tracking.json
+**Client PC Presence Tracking**
+
+- Client presence monitoring (MQTT in)
+- Client heartbeat handling
+- Client list management
+- State change detection (first online / last offline)
+- Live client display with Vue.js
+
+**Features**:
+- Real-time client count
+- Client hostname and IP tracking
+- Last seen timestamps
+- Automatic stale client cleanup (150s grace)
+- Visual client cards with status indicators
+- **Activity logging** for first client online / last client offline triggers
+
+**Dependencies**: `ui_group_clients`, `mqtt_broker_local`
+
+**MQTT Topics**:
+- Subscribes: `clients/+/presence`
+- Subscribes: `clients/+/heartbeat`
+
+**Link Outputs**:
+- `link_out_first_client` - Triggers when first client comes online
+- `link_out_last_client` - Triggers when last client goes offline
+
+---
+
+### 41-client-automation.json
+**Smart Server Automation** ⭐ **NEW v2.3.0**
+
+- Client-aware server boot (smart wake-up)
+- Automatic idle shutdown with grace period
+- Watchdog recovery system
+- 5-minute command cooldown protection
+- Comprehensive activity logging
+- Modern automation dashboard
+
+**Features**:
+- **Smart Boot**: Automatically boots server when clients need it
+- **Grace Period**: 5-minute countdown before idle shutdown
+- **Cooldown System**: Prevents command spam during boot/shutdown (5 min)
+- **Activity Log**: Complete audit trail with timestamps and triggers
+- **Visual Feedback**: Live countdown timers and status indicators
+- **Cancellation**: Auto-cancels shutdown if client connects
+
+**Dependencies**: `ui_group_clients`, `mqtt_broker_local`
+
+**MQTT Topics**:
+- Subscribes: `dell/t310/health` (for health sync)
+- Publishes: `dell/t310/command/boot`
+- Publishes: `dell/t310/command/shutdown`
+
+**Link Inputs**:
+- `link_in_first_client` - Receives first client online trigger
+- `link_in_last_client` - Receives last client offline trigger
+
+**Documentation**: See `../SMART_WAKEUP_GUIDE.md` for complete usage guide
 
 ---
 
@@ -311,7 +375,8 @@ system/logs
 - `10-19`: Dell T310 features
 - `20-29`: HP DL360p features
 - `30-39`: Reserved for future server 1
-- `40-49`: Reserved for future server 2
+- `40-49`: Client automation and tracking
+- `50-59`: Reserved for future features
 - `90-99`: Shared utilities
 
 ## Version Control
@@ -341,6 +406,6 @@ For detailed development guidance, see:
 
 ---
 
-**Last Updated**: December 29, 2025
-**Format Version**: 2.0 (Modular)
+**Last Updated**: January 7, 2026
+**Format Version**: 2.3.0 (Modular + Smart Automation)
 

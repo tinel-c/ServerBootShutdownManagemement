@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # GitHub repository information
 GITHUB_REPO = "owner/ServerBootShutdownMangement"  # Update with actual repo owner
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
-CURRENT_VERSION = "2.3.0"  # Current version
+CURRENT_VERSION = "2.4.0"  # Current version
 
 
 class AutoUpdater:

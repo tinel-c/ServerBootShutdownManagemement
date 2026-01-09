@@ -12,9 +12,11 @@ Windows client application for the Server Boot/Shutdown Management System. Monit
 - 📝 **Logging** - Detailed logs for troubleshooting
 - ⚙️ **Easy Configuration** - Simple YAML with environment variable placeholder support
 - ⏱️ **Heartbeat Countdown** - Real-time countdown to next heartbeat in tray icon
-- 🛑 **Remote Shutdown** ⭐ NEW - Graceful and force shutdown via MQTT commands
-- 🔄 **Auto-Update** ⭐ NEW - Automatic updates from GitHub releases
-- 💾 **Application Save** ⭐ NEW - Saves open applications before shutdown
+- 🛑 **Remote Shutdown** - Graceful and force shutdown via MQTT commands
+- 🔄 **Auto-Update** - Automatic updates from GitHub releases
+- 💾 **Application Save** - Saves open applications before shutdown
+- 📌 **Version Display** ⭐ NEW - Shows current and GitHub version in tooltip with update notifications
+- ⏰ **Update Schedule** ⭐ NEW - Displays time until next automatic update check
 
 ## Requirements
 
@@ -150,16 +152,31 @@ The tray icon changes color based on the current status:
 
 Hover over the tray icon to see:
 - Client ID
+- **Current version and GitHub version** ⭐ NEW
 - Connection status
 - Server status (online/offline/unknown)
 - **Next heartbeat countdown**
-- Recent requests (last 2 actions)
+- **Next update check time** ⭐ NEW
+- Recent request (last action)
+
+**Version Information:**
+- Shows current installed version (e.g., `v2.4.0`)
+- Displays latest GitHub version when available
+- Shows update indicator (⚠) when a new version is available
+- Displays "up to date" when running the latest version
+
+**Update Check Information:**
+- Shows time remaining until next automatic update check
+- Displays in days, hours, or minutes depending on interval
+- Shows "Pending" if no check has been performed yet
+- Shows "Soon" when check is imminent
 
 ### Context Menu
 
 Right-click the tray icon for options:
 - **Status** - Show detailed status (future feature)
 - **View Log** - Open the log file in default text editor
+- **Check for Updates** - Manually check for new versions on GitHub
 - **Quit** - Stop the client monitor and exit
 
 ### Running Without Tray Icon
@@ -378,5 +395,5 @@ For issues and questions:
 
 ## Version
 
-**Version:** 2.2.0  
-**Last Updated:** 2026-01-07
+**Version:** 2.4.0  
+**Last Updated:** 2026-01-09

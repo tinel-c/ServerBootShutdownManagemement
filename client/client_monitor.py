@@ -137,6 +137,21 @@ class SystemTrayIcon:
         
         lines = [f"CM: {client_id}"]
         
+        # Version information with update indicator
+        if self.monitor.auto_updater:
+            current_ver = self.monitor.auto_updater.current_version
+            latest_ver = self.monitor.auto_updater.latest_version
+            
+            if latest_ver and latest_ver != current_ver:
+                # Update available - show with indicator
+                lines.append(f"v{current_ver} → v{latest_ver} ⚠")
+            elif latest_ver:
+                # Up to date
+                lines.append(f"v{current_ver} (up to date)")
+            else:
+                # Version unknown
+                lines.append(f"v{current_ver}")
+        
         # Connection status (shorter symbols)
         conn_text = "Broker: OK" if self.status == "connected" else ("Broker: OFF" if self.status == "disconnected" else "Broker: ERR")
         lines.append(conn_text)
@@ -148,18 +163,43 @@ class SystemTrayIcon:
         # Countdown
         if hasattr(self.monitor, 'next_heartbeat') and self.monitor.next_heartbeat > 0:
             remaining = int(max(0, self.monitor.next_heartbeat - time.time()))
-            lines.append(f"Next HB: {remaining}s")
+            lines.append(f"HB: {remaining}s")
+        
+        # Next update check time (only if auto-updater is active)
+        if self.monitor.auto_updater:
+            last_check = self.monitor.auto_updater.last_check
+            # Only show if a check has been performed (not None or datetime.min)
+            if last_check and last_check != datetime.min:
+                next_check_time = last_check + self.monitor.auto_updater.check_interval
+                time_until_check = next_check_time - datetime.now()
+                
+                if time_until_check.total_seconds() > 0:
+                    hours = int(time_until_check.total_seconds() // 3600)
+                    minutes = int((time_until_check.total_seconds() % 3600) // 60)
+                    
+                    if hours > 24:
+                        days = hours // 24
+                        lines.append(f"Update chk: {days}d")
+                    elif hours > 0:
+                        lines.append(f"Update chk: {hours}h {minutes}m")
+                    else:
+                        lines.append(f"Update chk: {minutes}m")
+                else:
+                    lines.append("Update chk: Soon")
+            else:
+                # No check performed yet
+                lines.append("Update chk: Pending")
         
         # Recent requests (only if space permits)
         if self.recent_requests:
-            recent_lines = ["\nRec:"]
+            recent_lines = []
             # Show fewer recent items and shorter text
-            for req in list(self.recent_requests)[-2:]:
+            for req in list(self.recent_requests)[-1:]:  # Show only last request
                 # Truncate request text if too long
                 text = str(req)
-                if len(text) > 25:
-                    text = text[:22] + "..."
-                recent_lines.append(f" {text}")
+                if len(text) > 30:
+                    text = text[:27] + "..."
+                recent_lines.append(f"Last: {text}")
             
             # Check if adding these would exceed limit
             current_len = sum(len(l) + 1 for l in lines)
@@ -749,6 +789,10 @@ class ClientMonitor:
         try:
             result = self.auto_updater.check_and_install_updates(auto_install=True)
             
+            # Update tray icon to reflect new version information
+            if self.tray_icon:
+                self.tray_icon.update_icon()
+            
             if result.get('update_available'):
                 logger.info(f"Update available: {result.get('latest_version')}")
                 if self.tray_icon:
@@ -758,6 +802,10 @@ class ClientMonitor:
                     logger.info("Update installed successfully. Application will restart.")
                 elif result.get('error'):
                     logger.error(f"Update error: {result.get('error')}")
+            else:
+                # Even if no update, refresh the icon to show "up to date" status
+                if self.tray_icon and result.get('checked'):
+                    self.tray_icon.add_request("Up to date")
         except Exception as e:
             logger.error(f"Error in update check: {e}", exc_info=True)
     

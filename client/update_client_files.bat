@@ -105,6 +105,12 @@ if exist "%UPDATE_SOURCE%README_CLIENT_SHUTDOWN.md" (
 if exist "%UPDATE_SOURCE%README_AUTO_UPDATE.md" (
     copy /Y "%UPDATE_SOURCE%README_AUTO_UPDATE.md" "%INSTALL_DIR%\" >nul 2>&1
 )
+if exist "%UPDATE_SOURCE%TOOLTIP_FEATURE_GUIDE.md" (
+    copy /Y "%UPDATE_SOURCE%TOOLTIP_FEATURE_GUIDE.md" "%INSTALL_DIR%\" >nul 2>&1
+)
+if exist "%UPDATE_SOURCE%TOOLTIP_VISUAL_EXAMPLES.md" (
+    copy /Y "%UPDATE_SOURCE%TOOLTIP_VISUAL_EXAMPLES.md" "%INSTALL_DIR%\" >nul 2>&1
+)
 
 echo All files copied successfully.
 
@@ -222,9 +228,10 @@ echo.
 echo Backup location: %BACKUP_DIR%
 echo.
 echo To verify the update:
-echo   1. Check system tray icon (should show new name)
+echo   1. Hover over system tray icon to see version info and update schedule
 echo   2. Check logs: %INSTALL_DIR%\logs\client_monitor.log
 echo   3. Verify auto-updater is initialized in logs
+echo   4. Check tooltip shows: v2.4.0 and update check countdown
 echo.
 echo You can delete the backup folder once you confirm everything works.
 echo.

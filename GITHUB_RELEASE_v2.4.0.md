@@ -52,7 +52,36 @@ Improved system tray icon and identification.
 - Better process identification in Task Manager
 - Update notifications in recent requests
 
-#### 4. 🖥️ Node-RED Client Control Panel
+#### 4. 📌 Version Display in Tooltip ⭐ NEW
+System tray tooltip now shows version information and update scheduling.
+
+**Features:**
+- Current version display (e.g., v2.4.0)
+- GitHub version display when available
+- Update indicator (⚠) when new version found
+- "Up to date" confirmation when running latest version
+- Countdown to next automatic update check
+- Time displayed in days, hours, or minutes
+- Optimized for Windows 128-character tooltip limit
+
+**Benefits:**
+- Instant visibility of current version
+- Immediate notification when updates available
+- Transparent update scheduling
+- No need to open menus to check version
+
+**Example Tooltip:**
+```
+CM: desktop-workstation
+v2.4.0 (up to date)
+Broker: OK
+Srv: ONLINE
+HB: 45s
+Update chk: 23h 15m
+Last: 10:30:45 - Heartbeat
+```
+
+#### 5. 🖥️ Node-RED Client Control Panel
 Beautiful modern UI for managing client shutdowns.
 
 **Features:**
@@ -73,6 +102,10 @@ Beautiful modern UI for managing client shutdowns.
 - `client/README_CLIENT_SHUTDOWN.md` - Shutdown guide
 - `client/README_AUTO_UPDATE.md` - Auto-update guide
 - `client/UPDATE_SCRIPT_VERIFICATION.md` - Testing guide
+- `client/TOOLTIP_FEATURE_GUIDE.md` - Tooltip feature guide (v2.4.0+)
+- `client/TOOLTIP_VISUAL_EXAMPLES.md` - Visual tooltip examples (v2.4.0+)
+- `client/UPDATE_SCRIPT_TEST_PLAN.md` - Update testing plan (v2.4.0+)
+- `client/UPDATE_SCRIPT_VERIFICATION_v2.4.0.md` - Verification results (v2.4.0+)
 
 **Node-RED:**
 - `nodered/flows/42-client-shutdown.json` - Shutdown control panel
@@ -82,7 +115,11 @@ Beautiful modern UI for managing client shutdowns.
 - `RELEASE_NOTES_v2.4.0.md` - Detailed release notes
 - `IMPLEMENTATION_SUMMARY.md` - Technical implementation details
 - `QUICK_START_CLIENT_FEATURES.md` - Quick reference
+- `QUICK_START_TOOLTIP_FEATURE.md` - Tooltip feature quick start (v2.4.0+)
 - `UPDATE_SCRIPT_AUDIT_REPORT.md` - Update script audit
+- `TOOLTIP_UPDATE_SUMMARY.md` - Tooltip implementation summary (v2.4.0+)
+- `TOOLTIP_IMPLEMENTATION_CHECKLIST.md` - Implementation checklist (v2.4.0+)
+- `UPDATE_SCRIPT_VERIFICATION_SUMMARY.md` - Update script verification (v2.4.0+)
 - `GITHUB_RELEASE_v2.4.0.md` - This file
 
 ### Modified Files
@@ -190,8 +227,11 @@ All operations are logged:
 ### Guides
 - [Client Shutdown Guide](client/README_CLIENT_SHUTDOWN.md)
 - [Auto-Update Guide](client/README_AUTO_UPDATE.md)
+- [Tooltip Feature Guide](client/TOOLTIP_FEATURE_GUIDE.md) - v2.4.0+
+- [Tooltip Visual Examples](client/TOOLTIP_VISUAL_EXAMPLES.md) - v2.4.0+
 - [Client Management Guide](CLIENT_MANAGEMENT_GUIDE.md)
 - [Quick Start Guide](QUICK_START_CLIENT_FEATURES.md)
+- [Tooltip Quick Start](QUICK_START_TOOLTIP_FEATURE.md) - v2.4.0+
 
 ### Technical
 - [Implementation Summary](IMPLEMENTATION_SUMMARY.md)
@@ -216,6 +256,10 @@ All operations are logged:
 - ✅ Update rollback
 - ✅ Manual update
 - ✅ System tray updates
+- ✅ Version display in tooltip (v2.4.0+)
+- ✅ Update indicator display (v2.4.0+)
+- ✅ Update check countdown (v2.4.0+)
+- ✅ Tooltip character limit optimization (v2.4.0+)
 
 ### Platforms Tested
 - ✅ Windows 10 (21H2, 22H2)
@@ -257,11 +301,11 @@ All critical functionality tested and working.
 ## 📈 Metrics
 
 ### Code Changes
-- Files created: 13
-- Files modified: 10
-- Lines added: ~4,000
-- Lines modified: ~300
-- Documentation pages: ~60
+- Files created: 22 (including v2.4.0+ tooltip feature)
+- Files modified: 14 (including v2.4.0+ enhancements)
+- Lines added: ~6,500 (including v2.4.0+ documentation)
+- Lines modified: ~400 (including v2.4.0+ tooltip logic)
+- Documentation pages: ~75 (including v2.4.0+ guides)
 
 ### Testing
 - Test scenarios: 15

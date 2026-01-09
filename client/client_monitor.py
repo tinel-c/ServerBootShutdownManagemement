@@ -66,6 +66,14 @@ def setup_logging():
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# Import auto-updater after logging is set up
+try:
+    from auto_updater import AutoUpdater
+    AUTO_UPDATE_AVAILABLE = True
+except ImportError:
+    logger.warning("Auto-updater module not available")
+    AUTO_UPDATE_AVAILABLE = False
+
 
 class SystemTrayIcon:
     """System tray icon manager with status indicators"""
@@ -200,14 +208,41 @@ class SystemTrayIcon:
         # Could implement a GUI window here in the future
         logger.info("Status requested from system tray")
     
+    def on_check_updates(self, icon, item):
+        """Check for updates manually"""
+        try:
+            if self.monitor.auto_updater:
+                logger.info("Manual update check requested")
+                # Force check regardless of interval
+                self.monitor.auto_updater.last_check = None
+                update_thread = threading.Thread(
+                    target=self.monitor._check_updates_async,
+                    daemon=True
+                )
+                update_thread.start()
+                self.add_request("Checking updates...")
+            else:
+                logger.warning("Auto-updater not available")
+        except Exception as e:
+            logger.error(f"Error checking for updates: {e}")
+    
     def create_menu(self):
         """Create system tray menu"""
-        return pystray.Menu(
+        menu_items = [
             item('Status', self.on_show_status),
             item('View Log', self.on_show_log),
+        ]
+        
+        # Add update check option if auto-updater is available
+        if self.monitor.auto_updater:
+            menu_items.append(item('Check for Updates', self.on_check_updates))
+        
+        menu_items.extend([
             pystray.Menu.SEPARATOR,
             item('Quit', self.on_quit)
-        )
+        ])
+        
+        return pystray.Menu(*menu_items)
     
     def run(self):
         """Run the system tray icon"""
@@ -215,7 +250,7 @@ class SystemTrayIcon:
         image = self.create_icon_image(color)
         
         self.icon = pystray.Icon(
-            "client_monitor",
+            "ClientServerBootShutdownManagement",
             image,
             self.get_tooltip(),
             self.create_menu()
@@ -239,6 +274,7 @@ class ClientMonitor:
         self.use_tray = use_tray
         self.tray_icon = None
         self.next_heartbeat = 0
+        self.auto_updater = None
         
         if self.use_tray:
             self.tray_icon = SystemTrayIcon(self)
@@ -247,6 +283,15 @@ class ClientMonitor:
         if self.config.get('client', {}).get('debug'):
             logging.getLogger().setLevel(logging.DEBUG)
             logger.debug("Debug logging enabled via configuration")
+        
+        # Initialize auto-updater if enabled
+        if AUTO_UPDATE_AVAILABLE and self.config.get('client', {}).get('auto_update', {}).get('enabled', True):
+            try:
+                check_interval = self.config.get('client', {}).get('auto_update', {}).get('check_interval_hours', 24)
+                self.auto_updater = AutoUpdater(check_interval_hours=check_interval)
+                logger.info(f"Auto-updater initialized (check interval: {check_interval}h)")
+            except Exception as e:
+                logger.warning(f"Could not initialize auto-updater: {e}")
         
         logger.info(f"Client Monitor initialized for: {self.client_id}")
     
@@ -361,8 +406,27 @@ class ClientMonitor:
         try:
             payload = json.loads(msg.payload.decode())
             
+            # Handle client shutdown command
+            if '/command/shutdown' in msg.topic:
+                action = payload.get('action', '')
+                if action == 'shutdown':
+                    shutdown_type = payload.get('type', 'graceful')
+                    request_id = payload.get('request_id', 'unknown')
+                    logger.warning(f"Shutdown command received: {shutdown_type} (request_id: {request_id})")
+                    
+                    if self.tray_icon:
+                        self.tray_icon.add_request(f"Shutdown ({shutdown_type})")
+                    
+                    # Handle shutdown in a separate thread
+                    shutdown_thread = threading.Thread(
+                        target=self._handle_shutdown_command,
+                        args=(shutdown_type, request_id),
+                        daemon=False
+                    )
+                    shutdown_thread.start()
+            
             # Handle server health messages
-            if '/health' in msg.topic:
+            elif '/health' in msg.topic:
                 checks = payload.get('checks', [])
                 # Derived logic: if any check is 'up', server is alive
                 is_up = len(checks) > 0 and any(c.get('status') == 'up' for c in checks)
@@ -406,6 +470,14 @@ class ClientMonitor:
         self.mqtt_client.subscribe(response_topic, qos=1)
         
         logger.info(f"Subscribed to server topics: {health_topic}, {response_topic}")
+        
+        # Subscribe to client shutdown command topic
+        shutdown_topic = self.config['mqtt']['topics']['shutdown'].replace(
+            '{client_id}', 
+            self.client_id
+        )
+        self.mqtt_client.subscribe(shutdown_topic, qos=1)
+        logger.info(f"Subscribed to shutdown commands: {shutdown_topic}")
     
     def _on_publish(self, client, userdata, mid):
         """Callback when message is published"""
@@ -494,14 +566,168 @@ class ClientMonitor:
             logger.debug(f"Could not determine uptime: {e}")
             return 0
     
+    def _send_shutdown_response(self, request_id, success, message):
+        """Send shutdown response message"""
+        topic = self.config['mqtt']['topics']['response'].replace(
+            '{client_id}', 
+            self.client_id
+        )
+        
+        response = {
+            "request_id": request_id,
+            "action": "shutdown",
+            "success": success,
+            "message": message,
+            "timestamp": datetime.now().isoformat(),
+            "client_id": self.client_id,
+            "hostname": socket.gethostname()
+        }
+        
+        payload = json.dumps(response)
+        
+        if self.mqtt_client and self.connected:
+            self.mqtt_client.publish(topic, payload, qos=1, retain=False)
+            logger.info(f"Shutdown response sent: {message}")
+    
+    def _save_open_applications(self):
+        """Attempt to save all open applications (Windows)"""
+        try:
+            import subprocess
+            logger.info("Attempting to save all open applications...")
+            
+            # Send Ctrl+S to all windows (best effort)
+            # This uses PowerShell to send save command to foreground windows
+            ps_script = '''
+            Add-Type -AssemblyName System.Windows.Forms
+            $windows = Get-Process | Where-Object {$_.MainWindowTitle -ne ""}
+            foreach ($window in $windows) {
+                try {
+                    $null = [Microsoft.VisualBasic.Interaction]::AppActivate($window.Id)
+                    Start-Sleep -Milliseconds 100
+                    [System.Windows.Forms.SendKeys]::SendWait("^s")
+                    Start-Sleep -Milliseconds 50
+                } catch {}
+            }
+            '''
+            
+            # Run PowerShell script
+            result = subprocess.run(
+                ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ps_script],
+                capture_output=True,
+                timeout=10,
+                text=True
+            )
+            
+            logger.info("Save command sent to open applications")
+            return True
+            
+        except subprocess.TimeoutExpired:
+            logger.warning("Application save operation timed out")
+            return False
+        except Exception as e:
+            logger.error(f"Error saving applications: {e}")
+            return False
+    
+    def _execute_system_shutdown(self, shutdown_type):
+        """Execute Windows system shutdown"""
+        try:
+            import subprocess
+            
+            if shutdown_type == 'force':
+                # Force shutdown (immediate, no save)
+                logger.warning("Executing FORCE shutdown...")
+                subprocess.run(['shutdown', '/s', '/f', '/t', '5'], check=True)
+            else:
+                # Graceful shutdown (with save prompts)
+                logger.info("Executing GRACEFUL shutdown...")
+                subprocess.run(['shutdown', '/s', '/t', '30'], check=True)
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error executing shutdown: {e}")
+            return False
+    
+    def _handle_shutdown_command(self, shutdown_type, request_id):
+        """Handle shutdown command with graceful application save"""
+        try:
+            logger.info(f"Processing shutdown command: {shutdown_type}")
+            
+            # Send acknowledgment
+            self._send_shutdown_response(
+                request_id,
+                True,
+                f"Shutdown command acknowledged ({shutdown_type})"
+            )
+            
+            # Wait a moment for message to be sent
+            time.sleep(1)
+            
+            if shutdown_type == 'graceful':
+                # Try to save all open applications
+                logger.info("Saving open applications...")
+                self._save_open_applications()
+                
+                # Give applications time to save
+                time.sleep(3)
+            
+            # Send offline presence
+            logger.info("Sending offline presence message...")
+            self._send_presence_message("offline")
+            time.sleep(1)
+            
+            # Final response before shutdown
+            self._send_shutdown_response(
+                request_id,
+                True,
+                f"Initiating {shutdown_type} shutdown now"
+            )
+            time.sleep(1)
+            
+            # Execute shutdown
+            success = self._execute_system_shutdown(shutdown_type)
+            
+            if not success:
+                self._send_shutdown_response(
+                    request_id,
+                    False,
+                    "Failed to execute shutdown command"
+                )
+                logger.error("Shutdown command failed")
+            
+        except Exception as e:
+            logger.error(f"Error handling shutdown command: {e}", exc_info=True)
+            self._send_shutdown_response(
+                request_id,
+                False,
+                f"Shutdown error: {str(e)}"
+            )
+    
     def _heartbeat_loop(self):
         """Background thread for sending heartbeats with countdown support"""
         interval = self.config.get('client', {}).get('heartbeat_interval', 60)
         logger.info(f"Heartbeat loop started (interval: {interval}s)")
         
+        # Check for updates on first heartbeat
+        update_checked = False
+        
         while self.running:
             # Set next heartbeat time
             self.next_heartbeat = time.time() + interval
+            
+            # Check for updates periodically (only once per heartbeat cycle)
+            if not update_checked and self.auto_updater and self.running:
+                try:
+                    if self.auto_updater.should_check_for_updates():
+                        logger.info("Checking for updates...")
+                        update_thread = threading.Thread(
+                            target=self._check_updates_async,
+                            daemon=True
+                        )
+                        update_thread.start()
+                except Exception as e:
+                    logger.error(f"Error checking for updates: {e}")
+                update_checked = True
             
             # Use small sleeps to allow for responsive tooltip updates and shutdown
             while time.time() < self.next_heartbeat and self.running:
@@ -514,6 +740,26 @@ class ClientMonitor:
                 self._send_heartbeat()
                 if self.tray_icon:
                     self.tray_icon.add_request("Heartbeat")
+            
+            # Reset update check flag for next cycle
+            update_checked = False
+    
+    def _check_updates_async(self):
+        """Check for updates asynchronously"""
+        try:
+            result = self.auto_updater.check_and_install_updates(auto_install=True)
+            
+            if result.get('update_available'):
+                logger.info(f"Update available: {result.get('latest_version')}")
+                if self.tray_icon:
+                    self.tray_icon.add_request(f"Update: {result.get('latest_version')}")
+                
+                if result.get('installed'):
+                    logger.info("Update installed successfully. Application will restart.")
+                elif result.get('error'):
+                    logger.error(f"Update error: {result.get('error')}")
+        except Exception as e:
+            logger.error(f"Error in update check: {e}", exc_info=True)
     
     def _setup_mqtt(self):
         """Setup MQTT client"""

@@ -24,13 +24,15 @@ The system uses MQTT for all remote commands and status updates. All messages ar
 | `dell/t310/response` | Command responses | 1 |
 | `dell/t310/logs` | Log messages | 0 |
 
-### Client PC Topics (Client → Server)
+### Client PC Topics (Client ↔ Server)
 
-| Topic | Purpose | QoS |
-|-------|---------|-----|
-| `clients/{client_id}/presence` | Client startup/shutdown notifications | 1 |
-| `clients/{client_id}/heartbeat` | Client heartbeat messages | 1 |
-| `automation/clients/status` | Automation status updates | 1 |
+| Topic | Purpose | QoS | Direction |
+|-------|---------|-----|-----------|
+| `clients/{client_id}/presence` | Client startup/shutdown notifications | 1 | Client → Server |
+| `clients/{client_id}/heartbeat` | Client heartbeat messages | 1 | Client → Server |
+| `clients/{client_id}/command/shutdown` | Client shutdown commands | 1 | Server → Client |
+| `clients/{client_id}/response` | Client command responses | 1 | Client → Server |
+| `automation/clients/status` | Automation status updates | 1 | Server → Server |
 
 ---
 
@@ -328,6 +330,125 @@ The system uses MQTT for all remote commands and status updates. All messages ar
   "hostname": "DESKTOP-ABC123",
   "timestamp": "2026-01-06T17:31:00+02:00",
   "uptime": 3600
+}
+```
+
+---
+
+### Client Shutdown Command
+
+**Topic:** `clients/{client_id}/command/shutdown`
+
+**Schema:**
+```json
+{
+  "action": "shutdown",
+  "type": "graceful|force",
+  "timestamp": "ISO8601 timestamp",
+  "request_id": "unique identifier"
+}
+```
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `action` | string | Yes | Must be "shutdown" |
+| `type` | string | Yes | Shutdown type: "graceful" or "force" |
+| `timestamp` | string | Yes | ISO8601 timestamp |
+| `request_id` | string | Yes | Unique request identifier |
+
+**Example (Graceful):**
+```json
+{
+  "action": "shutdown",
+  "type": "graceful",
+  "timestamp": "2026-01-09T15:30:00+02:00",
+  "request_id": "shutdown-desktop-abc123-1736429400"
+}
+```
+
+**Example (Force):**
+```json
+{
+  "action": "shutdown",
+  "type": "force",
+  "timestamp": "2026-01-09T15:30:00+02:00",
+  "request_id": "shutdown-desktop-abc123-1736429400"
+}
+```
+
+**Behavior:**
+- **Graceful**: Attempts to save all open applications before shutting down (30 second delay)
+- **Force**: Immediate shutdown without saving (5 second delay)
+
+---
+
+### Client Shutdown Response
+
+**Topic:** `clients/{client_id}/response`
+
+**Schema:**
+```json
+{
+  "request_id": "string",
+  "action": "shutdown",
+  "success": true,
+  "message": "string",
+  "timestamp": "ISO8601 timestamp",
+  "client_id": "string",
+  "hostname": "string"
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `request_id` | string | Original request ID from shutdown command |
+| `action` | string | Action performed ("shutdown") |
+| `success` | boolean | Whether action succeeded |
+| `message` | string | Human-readable status message |
+| `timestamp` | string | ISO8601 timestamp of response |
+| `client_id` | string | Client identifier |
+| `hostname` | string | Windows hostname |
+
+**Example (Acknowledged):**
+```json
+{
+  "request_id": "shutdown-desktop-abc123-1736429400",
+  "action": "shutdown",
+  "success": true,
+  "message": "Shutdown command acknowledged (graceful)",
+  "timestamp": "2026-01-09T15:30:01+02:00",
+  "client_id": "desktop-abc123",
+  "hostname": "DESKTOP-ABC123"
+}
+```
+
+**Example (Executing):**
+```json
+{
+  "request_id": "shutdown-desktop-abc123-1736429400",
+  "action": "shutdown",
+  "success": true,
+  "message": "Initiating graceful shutdown now",
+  "timestamp": "2026-01-09T15:30:05+02:00",
+  "client_id": "desktop-abc123",
+  "hostname": "DESKTOP-ABC123"
+}
+```
+
+**Example (Error):**
+```json
+{
+  "request_id": "shutdown-desktop-abc123-1736429400",
+  "action": "shutdown",
+  "success": false,
+  "message": "Failed to execute shutdown command",
+  "timestamp": "2026-01-09T15:30:05+02:00",
+  "client_id": "desktop-abc123",
+  "hostname": "DESKTOP-ABC123"
 }
 ```
 

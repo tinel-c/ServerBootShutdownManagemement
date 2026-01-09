@@ -8,25 +8,33 @@ The Server Boot/Shutdown Management System uses a centralized automation server 
 
 ## Components
 
-### 0. Client PC Layer (NEW in v2.1.0)
+### 0. Client PC Layer (v2.1.0+ with v2.4.0 enhancements)
 
 #### Windows Client PCs
 - **Client Monitor Application**: Python application running on Windows PCs
   - **Installation**: Installed via `install_client.bat` in `C:\Program Files\ClientMonitor`
   - **Startup**: Runs automatically on user login via Windows Task Scheduler
-  - **Communication**: MQTT-based presence and heartbeat signals
+  - **Communication**: MQTT-based presence, heartbeat, and command reception
+  - **System Tray**: Icon named "ClientServerBootShutdownManagement" with status indicators
   - **Features**:
     - Sends "online" presence message on startup
     - Sends heartbeat every 60 seconds
     - Sends "offline" presence message on shutdown
+    - **Remote Shutdown** (NEW v2.4.0): Receives and executes shutdown commands
+    - **Application Save** (NEW v2.4.0): Gracefully saves open applications before shutdown
+    - **Auto-Update** (NEW v2.4.0): Checks GitHub for updates and installs automatically
     - Automatic reconnection on network interruptions
     - Logging to `logs/client_monitor.log`
 
 - **MQTT Topics Published**:
   - `clients/{client_id}/presence` - Startup/shutdown notifications
   - `clients/{client_id}/heartbeat` - Periodic heartbeat messages
+  - `clients/{client_id}/response` - Command execution responses (NEW v2.4.0)
 
-- **Purpose**: Enable automatic server power management based on client PC usage patterns
+- **MQTT Topics Subscribed**:
+  - `clients/{client_id}/command/shutdown` - Remote shutdown commands (NEW v2.4.0)
+
+- **Purpose**: Enable automatic server power management based on client PC usage patterns and centralized client management
 
 ### 1. User Interface Layer
 
@@ -53,8 +61,9 @@ The automation server is an Ubuntu VM that hosts all management components:
     - HP DL360p: iLO boot, graceful/force shutdown
   - **Status Display**: Real-time server state with metadata tracking
   - **Health Monitoring**: Comprehensive health check cards with 16+ data points
-  - **Client Monitoring** (NEW): Track active client PCs in real-time
-  - **Automation Control** (NEW): Enable/disable automatic server power management
+  - **Client Monitoring**: Track active client PCs in real-time
+  - **Client Shutdown Control** (NEW v2.4.0): Remote shutdown of client PCs with graceful/force options
+  - **Automation Control**: Enable/disable automatic server power management
   - **Log Console**: Rolling log display (50-entry buffer)
 - **Communication**: Publishes commands to MQTT, subscribes to status/health/client topics
 
@@ -77,9 +86,11 @@ The automation server is an Ubuntu VM that hosts all management components:
   - hp/dl360p/health (published every 60s)
   - system/logs (centralized logging)
   
-  Client PCs (Clients → Dashboard, NEW in v2.1.0):
+  Client PCs (Bidirectional, v2.1.0+, enhanced v2.4.0):
   - clients/{client_id}/presence (startup/shutdown)
   - clients/{client_id}/heartbeat (every 60s)
+  - clients/{client_id}/command/shutdown (shutdown commands, NEW v2.4.0)
+  - clients/{client_id}/response (command responses, NEW v2.4.0)
   - automation/clients/status (automation state)
   ```
 
@@ -462,13 +473,63 @@ For critical environments:
 
 ## Version Information
 
-- **Architecture Version**: 2.3
-- **Last Updated**: January 7, 2026
-- **Node-RED Dashboard**: v2.3.0 (smart automation with activity logging)
+- **Architecture Version**: 2.4
+- **Last Updated**: January 9, 2026
+- **Node-RED Dashboard**: v2.4.0 (client management with shutdown control)
+- **Client Monitor**: v2.4.0 (auto-update and remote shutdown)
 - **MQTT Protocol**: v3.1.1 / v5.0
 - **Proxmox API**: v2/json
 
-## Recent Enhancements (v2.3.0)
+## Recent Enhancements
+
+### v2.4.0 (January 9, 2026) - Client Management
+
+#### Remote Client Shutdown
+Complete remote shutdown control for Windows client PCs:
+
+**Key Features**:
+- **Graceful Shutdown**: Saves all open applications before shutting down (30s delay)
+- **Force Shutdown**: Immediate shutdown without saving (5s delay)
+- **Application Save**: Sends Ctrl+S to all open windows via PowerShell
+- **Response Tracking**: Multiple status messages during shutdown process
+- **Bulk Operations**: Shutdown all clients at once from dashboard
+- **Activity Logging**: Complete audit trail of shutdown operations
+
+**Implementation**: See `nodered/flows/42-client-shutdown.json` and `client/client_monitor.py`
+
+**MQTT Protocol**:
+```
+Server → Client: clients/{id}/command/shutdown
+  {"action": "shutdown", "type": "graceful|force", "timestamp": "...", "request_id": "..."}
+
+Client → Server: clients/{id}/response
+  {"action": "shutdown", "success": true, "message": "...", "timestamp": "..."}
+```
+
+#### Auto-Update System
+Self-updating client system with GitHub integration:
+
+**Key Features**:
+- **Automatic Checks**: Checks GitHub every 24 hours for new releases
+- **Semantic Versioning**: Compares versions intelligently (e.g., 2.3.0 vs 2.4.0)
+- **Auto-Install**: Downloads, extracts, and installs updates automatically
+- **Manual Check**: System tray menu option for immediate checks
+- **Service Restart**: Automatically restarts client after update
+- **Rollback**: Automatic rollback on failed updates with backup restoration
+
+**Implementation**: See `client/auto_updater.py` and `client/update_client_files.bat`
+
+**Process Flow**:
+1. Check GitHub API for latest release
+2. Compare current version with latest
+3. Download ZIP package from release assets
+4. Backup current installation
+5. Extract and copy new files
+6. Install dependencies (pip install)
+7. Restart client service
+8. Verify and rollback if needed
+
+### v2.3.0 (January 7, 2026) - Smart Automation
 
 ### Smart Client-Aware Boot
 The automation system now intelligently manages server power based on client activity:

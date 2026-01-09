@@ -1,0 +1,182 @@
+[
+    {
+        "id": "ui_group_client_shutdown",
+        "type": "ui-group",
+        "name": "Client Shutdown Control",
+        "page": "ui_page_home",
+        "width": "6",
+        "height": "1",
+        "order": 7,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_template_client_shutdown_panel",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_client_shutdown",
+        "page": "",
+        "ui": "",
+        "name": "Client Shutdown Panel",
+        "order": 1,
+        "width": "6",
+        "height": "6",
+        "head": "",
+        "format": "<template>\n    <div class=\"shutdown-panel\">\n        <div class=\"panel-header\">\n            <h3>Client Shutdown Control</h3>\n            <div class=\"header-info\">\n                <span class=\"info-badge\">{{ clientList.length }} Clients</span>\n            </div>\n        </div>\n\n        <div v-if=\"clientList.length === 0\" class=\"no-clients\">\n            <div class=\"empty-icon\">💤</div>\n            <p>No clients connected</p>\n            <span class=\"empty-hint\">Clients will appear here when they connect</span>\n        </div>\n\n        <div v-else class=\"client-grid\">\n            <div v-for=\"client in clientList\" :key=\"client.id\" class=\"client-card\">\n                <div class=\"client-header\">\n                    <div class=\"client-icon\">💻</div>\n                    <div class=\"client-info\">\n                        <div class=\"client-name\">{{ client.hostname }}</div>\n                        <div class=\"client-meta\">\n                            <span class=\"client-ip\">{{ client.ip_address }}</span>\n                            <span class=\"client-uptime\" v-if=\"client.uptime\">⏱ {{ formatUptime(client.uptime) }}</span>\n                        </div>\n                    </div>\n                </div>\n                \n                <div class=\"client-actions\">\n                    <button \n                        class=\"action-btn graceful\" \n                        @click=\"shutdownClient(client.id, 'graceful')\"\n                        :disabled=\"isShuttingDown(client.id)\">\n                        <span class=\"btn-icon\">🛑</span>\n                        <span class=\"btn-text\">Graceful</span>\n                    </button>\n                    <button \n                        class=\"action-btn force\" \n                        @click=\"shutdownClient(client.id, 'force')\"\n                        :disabled=\"isShuttingDown(client.id)\">\n                        <span class=\"btn-icon\">⚡</span>\n                        <span class=\"btn-text\">Force</span>\n                    </button>\n                </div>\n                \n                <div v-if=\"isShuttingDown(client.id)\" class=\"shutdown-status\">\n                    <span class=\"status-spinner\">⏳</span>\n                    <span class=\"status-text\">Shutting down...</span>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"bulk-actions\">\n            <button \n                class=\"bulk-btn shutdown-all\" \n                @click=\"shutdownAllClients('graceful')\"\n                :disabled=\"clientList.length === 0 || hasPendingShutdowns\">\n                <span class=\"bulk-icon\">🛑</span>\n                Graceful Shutdown All\n            </button>\n            <button \n                class=\"bulk-btn force-all\" \n                @click=\"shutdownAllClients('force')\"\n                :disabled=\"clientList.length === 0 || hasPendingShutdowns\">\n                <span class=\"bulk-icon\">⚡</span>\n                Force Shutdown All\n            </button>\n        </div>\n\n        <div v-if=\"shutdownLog.length > 0\" class=\"shutdown-log\">\n            <div class=\"log-header\">\n                <span class=\"log-title\">Recent Shutdowns</span>\n                <button class=\"log-clear\" @click=\"clearLog\">Clear</button>\n            </div>\n            <div class=\"log-entries\">\n                <div v-for=\"(entry, index) in shutdownLog.slice(0, 5)\" :key=\"index\" class=\"log-entry\">\n                    <span class=\"log-time\">{{ entry.time }}</span>\n                    <span class=\"log-client\">{{ entry.client }}</span>\n                    <span class=\"log-type\" :class=\"entry.type\">{{ entry.type }}</span>\n                    <span class=\"log-status\" :class=\"entry.status\">{{ entry.status }}</span>\n                </div>\n            </div>\n        </div>\n    </div>\n</template>\n\n<script>\nexport default {\n    data() {\n        return {\n            clients: {},\n            shuttingDown: new Set(),\n            shutdownLog: [],\n            updateInterval: null\n        }\n    },\n    computed: {\n        clientList() {\n            return Object.keys(this.clients).map(id => ({\n                id: id,\n                ...this.clients[id]\n            }));\n        },\n        hasPendingShutdowns() {\n            return this.shuttingDown.size > 0;\n        }\n    },\n    mounted() {\n        this.updateInterval = setInterval(() => {\n            this.$forceUpdate();\n        }, 1000);\n    },\n    beforeUnmount() {\n        if (this.updateInterval) clearInterval(this.updateInterval);\n    },\n    methods: {\n        formatUptime(seconds) {\n            if (!seconds) return '--';\n            const hours = Math.floor(seconds / 3600);\n            const minutes = Math.floor((seconds % 3600) / 60);\n            if (hours > 0) return `${hours}h ${minutes}m`;\n            return `${minutes}m`;\n        },\n        isShuttingDown(clientId) {\n            return this.shuttingDown.has(clientId);\n        },\n        shutdownClient(clientId, type) {\n            if (confirm(`Are you sure you want to ${type} shutdown ${this.clients[clientId]?.hostname}?`)) {\n                this.shuttingDown.add(clientId);\n                this.addToLog(this.clients[clientId]?.hostname || clientId, type, 'pending');\n                \n                this.send({\n                    payload: {\n                        action: 'shutdown_client',\n                        client_id: clientId,\n                        type: type\n                    }\n                });\n                \n                // Auto-remove from shutting down after 30 seconds\n                setTimeout(() => {\n                    this.shuttingDown.delete(clientId);\n                    this.$forceUpdate();\n                }, 30000);\n            }\n        },\n        shutdownAllClients(type) {\n            const count = this.clientList.length;\n            if (confirm(`Are you sure you want to ${type} shutdown ALL ${count} clients?`)) {\n                this.clientList.forEach(client => {\n                    this.shuttingDown.add(client.id);\n                    this.addToLog(client.hostname, type, 'pending');\n                });\n                \n                this.send({\n                    payload: {\n                        action: 'shutdown_all',\n                        type: type\n                    }\n                });\n                \n                // Auto-clear after 30 seconds\n                setTimeout(() => {\n                    this.shuttingDown.clear();\n                    this.$forceUpdate();\n                }, 30000);\n            }\n        },\n        addToLog(client, type, status) {\n            const now = new Date();\n            this.shutdownLog.unshift({\n                time: now.toLocaleTimeString(),\n                client: client,\n                type: type,\n                status: status\n            });\n            if (this.shutdownLog.length > 20) this.shutdownLog.pop();\n        },\n        clearLog() {\n            this.shutdownLog = [];\n        }\n    },\n    watch: {\n        msg(newMsg) {\n            if (newMsg && newMsg.payload) {\n                if (newMsg.payload.clients) {\n                    this.clients = newMsg.payload.clients;\n                }\n                // Handle shutdown response\n                if (newMsg.payload.shutdown_response) {\n                    const resp = newMsg.payload.shutdown_response;\n                    this.shuttingDown.delete(resp.client_id);\n                    // Update log entry\n                    const logEntry = this.shutdownLog.find(\n                        e => e.client === resp.hostname && e.status === 'pending'\n                    );\n                    if (logEntry) {\n                        logEntry.status = resp.success ? 'success' : 'failed';\n                    }\n                }\n            }\n        }\n    }\n}\n</script>\n\n<style scoped>\n* { box-sizing: border-box; }\n\n.shutdown-panel {\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);\n    border-radius: 12px;\n    padding: 20px;\n    color: #f8fafc;\n}\n\n.panel-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 20px;\n    padding-bottom: 15px;\n    border-bottom: 2px solid rgba(255, 255, 255, 0.1);\n}\n\n.panel-header h3 {\n    margin: 0;\n    font-size: 18px;\n    font-weight: 700;\n}\n\n.info-badge {\n    background: linear-gradient(135deg, #3b82f6, #2563eb);\n    padding: 5px 12px;\n    border-radius: 12px;\n    font-size: 11px;\n    font-weight: 700;\n    letter-spacing: 0.5px;\n}\n\n.no-clients {\n    text-align: center;\n    padding: 60px 20px;\n}\n\n.empty-icon {\n    font-size: 48px;\n    margin-bottom: 15px;\n    opacity: 0.5;\n}\n\n.no-clients p {\n    margin: 0 0 8px 0;\n    font-size: 16px;\n    opacity: 0.7;\n}\n\n.empty-hint {\n    font-size: 12px;\n    opacity: 0.4;\n}\n\n.client-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));\n    gap: 12px;\n    margin-bottom: 20px;\n}\n\n.client-card {\n    background: rgba(15, 23, 42, 0.6);\n    border: 1px solid rgba(255, 255, 255, 0.1);\n    border-radius: 10px;\n    padding: 14px;\n    transition: transform 0.2s, box-shadow 0.2s;\n}\n\n.client-card:hover {\n    transform: translateY(-2px);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n.client-header {\n    display: flex;\n    gap: 12px;\n    margin-bottom: 12px;\n}\n\n.client-icon {\n    font-size: 28px;\n}\n\n.client-info {\n    flex: 1;\n}\n\n.client-name {\n    font-size: 14px;\n    font-weight: 700;\n    margin-bottom: 4px;\n}\n\n.client-meta {\n    display: flex;\n    gap: 10px;\n    font-size: 11px;\n    opacity: 0.6;\n}\n\n.client-actions {\n    display: flex;\n    justify-content: flex-end;\n    gap: 8px;\n}\n\n.action-btn {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 6px;\n    padding: 10px;\n    border: none;\n    border-radius: 8px;\n    font-size: 12px;\n    font-weight: 600;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n\n.action-btn.graceful {\n    background: linear-gradient(135deg, #f59e0b, #d97706);\n    color: white;\n}\n\n.action-btn.graceful:hover:not(:disabled) {\n    background: linear-gradient(135deg, #d97706, #b45309);\n    transform: scale(1.05);\n}\n\n.action-btn.force {\n    background: linear-gradient(135deg, #ef4444, #dc2626);\n    color: white;\n}\n\n.action-btn.force:hover:not(:disabled) {\n    background: linear-gradient(135deg, #dc2626, #b91c1c);\n    transform: scale(1.05);\n}\n\n.action-btn:disabled {\n    opacity: 0.4;\n    cursor: not-allowed;\n}\n\n.shutdown-status {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 8px;\n    margin-top: 10px;\n    padding: 8px;\n    background: rgba(59, 130, 246, 0.1);\n    border-radius: 6px;\n    font-size: 12px;\n}\n\n.status-spinner {\n    animation: spin 1s linear infinite;\n}\n\n@keyframes spin {\n    from { transform: rotate(0deg); }\n    to { transform: rotate(360deg); }\n}\n\n.bulk-actions {\n    display: grid;\n    grid-template-columns: 1fr 1fr;\n    gap: 12px;\n    margin-bottom: 20px;\n    padding-top: 15px;\n    border-top: 2px solid rgba(255, 255, 255, 0.1);\n}\n\n.bulk-btn {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 10px;\n    padding: 14px;\n    border: none;\n    border-radius: 10px;\n    font-size: 13px;\n    font-weight: 700;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n\n.bulk-btn.shutdown-all {\n    background: linear-gradient(135deg, #f59e0b, #d97706);\n    color: white;\n}\n\n.bulk-btn.shutdown-all:hover:not(:disabled) {\n    background: linear-gradient(135deg, #d97706, #b45309);\n    transform: scale(1.02);\n}\n\n.bulk-btn.force-all {\n    background: linear-gradient(135deg, #ef4444, #dc2626);\n    color: white;\n}\n\n.bulk-btn.force-all:hover:not(:disabled) {\n    background: linear-gradient(135deg, #dc2626, #b91c1c);\n    transform: scale(1.02);\n}\n\n.bulk-btn:disabled {\n    opacity: 0.3;\n    cursor: not-allowed;\n}\n\n.bulk-icon {\n    font-size: 18px;\n}\n\n.shutdown-log {\n    background: rgba(0, 0, 0, 0.3);\n    border-radius: 8px;\n    overflow: hidden;\n}\n\n.log-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 14px;\n    background: rgba(0, 0, 0, 0.3);\n    border-bottom: 1px solid rgba(255, 255, 255, 0.05);\n}\n\n.log-title {\n    font-size: 12px;\n    font-weight: 700;\n}\n\n.log-clear {\n    padding: 4px 10px;\n    background: rgba(239, 68, 68, 0.2);\n    border: 1px solid #ef4444;\n    border-radius: 6px;\n    color: #ef4444;\n    font-size: 10px;\n    font-weight: 600;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n\n.log-clear:hover {\n    background: rgba(239, 68, 68, 0.3);\n}\n\n.log-entries {\n    max-height: 150px;\n    overflow-y: auto;\n}\n\n.log-entry {\n    display: grid;\n    grid-template-columns: 80px 1fr 70px 70px;\n    gap: 10px;\n    padding: 8px 14px;\n    font-size: 11px;\n    border-bottom: 1px solid rgba(255, 255, 255, 0.03);\n}\n\n.log-entry:last-child {\n    border-bottom: none;\n}\n\n.log-time {\n    opacity: 0.5;\n    font-family: 'Courier New', monospace;\n}\n\n.log-client {\n    font-weight: 600;\n}\n\n.log-type, .log-status {\n    text-align: center;\n    padding: 2px 6px;\n    border-radius: 6px;\n    font-size: 10px;\n    font-weight: 700;\n    text-transform: uppercase;\n}\n\n.log-type.graceful {\n    background: rgba(245, 158, 11, 0.2);\n    color: #f59e0b;\n}\n\n.log-type.force {\n    background: rgba(239, 68, 68, 0.2);\n    color: #ef4444;\n}\n\n.log-status.pending {\n    background: rgba(59, 130, 246, 0.2);\n    color: #3b82f6;\n}\n\n.log-status.success {\n    background: rgba(16, 185, 129, 0.2);\n    color: #10b981;\n}\n\n.log-status.failed {\n    background: rgba(239, 68, 68, 0.2);\n    color: #ef4444;\n}\n</style>",
+        "storeOutMessages": false,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 630,
+        "y": 1400,
+        "wires": [
+            [
+                "func_handle_shutdown_command"
+            ]
+        ]
+    },
+    {
+        "id": "func_handle_shutdown_command",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Process Shutdown Command",
+        "func": "const clients = flow.get('clients') || {};\nconst action = msg.payload.action;\nconst shutdownType = msg.payload.type || 'graceful';\n\nif (action === 'shutdown_client') {\n    const clientId = msg.payload.client_id;\n    const client = clients[clientId];\n    \n    if (!client) {\n        node.warn(`Client not found: ${clientId}`);\n        return null;\n    }\n    \n    const timestamp = new Date().toISOString();\n    const requestId = `shutdown-${clientId}-${Date.now()}`;\n    \n    // Create MQTT message\n    const shutdownMsg = {\n        topic: `clients/${clientId}/command/shutdown`,\n        payload: JSON.stringify({\n            action: 'shutdown',\n            type: shutdownType,\n            timestamp: timestamp,\n            request_id: requestId\n        }),\n        qos: 1\n    };\n    \n    node.status({fill: \"yellow\", shape: \"dot\", text: `Shutdown ${clientId}`});\n    node.log(`Sending ${shutdownType} shutdown to ${clientId}`);\n    \n    return [shutdownMsg, null];\n    \n} else if (action === 'shutdown_all') {\n    const messages = [];\n    const timestamp = new Date().toISOString();\n    \n    for (const clientId in clients) {\n        const requestId = `shutdown-${clientId}-${Date.now()}`;\n        \n        messages.push({\n            topic: `clients/${clientId}/command/shutdown`,\n            payload: JSON.stringify({\n                action: 'shutdown',\n                type: shutdownType,\n                timestamp: timestamp,\n                request_id: requestId\n            }),\n            qos: 1\n        });\n    }\n    \n    node.status({fill: \"red\", shape: \"dot\", text: `Shutdown all (${messages.length})`});\n    node.log(`Sending ${shutdownType} shutdown to ${messages.length} clients`);\n    \n    return [messages, null];\n}\n\nreturn null;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 1400,
+        "wires": [
+            [
+                "mqtt_out_client_shutdown"
+            ],
+            [
+                "ui_template_client_shutdown_panel"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_client_shutdown",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Client Shutdown Command",
+        "topic": "",
+        "qos": "1",
+        "retain": false,
+        "broker": "mqtt_broker_local",
+        "x": 1150,
+        "y": 1380,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_client_shutdown_response",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Client Shutdown Response",
+        "topic": "clients/+/response",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 1460,
+        "wires": [
+            [
+                "func_process_shutdown_response"
+            ]
+        ]
+    },
+    {
+        "id": "func_process_shutdown_response",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Process Shutdown Response",
+        "func": "const response = msg.payload;\n\nif (response.action === 'shutdown') {\n    const clientId = response.client_id;\n    const success = response.success;\n    const message = response.message;\n    \n    node.log(`Shutdown response from ${clientId}: ${message}`);\n    \n    // Send to UI\n    msg.payload = {\n        shutdown_response: {\n            client_id: clientId,\n            hostname: response.hostname,\n            success: success,\n            message: message\n        }\n    };\n    \n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 1460,
+        "wires": [
+            [
+                "ui_template_client_shutdown_panel",
+                "debug_shutdown_response"
+            ]
+        ]
+    },
+    {
+        "id": "debug_shutdown_response",
+        "type": "debug",
+        "z": "tab_dashboard",
+        "name": "Shutdown Response Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 1480,
+        "wires": []
+    },
+    {
+        "id": "inject_sync_clients_to_shutdown",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Sync Clients to Shutdown Panel",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 1400,
+        "wires": [
+            [
+                "func_sync_clients"
+            ]
+        ]
+    },
+    {
+        "id": "func_sync_clients",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Get Client List",
+        "func": "const clients = flow.get('clients') || {};\n\nmsg.payload = {\n    clients: clients,\n    timestamp: new Date().toISOString()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 1400,
+        "wires": [
+            [
+                "ui_template_client_shutdown_panel"
+            ]
+        ]
+    }
+]
+

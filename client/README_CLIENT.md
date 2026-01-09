@@ -12,6 +12,9 @@ Windows client application for the Server Boot/Shutdown Management System. Monit
 - 📝 **Logging** - Detailed logs for troubleshooting
 - ⚙️ **Easy Configuration** - Simple YAML with environment variable placeholder support
 - ⏱️ **Heartbeat Countdown** - Real-time countdown to next heartbeat in tray icon
+- 🛑 **Remote Shutdown** ⭐ NEW - Graceful and force shutdown via MQTT commands
+- 🔄 **Auto-Update** ⭐ NEW - Automatic updates from GitHub releases
+- 💾 **Application Save** ⭐ NEW - Saves open applications before shutdown
 
 ## Requirements
 

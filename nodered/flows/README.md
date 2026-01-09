@@ -17,7 +17,8 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 7. `22-hp-health.json`
 8. `40-client-tracking.json`
 9. `41-client-automation.json`
-10. `90-log-console.json`
+10. `42-client-shutdown.json`
+11. `90-log-console.json`
 
 ### Import Instructions
 
@@ -208,6 +209,31 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 - `link_in_last_client` - Receives last client offline trigger
 
 **Documentation**: See `../SMART_WAKEUP_GUIDE.md` for complete usage guide
+
+---
+
+### 42-client-shutdown.json
+**Client PC Shutdown Control** ⭐ **NEW v2.4.0**
+
+- Individual client shutdown controls (graceful/force)
+- Bulk shutdown operations (all clients)
+- Shutdown response tracking
+- Activity logging with status updates
+- Modern control panel UI
+
+**Features**:
+- **Individual Control**: Shutdown specific clients with confirmation
+- **Bulk Operations**: Shutdown all clients at once
+- **Graceful Shutdown**: Saves open applications before shutdown
+- **Force Shutdown**: Immediate shutdown without save
+- **Response Tracking**: Real-time status updates from clients
+- **Activity Log**: Recent shutdown history with timestamps
+
+**Dependencies**: `ui_group_client_shutdown`, `mqtt_broker_local`
+
+**MQTT Topics**:
+- Publishes: `clients/{client_id}/command/shutdown`
+- Subscribes: `clients/+/response`
 
 ---
 

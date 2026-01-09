@@ -4,17 +4,27 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 ## Features
 
+### Server Management
 - 🚀 **Remote Boot** - Wake-on-LAN, IPMI (Dell T310), and iLO (HP DL360p) based boot
 - 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
 - 📊 **Status Monitoring** - Real-time server status via MQTT
 - 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
-- 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
 - 🤖 **Smart Automation** - Client-aware boot, 5-minute grace periods, command cooldown protection
 - 📋 **Activity Logging** - Complete audit trail with triggers, commands, and status changes
+
+### Client Management (NEW v2.4.0)
+- 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
+- 🛑 **Remote Client Shutdown** - Graceful and force shutdown of Windows client PCs
+- 💾 **Application Save** - Automatically saves open applications before shutdown
+- 🔄 **Auto-Update** - Clients self-update from GitHub releases automatically
+- 🎨 **System Tray** - Modern icon with status indicators and update checks
+
+### User Interface
 - 🖥️ **Premium Dashboard** - Modern glassmorphism-style Node-RED interface with live countdowns
+- 🎛️ **Client Control Panel** - Individual and bulk client shutdown operations
 - 🔒 **Secure** - TLS/SSL support, credential management
-- 🔄 **Auto-Restart** - Systemd services with automatic restart
 - 📝 **Comprehensive Logging** - Detailed logs for troubleshooting
+- 🔄 **Auto-Restart** - Systemd services with automatic restart
 
 ## System Architecture
 
@@ -97,6 +107,48 @@ Status and health monitoring is published back through MQTT to the dashboard for
    ```
 
 ## Usage
+
+### Client Setup (Windows PCs)
+
+Install the client monitor on Windows PCs for automatic server management:
+
+1. **Download client folder** to Windows PC
+2. **Run installer as Administrator:**
+   ```cmd
+   install_client.bat
+   ```
+3. **Configure MQTT connection** when prompted
+4. **Restart PC** or start manually
+
+The client will:
+- ✅ Send presence/heartbeat to automation server
+- ✅ Trigger automatic server boot when needed
+- ✅ Allow server shutdown when all clients offline
+- ✅ Receive remote shutdown commands
+- ✅ Auto-update from GitHub releases
+
+**Documentation**: See `client/README_CLIENT.md` for detailed setup
+
+### Remote Client Shutdown (v2.4.0)
+
+Shutdown client PCs from the Node-RED dashboard:
+
+1. Open dashboard: `http://localhost:1880/dashboard`
+2. Navigate to "Client Shutdown Control"
+3. Select **Graceful** (saves applications) or **Force** (immediate)
+4. Confirm operation
+
+**Via MQTT:**
+```bash
+mosquitto_pub -h <mqtt-broker> -t "clients/CLIENT_ID/command/shutdown" -m '{
+  "action": "shutdown",
+  "type": "graceful",
+  "timestamp": "2026-01-09T15:30:00Z",
+  "request_id": "shutdown-001"
+}'
+```
+
+**Documentation**: See `client/README_CLIENT_SHUTDOWN.md`
 
 ### Boot Server via MQTT
 

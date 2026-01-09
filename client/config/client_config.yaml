@@ -10,6 +10,12 @@ client:
   
   # Enable debug logging
   debug: ${DEBUG:false}
+  
+  # Auto-update settings
+  auto_update:
+    enabled: ${AUTO_UPDATE_ENABLED:true}
+    check_interval_hours: ${AUTO_UPDATE_CHECK_INTERVAL:24}
+    github_repo: "${GITHUB_REPO:}"  # Format: owner/repo
 
 mqtt:
   broker:
@@ -25,5 +31,7 @@ mqtt:
     # {client_id} will be replaced with actual client ID
     presence: "clients/{client_id}/presence"
     heartbeat: "clients/{client_id}/heartbeat"
+    shutdown: "clients/{client_id}/command/shutdown"
+    response: "clients/{client_id}/response"
   
   qos: 1

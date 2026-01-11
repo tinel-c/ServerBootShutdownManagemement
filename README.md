@@ -293,28 +293,16 @@ mosquitto_sub -h <mqtt-broker> -t "clients/+/heartbeat" -v
 **See [client/README_CLIENT.md](client/README_CLIENT.md) for detailed client documentation.**
 
 
-## 🖥️ Node-RED Dashboard (v2.0 - Modular Architecture)
+## 🖥️ Node-RED Dashboard (Modular Architecture)
 
-A modern, feature-rich Node-RED dashboard with **modular architecture** for easy maintenance and scalability.
+Modern, feature-rich dashboard with modular flows for easy maintenance and scalability.
 
-### ✨ New in v2.0
-
-#### Modular Flow Architecture
-The dashboard has been completely refactored from a monolithic design to a **feature-based modular system**:
-- ✅ **8 Independent Modules** - Each feature in its own importable file
-- ✅ **Easy Maintenance** - Update individual features without affecting others
-- ✅ **Better Collaboration** - Multiple developers can work on different servers
-- ✅ **Scalable Design** - Easily add new servers following the established pattern
-- ✅ **Version Control Friendly** - Clear, feature-specific commits
-
-#### Comprehensive Health Monitoring
-New **advanced health monitoring dashboard** with Healthchecks.io integration:
-- 📊 **Real-time Status Cards** - Individual cards for each health check
-- ⏱️ **Live Countdown Timers** - See time until next ping (updates every second)
-- 📈 **Statistics Display** - Total pings, grace period, timeout, manual resume status
-- 🎨 **Modern UI Design** - Gradient backgrounds, color-coded status indicators
-- 🔗 **Badge Links** - Quick access to external status badges
-- 📋 **Comprehensive Data** - Displays all 16+ data points from health checks
+### Key Features
+- **8 Independent Modules** - Update features without affecting others
+- **Real-time Health Monitoring** - Live status cards with countdown timers
+- **Client Automation** - Smart boot/shutdown based on client presence
+- **Modern UI** - Glassmorphism design with color-coded indicators
+- **Telegram Bot** - Optional remote control via Telegram (v2.5.0+)
 
 ### Quick Setup
 
@@ -385,41 +373,18 @@ Each server (Dell T310 & HP DL360p) has dedicated panels:
 - **Commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
 - **See**: [nodered/TELEGRAM_SETUP.md](nodered/TELEGRAM_SETUP.md) for setup instructions
 
-### Modular Architecture Benefits
-
-**File Structure:**
+**Flow Structure:**
 ```
 nodered/flows/
-├── 00-base-config.json       # Core: UI base, groups, MQTT broker
-├── 10-dell-controls.json     # Dell: Boot/shutdown buttons
-├── 11-dell-status.json       # Dell: Status display
-├── 12-dell-health.json       # Dell: Health monitoring
-├── 20-hp-controls.json       # HP: Boot/shutdown buttons  
-├── 21-hp-status.json         # HP: Status display
-├── 22-hp-health.json         # HP: Health monitoring
-├── 90-log-console.json       # Shared: Log console
-└── README.md                 # Quick reference guide
+├── 00-base-config.json        # Core configuration
+├── 10-12-dell-*.json          # Dell T310 management
+├── 20-22-hp-*.json            # HP DL360p management
+├── 40-42-client-*.json        # Client tracking & automation
+├── 50-telegram-interface.json # Telegram bot (optional)
+└── 90-log-console.json        # System logging
 ```
 
-**Numbering Convention:**
-- `00-09`: Core infrastructure
-- `10-19`: Dell T310 features
-- `20-29`: HP DL360p features
-- `30-39`: Reserved for future server 1
-- `40-49`: Reserved for future server 2
-- `90-99`: Shared utilities
-
-### Adding a New Server
-
-Thanks to the modular design, adding a new server is straightforward:
-
-1. **Update base config** with new UI groups
-2. **Copy templates** from Dell or HP modules (10-12 or 20-22)
-3. **Customize** server names, MQTT topics, and boot methods
-4. **Import** the new modules (numbered 30-32 for third server)
-5. **Deploy** and test
-
-See `nodered/NODE_RED_DEVELOPMENT.md` for detailed instructions.
+See `nodered/flows/README.md` for import instructions and `nodered/NODE_RED_DEVELOPMENT.md` for detailed documentation.
 
 ### Health Check Integration
 
@@ -638,16 +603,29 @@ ServerBootShutdownMangement/
 
 ## Documentation
 
-### Core Documentation
-- [Development Guide](DEVELOPMENT_GUIDE.md) - Comprehensive development documentation
-- [Setup Guide](docs/SETUP.md) - Detailed setup instructions
-- [MQTT Protocol](docs/MQTT_PROTOCOL.md) - MQTT message specifications
-- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+### Getting Started
+- [README.md](README.md) - This file (overview and quick start)
+- [Setup Guide](docs/SETUP.md) - Installation and configuration
+- [Client Management Guide](CLIENT_MANAGEMENT_GUIDE.md) - Complete client management
 
-### Node-RED Dashboard Documentation
-- [Node-RED Development Guide](nodered/NODE_RED_DEVELOPMENT.md) - Complete development reference (800+ lines)
-- [Flows Quick Reference](nodered/flows/README.md) - Import instructions and module descriptions
-- [Health Dashboard Guide](nodered/HEALTH_DASHBOARD_GUIDE.md) - Visual layout and customization guide
+### Core Documentation
+- [Development Guide](DEVELOPMENT_GUIDE.md) - Development and contribution
+- [Architecture](docs/ARCHITECTURE.md) - System architecture and design
+- [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Message specifications
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
+
+### Node-RED Dashboard
+- [Node-RED Development](nodered/NODE_RED_DEVELOPMENT.md) - Complete reference
+- [Flows Quick Reference](nodered/flows/README.md) - Import instructions
+- [Health Dashboard Guide](nodered/HEALTH_DASHBOARD_GUIDE.md) - Health monitoring
+- [Smart Wakeup Guide](nodered/SMART_WAKEUP_GUIDE.md) - Automation guide
+- [Telegram Setup](nodered/TELEGRAM_SETUP.md) - Telegram bot configuration
+
+### Release Information
+- [Release Notes v2.5.0](RELEASE_NOTES_v2.5.0.md) - Latest release
+- [Release Notes v2.4.0](RELEASE_NOTES_v2.4.0.md) - Client management
+- [Release Notes v2.3.0](RELEASE_NOTES_v2.3.0.md) - Smart automation
+- [Release History](RELEASE_HISTORY.md) - Older versions (v1.x - v2.2.0)
 
 ## Requirements
 
@@ -697,126 +675,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 2.3.0  
-**Last Updated:** 2026-01-07
+**Version:** 2.5.0  
+**Last Updated:** 2026-01-11
 
-## Changelog
+## Recent Releases
 
-### v2.3.0 (2026-01-07) - Smart Client-Aware Automation ⭐
-**🤖 Intelligent Server Management with Complete Visibility**
+### v2.5.0 (2026-01-11) - Telegram Bot Interface
+- 🤖 Control servers via Telegram commands
+- 📊 Real-time status notifications
+- 🔔 Automatic alerts on server state changes
+- See `RELEASE_NOTES_v2.5.0.md` for details
 
-#### Major Features
-- ✨ **Client-Aware Boot**: Server automatically boots when clients need it (DOWN + clients > 0)
-- 🛡️ **5-Minute Cooldown**: Prevents command spam during boot/shutdown operations
-- 📋 **Activity Logging**: Complete audit trail with client triggers, commands, and status changes
-- ⏳ **Visual Cooldown Banner**: Live countdown showing boot/shutdown cooldown status
-- 🔄 **Smart Retry**: Automatically retries boot if server doesn't come up after cooldown
-- 🎨 **Modern Dashboard**: Completely redesigned automation interface with glassmorphism
+### v2.4.0 (2026-01-09) - Client Management & Auto-Update
+- 🛑 Remote client shutdown (graceful/force)
+- 🔄 Auto-update from GitHub releases
+- 📌 Version display in system tray tooltip
+- See `RELEASE_NOTES_v2.4.0.md` for details
 
-#### What's New
-- Client-triggered events now appear in activity log (🟢 online, 🔴 offline)
-- Cooldown system prevents duplicate WOL/IPMI commands (respects 5-minute window)
-- Enhanced log display with color-coded entries and emoji indicators
-- Proper shutdown execution after grace period (bug fix from v2.2.0)
-- Full MQTT protocol compliance with all required fields
+### v2.3.0 (2026-01-07) - Smart Client-Aware Automation
+- ✨ Auto-boot when clients connect
+- 📋 Complete activity logging
+- 🛡️ Command cooldown protection
+- See `RELEASE_NOTES_v2.3.0.md` for details
 
-#### Documentation Added
-- `nodered/AUTOMATION_UPDATE.md` - Complete technical documentation
-- `nodered/SMART_WAKEUP_GUIDE.md` - User guide for smart wake-up feature
-- `nodered/CLIENT_AWARE_BOOT_SUMMARY.md` - Implementation summary
-- `nodered/TRIGGER_LOGGING_UPDATE.md` - Activity logging details
-
-See `nodered/AUTOMATION_UPDATE.md` for complete technical details.
-
----
-
-### v2.2.0 (2026-01-07) - Decentralized Health & Idle Shutdown
-**🚀 Robust Automation & Smart Power Management**
-
-#### Major Changes
-- ✨ **Decentralized Status**: Automation flows now operate independently of global context
-- 🏥 **Health-Driven Logic**: Server status derived directly from health check payloads
-- ⚡ **Reactive Idle Shutdown**: Automatically shuts down server if UP but idle (0 clients)
-- 🛡️ **Fail-safe Cancellation**: Immediate shutdown abort if client connects during countdown
-- 🖥️ **Updated Client**: Windows client now syncs with health status (UP/DOWN support)
-
-See `RELEASE_NOTES_v2.2.0.md` for complete details.
-
----
-
-### v2.1.0 (2026-01-06) - Client PC Monitoring & Automation
-**🎉 Smart Server Power Management**
-
-#### Major Changes
-- ✨ **Client PC Monitoring**: Windows application for automatic server power management
-- 🤖 **Smart Automation**: Auto-boot when clients start, auto-shutdown when all clients offline
-- 📊 **Client Dashboard**: Real-time client presence tracking in Node-RED
-- ⏱️ **Grace Period**: Configurable shutdown delay (default: 5 minutes)
-- 🔧 **Easy Installation**: One-click Windows installer with configuration wizard
-
-#### New Features
-- Python client application for Windows PCs
-- MQTT-based presence and heartbeat monitoring
-- Node-RED automation flows (40-client-tracking, 41-client-automation)
-- Client PCs dashboard panel with live status
-- Automation enable/disable toggle
-- Extended MQTT protocol with client topics
-
-#### Documentation Added
-- `client/README_CLIENT.md` - Client installation and usage guide
-- `RELEASE_NOTES_v2.1.0.md` - This release documentation
-- Updated `README.md` with client PC monitoring section
-- Updated `docs/MQTT_PROTOCOL.md` with client message schemas
-- Updated `docs/ARCHITECTURE.md` with client integration
-
-#### Configuration Updates
-- Added `client_automation` section to `server_config.yaml`
-- Added client topics to `mqtt_config.yaml`
-
-See `RELEASE_NOTES_v2.1.0.md` for complete details.
-
----
-
-### v2.0.0 (2025-12-29) - Major Node-RED Dashboard Overhaul
-**🎉 Modular Architecture & Enhanced Health Monitoring**
-
-#### Major Changes
-- ✨ **Modular Flow Architecture**: Refactored from monolithic to 8 independent, importable modules
-- 📊 **Comprehensive Health Dashboard**: Advanced health monitoring with 16+ data points per check
-- ⏱️ **Live Countdown Timers**: Real-time countdown to next health check ping
-- 🎨 **Modern UI Design**: Gradient backgrounds, glass-morphism effects, color-coded status indicators
-- 📚 **Extensive Documentation**: Added 3 new documentation files (2,000+ lines total)
-
-#### New Features
-- Individual check cards with full data visualization
-- Statistics grid (total pings, grace period, timeout, manual resume)
-- Live timing information (last ping, next ping, time until)
-- Tags display with pill styling
-- Badge URL links to external monitoring
-- Empty state handling
-- Scalable naming convention for future servers (slots 30-49 reserved)
-
-#### Documentation Added
-- `nodered/NODE_RED_DEVELOPMENT.md` - 800+ line comprehensive guide
-- `nodered/flows/README.md` - Quick reference for modular flows
-- `nodered/HEALTH_DASHBOARD_GUIDE.md` - Visual dashboard guide
-
-#### Breaking Changes
-- Old monolithic `flows.json` deprecated (renamed to `flows.json.legacy`)
-- Must import modular flows in specific order (see documentation)
-- Health dashboard now requires full payload structure from Healthchecks.io
-
-#### Migration Path
-Users on v1.x should:
-1. Backup existing flows
-2. Import new modular flows in order
-3. Update health monitoring payloads if using custom service
-
-See `nodered/NODE_RED_DEVELOPMENT.md` for complete migration guide.
-
----
-
-### v1.3.0 (Previous)
-- Health monitoring integration with Healthchecks.io API v3
-- Premium glassmorphism dashboard
-- Multi-server support (Dell T310 & HP DL360p)
+**Older Versions:** See `RELEASE_HISTORY.md` for v1.x - v2.2.0

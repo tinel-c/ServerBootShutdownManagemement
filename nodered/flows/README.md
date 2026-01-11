@@ -18,7 +18,8 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 8. `40-client-tracking.json`
 9. `41-client-automation.json`
 10. `42-client-shutdown.json`
-11. `90-log-console.json`
+11. `50-telegram-interface.json` - **Telegram Bot Interface** (optional)
+12. `90-log-console.json`
 
 ### Import Instructions
 
@@ -237,6 +238,59 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 ---
 
+### 50-telegram-interface.json
+**Telegram Bot Interface** ⭐ **NEW**
+
+- Telegram bot command interface using `node-red-contrib-telegrambot`
+- Server control via Telegram commands
+- Real-time status notifications
+- Command response notifications
+- User authorization support
+
+**Features**:
+- **Commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
+- **Server Control**: Control Dell T310 and HP DL360p via Telegram
+- **Status Notifications**: Automatic notifications on server state changes
+- **Command Responses**: Real-time feedback on command execution
+- **Authorization**: Restrict access to authorized Telegram user IDs
+- **Polling & Webhook**: Supports both polling (default) and webhook modes
+
+**Dependencies**: 
+- `mqtt_broker_local`
+- `node-red-contrib-telegrambot` (installed via Dockerfile)
+
+**MQTT Topics**:
+- Publishes: `dell/t310/command/boot`, `dell/t310/command/shutdown`
+- Publishes: `hp/dl360p/command/boot`, `hp/dl360p/command/shutdown`
+- Subscribes: `dell/t310/status`, `hp/dl360p/status`
+- Subscribes: `+/+/response` (command responses)
+
+**Configuration**:
+1. Create a Telegram bot via [@BotFather](https://t.me/botfather)
+2. Get your bot token
+3. After importing, configure the `telegrambot-config` node:
+   - Enter bot token in the config node
+   - (Optional) Set `TELEGRAM_ALLOWED_USERS` environment variable for authorization
+   - Choose polling (default) or webhook mode
+
+**Setup Instructions**:
+1. Rebuild Docker container (includes telegrambot library)
+2. Import the flow
+3. Configure the `telegrambot-config` node with your bot token
+4. Deploy the flow
+5. Start chatting with your bot!
+
+**Commands**:
+- `/boot [dell|hp]` - Boot a server (default: dell)
+- `/shutdown [dell|hp]` - Graceful shutdown (default: dell)
+- `/force [dell|hp]` - Force shutdown (default: dell)
+- `/status` - Get current server status
+- `/help` - Show help message
+
+**Documentation**: See `../TELEGRAM_SETUP.md` for complete setup guide
+
+---
+
 ### 90-log-console.json
 **System Log Console**
 
@@ -402,7 +456,7 @@ system/logs
 - `20-29`: HP DL360p features
 - `30-39`: Reserved for future server 1
 - `40-49`: Client automation and tracking
-- `50-59`: Reserved for future features
+- `50-59`: External interfaces (Telegram, etc.)
 - `90-99`: Shared utilities
 
 ## Version Control

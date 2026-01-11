@@ -341,6 +341,7 @@ New **advanced health monitoring dashboard** with Healthchecks.io integration:
    flows/22-hp-health.json        # HP DL360p health monitoring
    flows/40-client-tracking.json  # Client PC presence tracking
    flows/41-client-automation.json # Server automation based on clients
+   flows/50-telegram-interface.json # Telegram bot interface (optional)
    flows/90-log-console.json      # System log console
    ```
 
@@ -375,6 +376,14 @@ Each server (Dell T310 & HP DL360p) has dedicated panels:
 - Rolling buffer (last 50 entries)
 - Auto-scroll to latest entries
 - Subscribes to all MQTT response topics
+
+#### Telegram Bot Interface (Optional)
+- 🤖 Control servers via Telegram commands
+- 📊 Real-time status notifications
+- 🔔 Automatic alerts on server state changes
+- 🔐 User authorization support
+- **Commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
+- **See**: [nodered/TELEGRAM_SETUP.md](nodered/TELEGRAM_SETUP.md) for setup instructions
 
 ### Modular Architecture Benefits
 
@@ -607,12 +616,14 @@ ServerBootShutdownMangement/
 │   │   ├── 22-hp-health.json
 │   │   ├── 40-client-tracking.json    # NEW: Client presence tracking
 │   │   ├── 41-client-automation.json  # NEW: Server automation
+│   │   ├── 50-telegram-interface.json # NEW: Telegram bot interface
 │   │   ├── 90-log-console.json
 │   │   └── README.md
 │   ├── docker-compose.yml
 │   ├── Dockerfile
 │   ├── NODE_RED_DEVELOPMENT.md
 │   ├── HEALTH_DASHBOARD_GUIDE.md
+│   ├── TELEGRAM_SETUP.md      # Telegram bot setup guide
 │   └── flows.json             # Legacy (deprecated)
 ├── docs/                      # Documentation
 │   ├── SETUP.md

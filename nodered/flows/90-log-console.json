@@ -69,7 +69,7 @@
         "order": 1,
         "width": "12",
         "height": "10",
-        "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div v-for=\"line in msg.payload.slice().reverse()\" :key=\"line.timestamp\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #ccc; font-weight: bold;\">[{{line.source}}]</span> \n        <span :class=\"line.class\">{{line.message}}</span>\n    </div>\n</div>\n\n<style>\n.text-info { color: #2196f3; }\n.text-success { color: #4caf50; }\n.text-warning { color: #ff9800; }\n.text-danger { color: #f44336; }\n</style>",
+        "format": "<div id=\"log-console\" style=\"background-color: #1a1a1a; color: #00ff00; font-family: monospace; padding: 10px; height: 100%; overflow-y: scroll;\">\n    <div v-for=\"line in msg.payload.slice(-10).reverse()\" :key=\"line.timestamp\">\n        <span style=\"color: #888;\">[{{line.timestamp}}]</span> \n        <span style=\"color: #ccc; font-weight: bold;\">[{{line.source}}]</span> \n        <span :class=\"line.class\">{{line.message}}</span>\n    </div>\n</div>\n\n<style>\n.text-info { color: #2196f3; }\n.text-success { color: #4caf50; }\n.text-warning { color: #ff9800; }\n.text-danger { color: #f44336; }\n</style>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,

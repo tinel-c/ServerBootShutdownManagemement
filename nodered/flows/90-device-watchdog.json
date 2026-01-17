@@ -1,0 +1,705 @@
+[
+    {
+        "id": "device_watchdog_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ DEVICE WATCHDOG - Health Monitoring ═══════════════",
+        "info": "## Device Watchdog - Health Monitoring\n\n**Flow Number:** 90\n**Domain:** Monitoring & Logging\n\n### Purpose\nMonitors device health via MQTT heartbeats and sends Telegram alerts when devices go offline.\n\n### Monitored Devices\n1. **Main Gate** (MainGate)\n   - Topic: MainGate/STAT/reccurentStatusRelay4\n   - Timeout: 3 minutes\n   - Alert: \"Main gate online/offline\"\n\n2. **Irrigation System** (IrigationSystem)\n   - Topic: tele/IrigationSystem/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Irrigation system online/offline\"\n\n3. **Water Pump** (pompaApa)\n   - Topic: tele/pompaApa/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Pump system online/offline\"\n\n### Features\n- Trigger-based timeout detection\n- Automatic Telegram notifications\n- Node-RED startup notification\n- Configurable timeout per device\n\n### Integration\n- Uses shared telegram_bot_config\n- Sends to chat ID: 991635368 (hardcoded)\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- node-red-contrib-simpletime (timestamp formatting)\n\n### Note\nThis is a pure monitoring flow with NO UI components.",
+        "x": 300,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "watchdog_startup_inject",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Node-RED Startup",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "payload.chatId",
+                "v": "991635368",
+                "vt": "num"
+            },
+            {
+                "p": "payload.type",
+                "v": "message",
+                "vt": "str"
+            },
+            {
+                "p": "payload.content",
+                "v": "",
+                "vt": "date"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 120,
+        "wires": [
+            ["watchdog_format_time"]
+        ]
+    },
+    {
+        "id": "watchdog_format_time",
+        "type": "simpletime",
+        "z": "tab_dashboard",
+        "name": "Format Timestamp",
+        "mydate": true,
+        "myymd": true,
+        "myyear": true,
+        "mymonth": true,
+        "mymonthn": true,
+        "mydom": true,
+        "mydoy": true,
+        "myday": true,
+        "myhourpm": true,
+        "myhour": true,
+        "mytime": true,
+        "mytimes": true,
+        "myminute": true,
+        "myminutes": true,
+        "mysecond": true,
+        "mymillis": true,
+        "myepoch": true,
+        "myrawdate": true,
+        "mypm": true,
+        "x": 380,
+        "y": 120,
+        "wires": [
+            ["watchdog_startup_msg1", "watchdog_startup_msg2"]
+        ]
+    },
+    {
+        "id": "watchdog_startup_msg1",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Node red online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "Node red online date:",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 600,
+        "y": 100,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_startup_msg2",
+        "type": "delay",
+        "z": "tab_dashboard",
+        "name": "100ms delay",
+        "pauseType": "delay",
+        "timeout": "100",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 590,
+        "y": 140,
+        "wires": [
+            ["watchdog_startup_timestamp"]
+        ]
+    },
+    {
+        "id": "watchdog_startup_timestamp",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Set timestamp content",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "myrawdate",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 810,
+        "y": 140,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_maingate_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Main Gate Watchdog (3 min timeout)",
+        "info": "Monitors MainGate/STAT/reccurentStatusRelay4\nTimeout: 3 minutes\nAlerts when main gate goes offline",
+        "x": 200,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "watchdog_maingate_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Main Gate Heartbeat",
+        "topic": "MainGate/STAT/reccurentStatusRelay4",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 280,
+        "wires": [
+            ["watchdog_maingate_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_maingate_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "3 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "3",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 410,
+        "y": 280,
+        "wires": [
+            ["watchdog_maingate_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_maingate_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 620,
+        "y": 280,
+        "wires": [
+            ["watchdog_maingate_online"],
+            ["watchdog_maingate_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_maingate_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Main gate online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "Main gate online",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 840,
+        "y": 260,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_maingate_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Main gate offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "Main gate offline",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 840,
+        "y": 300,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_irrigation_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Irrigation System Watchdog (11 min timeout)",
+        "info": "Monitors tele/IrigationSystem/STATE\nTimeout: 11 minutes\nAlerts when irrigation system goes offline",
+        "x": 230,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "watchdog_irrigation_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Irrigation Heartbeat",
+        "topic": "tele/IrigationSystem/STATE",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 440,
+        "wires": [
+            ["watchdog_irrigation_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_irrigation_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "11 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "11",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "\"Relay 4 OFF\"",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 410,
+        "y": 440,
+        "wires": [
+            ["watchdog_irrigation_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_irrigation_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 620,
+        "y": 440,
+        "wires": [
+            ["watchdog_irrigation_online"],
+            ["watchdog_irrigation_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_irrigation_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Irrigation system online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "Irrigation system online",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 420,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_irrigation_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Irrigation system offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "Irrigation system offline",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 460,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_pump_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Water Pump Watchdog (11 min timeout)",
+        "info": "Monitors tele/pompaApa/STATE\nTimeout: 11 minutes\nAlerts when pump system goes offline",
+        "x": 210,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "watchdog_pump_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Pump Heartbeat",
+        "topic": "tele/pompaApa/STATE",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 600,
+        "wires": [
+            ["watchdog_pump_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_pump_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "11 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "11",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "\"Relay 4 OFF\"",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 390,
+        "y": 600,
+        "wires": [
+            ["watchdog_pump_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_pump_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 600,
+        "y": 600,
+        "wires": [
+            ["watchdog_pump_online"],
+            ["watchdog_pump_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_pump_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Pump system online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "Pump system online",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 820,
+        "y": 580,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_pump_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Pump system offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "Pump system offline",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 820,
+        "y": 620,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_telegram_sender",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Send to Telegram",
+        "bot": "telegram_bot_config",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1120,
+        "y": 400,
+        "wires": [[]]
+    }
+]

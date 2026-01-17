@@ -1,0 +1,224 @@
+[
+    {
+        "id": "gate_init",
+        "type": "inject",
+        "z": "gate_main_tab",
+        "name": "Initialize Gate Context",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 100,
+        "wires": [
+            [
+                "gate_init_func"
+            ]
+        ]
+    },
+    {
+        "id": "gate_init_func",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Setup Gate Context",
+        "func": "// Initialize flow context for gate domain\nflow.set('gate_state', {\n    initialized: true,\n    timestamp: new Date().toISOString(),\n    mainGate: {\n        relay1: 'UNKNOWN',\n        relay2: 'UNKNOWN',\n        relay3: 'UNKNOWN',\n        relay4: 'UNKNOWN',\n        power: 'UNKNOWN',\n        mains: 'UNKNOWN',\n        keypad: 'UNKNOWN'\n    },\n    lastCommand: null,\n    commandHistory: []\n});\n\nnode.log('Gate automation domain initialized');\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "gate_comment",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "═══════════════ BASE CONFIGURATION ═══════════════",
+        "info": "This is the base configuration for the Gate automation domain.\n\n## Dependencies\n- Requires: 00-base-config.json (MQTT broker, UI base)\n\n## Provides\n- UI page: /gates\n- UI groups for controls, status, relays, debug\n- Context initialization\n- Gate state management\n\n## Next Steps\nAfter importing this, import feature modules:\n- 210-main-gate-controls.json\n- 211-main-gate-status.json\n- 212-main-gate-sensors.json",
+        "x": 280,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "mqtt_broker_local",
+        "type": "mqtt-broker",
+        "name": "Local Broker",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "node-red-dashboard",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "ui_group_gate_control",
+        "type": "ui-group",
+        "name": "Main Gate Control",
+        "page": "ui_page_gate",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "ui_group_gate_status",
+        "type": "ui-group",
+        "name": "Gate Status",
+        "page": "ui_page_gate",
+        "width": "6",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_gate_relays",
+        "type": "ui-group",
+        "name": "Relay Status",
+        "page": "ui_page_gate",
+        "width": "6",
+        "height": "1",
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_gate_debug",
+        "type": "ui-group",
+        "name": "Debug & Messages",
+        "page": "ui_page_gate",
+        "width": "6",
+        "height": "1",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_sliding_gate",
+        "type": "ui-group",
+        "name": "Automatizare poarta",
+        "page": "ui_page_gate",
+        "width": "6",
+        "height": "1",
+        "order": 5,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_page_gate",
+        "type": "ui-page",
+        "name": "Gate Management",
+        "ui": "b89dd587275b51bf",
+        "path": "/gates",
+        "icon": "meeting_room",
+        "layout": "grid",
+        "theme": "39a2cf2c0af73875",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 3,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "b89dd587275b51bf",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "39a2cf2c0af73875",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "1a23b7df2eafef86",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.30.0"
+        }
+    }
+]

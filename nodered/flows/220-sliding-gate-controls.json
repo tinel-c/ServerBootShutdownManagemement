@@ -1,0 +1,548 @@
+[
+    {
+        "id": "sliding_gate_comment",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "═══════════════ SLIDING GATE CONTROLS - 4 Relays ═══════════════",
+        "info": "## Primary Sliding Gate Control\n\nProvides controls for the primary sliding gate with 4 relays.\n\n### Relays:\n- **Relay 1 (Power1)**: Open gate\n- **Relay 2 (Power2)**: Close gate\n- **Relay 3 (Power3)**: Trigger\n- **Relay 4 (Power4)**: Open gate (secondary)\n\n### How it works:\n1. Subscribe to stat/automatizare_poarta/POWERX for status\n2. Convert ON/OFF to boolean\n3. Display switch in dashboard\n4. When toggled, send 1-second pulse\n5. Publish to cmnd/automatizare_poarta/PowerX\n\n### MQTT Topics:\n- Status: stat/automatizare_poarta/POWER[1-4]\n- Command: cmnd/automatizare_poarta/Power[1-4]\n\n### Dependencies:\n- Requires: ui_group_sliding_gate (from base config)\n- Requires: mqtt_broker_local",
+        "x": 320,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "sliding_relay1_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 1 Status",
+        "topic": "stat/automatizare_poarta/POWER1",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 560,
+        "wires": [
+            [
+                "sliding_relay1_convert"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay1_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 560,
+        "wires": [
+            [
+                "sliding_relay1_switch"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay1_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate - Open",
+        "label": "Deschide",
+        "group": "ui_group_sliding_gate",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "arrow_upward",
+        "oncolor": "green",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "arrow_upward",
+        "offcolor": "grey",
+        "x": 740,
+        "y": 560,
+        "wires": [
+            [
+                "sliding_relay1_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay1_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse 1s",
+        "op1": "true",
+        "op2": "false",
+        "op1type": "bool",
+        "op2type": "bool",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 960,
+        "y": 560,
+        "wires": [
+            [
+                "sliding_relay1_out"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay1_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 1 Command",
+        "topic": "cmnd/automatizare_poarta/Power1",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1200,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "sliding_relay2_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 2 Status",
+        "topic": "stat/automatizare_poarta/POWER2",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 620,
+        "wires": [
+            [
+                "sliding_relay2_convert"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay2_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 620,
+        "wires": [
+            [
+                "sliding_relay2_switch"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay2_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate - Close",
+        "label": "Inchide",
+        "group": "ui_group_sliding_gate",
+        "order": 2,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "arrow_downward",
+        "oncolor": "red",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "arrow_downward",
+        "offcolor": "grey",
+        "x": 740,
+        "y": 620,
+        "wires": [
+            [
+                "sliding_relay2_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay2_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse 1s",
+        "op1": "true",
+        "op2": "false",
+        "op1type": "bool",
+        "op2type": "bool",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 960,
+        "y": 620,
+        "wires": [
+            [
+                "sliding_relay2_out"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay2_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 2 Command",
+        "topic": "cmnd/automatizare_poarta/Power2",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1200,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "sliding_relay3_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 3 Status",
+        "topic": "stat/automatizare_poarta/POWER3",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 680,
+        "wires": [
+            [
+                "sliding_relay3_convert"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay3_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 680,
+        "wires": [
+            [
+                "sliding_relay3_switch"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay3_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate - Trigger",
+        "label": "Trigger",
+        "group": "ui_group_sliding_gate",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "sync",
+        "oncolor": "blue",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "sync",
+        "offcolor": "grey",
+        "x": 740,
+        "y": 680,
+        "wires": [
+            [
+                "sliding_relay3_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay3_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse 1s",
+        "op1": "true",
+        "op2": "false",
+        "op1type": "bool",
+        "op2type": "bool",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 960,
+        "y": 680,
+        "wires": [
+            [
+                "sliding_relay3_out"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay3_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 3 Command",
+        "topic": "cmnd/automatizare_poarta/Power3",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1200,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "sliding_relay4_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 4 Status",
+        "topic": "stat/automatizare_poarta/POWER4",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 740,
+        "wires": [
+            [
+                "sliding_relay4_convert"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay4_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 740,
+        "wires": [
+            [
+                "sliding_relay4_switch"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay4_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate - Open Alt",
+        "label": "Deschide",
+        "group": "ui_group_sliding_gate",
+        "order": 4,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "arrow_upward",
+        "oncolor": "green",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "arrow_upward",
+        "offcolor": "grey",
+        "x": 750,
+        "y": 740,
+        "wires": [
+            [
+                "sliding_relay4_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay4_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse 1s",
+        "op1": "true",
+        "op2": "false",
+        "op1type": "bool",
+        "op2type": "bool",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 960,
+        "y": 740,
+        "wires": [
+            [
+                "sliding_relay4_out"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_relay4_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Relay 4 Command",
+        "topic": "cmnd/automatizare_poarta/Power4",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1200,
+        "y": 740,
+        "wires": []
+    }
+]

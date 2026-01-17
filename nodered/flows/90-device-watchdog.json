@@ -101,7 +101,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "Node red online date:",
+                "to": "🚀 Node-RED online | Started at:",
                 "tot": "str"
             },
             {
@@ -276,7 +276,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "Main gate online",
+                "to": "🟢 Main Gate ONLINE",
                 "tot": "str"
             },
             {
@@ -322,7 +322,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "Main gate offline",
+                "to": "🔴 Main Gate OFFLINE",
                 "tot": "str"
             },
             {
@@ -449,7 +449,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "Irrigation system online",
+                "to": "🟢 Irrigation System ONLINE",
                 "tot": "str"
             },
             {
@@ -495,7 +495,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "Irrigation system offline",
+                "to": "🔴 Irrigation System OFFLINE",
                 "tot": "str"
             },
             {
@@ -622,7 +622,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "Pump system online",
+                "to": "🟢 Water Pump ONLINE",
                 "tot": "str"
             },
             {
@@ -668,7 +668,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "Pump system offline",
+                "to": "🔴 Water Pump OFFLINE",
                 "tot": "str"
             },
             {
@@ -691,6 +691,871 @@
         ]
     },
     {
+        "id": "watchdog_sliding_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Primary Sliding Gate Watchdog (11 min timeout)",
+        "info": "Monitors tele/LuncaCetatuiiSlidingGateAutomation/STATE\nTimeout: 11 minutes\nAlerts when sliding gate goes offline",
+        "x": 230,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "watchdog_sliding_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Sliding Gate Heartbeat",
+        "topic": "tele/LuncaCetatuiiSlidingGateAutomation/STATE",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 760,
+        "wires": [
+            ["watchdog_sliding_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_sliding_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "11 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "11",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 430,
+        "y": 760,
+        "wires": [
+            ["watchdog_sliding_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_sliding_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 660,
+        "y": 760,
+        "wires": [
+            ["watchdog_sliding_online"],
+            ["watchdog_sliding_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_sliding_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Sliding gate online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🟢 Primary Sliding Gate ONLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 740,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_sliding_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Sliding gate offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🔴 Primary Sliding Gate OFFLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 780,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_secondary_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Secondary Sliding Gate Watchdog (11 min timeout)",
+        "info": "Monitors tele/portaSecundara/STATE\nTimeout: 11 minutes\nAlerts when secondary gate goes offline",
+        "x": 240,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "watchdog_secondary_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Secondary Gate Heartbeat",
+        "topic": "tele/portaSecundara/STATE",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 920,
+        "wires": [
+            ["watchdog_secondary_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_secondary_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "11 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "11",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 430,
+        "y": 920,
+        "wires": [
+            ["watchdog_secondary_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_secondary_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 660,
+        "y": 920,
+        "wires": [
+            ["watchdog_secondary_online"],
+            ["watchdog_secondary_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_secondary_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Secondary gate online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🟢 Secondary Sliding Gate ONLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 910,
+        "y": 900,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_secondary_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Secondary gate offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🔴 Secondary Sliding Gate OFFLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 910,
+        "y": 940,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_power_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Garden Power Watchdog (11 min timeout)",
+        "info": "Monitors tele/sonoffPower320D_afara/STATE\nTimeout: 11 minutes\nAlerts when garden power goes offline",
+        "x": 220,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "watchdog_garden_power_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Garden Power Heartbeat",
+        "topic": "tele/sonoffPower320D_afara/STATE",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 1080,
+        "wires": [
+            ["watchdog_garden_power_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_power_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "11 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "11",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 430,
+        "y": 1080,
+        "wires": [
+            ["watchdog_garden_power_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_power_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 660,
+        "y": 1080,
+        "wires": [
+            ["watchdog_garden_power_online"],
+            ["watchdog_garden_power_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_power_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Garden power online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🟢 Garden Power ONLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 1060,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_power_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Garden power offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🔴 Garden Power OFFLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 1100,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_lights_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Garden Lights Watchdog (11 min timeout)",
+        "info": "Monitors tele/GardenAutomationLights/STATE\nTimeout: 11 minutes\nAlerts when garden lights go offline",
+        "x": 220,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "watchdog_garden_lights_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Garden Lights Heartbeat",
+        "topic": "tele/GardenAutomationLights/STATE",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 1240,
+        "wires": [
+            ["watchdog_garden_lights_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_lights_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "11 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "11",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 430,
+        "y": 1240,
+        "wires": [
+            ["watchdog_garden_lights_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_lights_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 660,
+        "y": 1240,
+        "wires": [
+            ["watchdog_garden_lights_online"],
+            ["watchdog_garden_lights_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_lights_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Garden lights online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🟢 Garden Lights ONLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 1220,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_garden_lights_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Garden lights offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🔴 Garden Lights OFFLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 1260,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_front_house_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Front House Power Watchdog (11 min timeout)",
+        "info": "Monitors tele/frontHousePower/STATE\nTimeout: 11 minutes\nAlerts when front house power goes offline",
+        "x": 230,
+        "y": 1340,
+        "wires": []
+    },
+    {
+        "id": "watchdog_front_house_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Front House Heartbeat",
+        "topic": "tele/frontHousePower/STATE",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 1400,
+        "wires": [
+            ["watchdog_front_house_trigger"]
+        ]
+    },
+    {
+        "id": "watchdog_front_house_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "11 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "11",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 410,
+        "y": 1400,
+        "wires": [
+            ["watchdog_front_house_switch"]
+        ]
+    },
+    {
+        "id": "watchdog_front_house_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 620,
+        "y": 1400,
+        "wires": [
+            ["watchdog_front_house_online"],
+            ["watchdog_front_house_offline"]
+        ]
+    },
+    {
+        "id": "watchdog_front_house_online",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Front house online",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🟢 Front House Power ONLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 1380,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
+        "id": "watchdog_front_house_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Front house offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🔴 Front House Power OFFLINE",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 1420,
+        "wires": [
+            ["watchdog_telegram_sender"]
+        ]
+    },
+    {
         "id": "watchdog_telegram_sender",
         "type": "telegram sender",
         "z": "tab_dashboard",
@@ -699,7 +1564,7 @@
         "haserroroutput": false,
         "outputs": 1,
         "x": 1120,
-        "y": 400,
+        "y": 800,
         "wires": [[]]
     }
 ]

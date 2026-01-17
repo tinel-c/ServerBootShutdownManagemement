@@ -26,7 +26,7 @@
         "y": 1200,
         "wires": [
             [
-                "secondary_relay1_switch",
+                "secondary_relay1_convert",
                 "secondary_relay1_store"
             ]
         ]
@@ -47,10 +47,48 @@
         "wires": []
     },
     {
-        "id": "secondary_relay1_switch",
-        "type": "ui_switch",
+        "id": "secondary_relay1_convert",
+        "type": "change",
         "z": "gate_main_tab",
-        "name": "",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 1200,
+        "wires": [
+            [
+                "secondary_relay1_switch"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay1_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate - Close",
         "label": "Inchide",
         "group": "ui_group_secondary_gate",
         "order": 1,
@@ -60,15 +98,55 @@
         "decouple": "true",
         "topic": "topic",
         "topicType": "msg",
-        "onvalue": "ON",
-        "onvalueType": "str",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
         "onicon": "",
         "oncolor": "",
-        "offvalue": "OFF",
-        "offvalueType": "str",
+        "offvalue": "false",
+        "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "x": 720,
+        "x": 790,
+        "y": 1200,
+        "wires": [
+            [
+                "secondary_relay1_bool_to_str"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay1_bool_to_str",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1050,
         "y": 1200,
         "wires": [
             [
@@ -131,7 +209,7 @@
         "y": 1280,
         "wires": [
             [
-                "secondary_relay2_switch",
+                "secondary_relay2_convert",
                 "secondary_relay2_store"
             ]
         ]
@@ -150,36 +228,6 @@
         "x": 540,
         "y": 1240,
         "wires": []
-    },
-    {
-        "id": "secondary_relay2_switch",
-        "type": "ui_switch",
-        "z": "gate_main_tab",
-        "name": "",
-        "label": "Deschide",
-        "group": "ui_group_secondary_gate",
-        "order": 2,
-        "width": "0",
-        "height": "0",
-        "passthru": false,
-        "decouple": "true",
-        "topic": "topic",
-        "topicType": "msg",
-        "onvalue": "ON",
-        "onvalueType": "str",
-        "onicon": "",
-        "oncolor": "",
-        "offvalue": "OFF",
-        "offvalueType": "str",
-        "officon": "",
-        "offcolor": "",
-        "x": 720,
-        "y": 1280,
-        "wires": [
-            [
-                "secondary_relay2_trigger"
-            ]
-        ]
     },
     {
         "id": "secondary_relay2_trigger",
@@ -236,7 +284,7 @@
         "y": 1360,
         "wires": [
             [
-                "secondary_relay3_switch",
+                "secondary_relay3_convert",
                 "secondary_relay3_store"
             ]
         ]
@@ -255,36 +303,6 @@
         "x": 540,
         "y": 1320,
         "wires": []
-    },
-    {
-        "id": "secondary_relay3_switch",
-        "type": "ui_switch",
-        "z": "gate_main_tab",
-        "name": "",
-        "label": "Trigger",
-        "group": "ui_group_secondary_gate",
-        "order": 3,
-        "width": "0",
-        "height": "0",
-        "passthru": false,
-        "decouple": "true",
-        "topic": "topic",
-        "topicType": "msg",
-        "onvalue": "ON",
-        "onvalueType": "str",
-        "onicon": "",
-        "oncolor": "",
-        "offvalue": "OFF",
-        "offvalueType": "str",
-        "officon": "",
-        "offcolor": "",
-        "x": 720,
-        "y": 1360,
-        "wires": [
-            [
-                "secondary_relay3_trigger"
-            ]
-        ]
     },
     {
         "id": "secondary_relay3_trigger",
@@ -341,7 +359,7 @@
         "y": 1440,
         "wires": [
             [
-                "secondary_relay4_switch",
+                "secondary_relay4_convert",
                 "secondary_relay4_store"
             ]
         ]
@@ -360,36 +378,6 @@
         "x": 540,
         "y": 1400,
         "wires": []
-    },
-    {
-        "id": "secondary_relay4_switch",
-        "type": "ui_switch",
-        "z": "gate_main_tab",
-        "name": "",
-        "label": "Stop",
-        "group": "ui_group_secondary_gate",
-        "order": 4,
-        "width": "0",
-        "height": "0",
-        "passthru": false,
-        "decouple": "true",
-        "topic": "topic",
-        "topicType": "msg",
-        "onvalue": "ON",
-        "onvalueType": "str",
-        "onicon": "",
-        "oncolor": "",
-        "offvalue": "OFF",
-        "offvalueType": "str",
-        "officon": "",
-        "offcolor": "",
-        "x": 710,
-        "y": 1440,
-        "wires": [
-            [
-                "secondary_relay4_trigger"
-            ]
-        ]
     },
     {
         "id": "secondary_relay4_trigger",
@@ -456,7 +444,7 @@
         "y": 1580,
         "wires": [
             [
-                "secondary_relay5_switch",
+                "secondary_relay5_convert",
                 "secondary_relay5_store"
             ]
         ]
@@ -475,36 +463,6 @@
         "x": 540,
         "y": 1540,
         "wires": []
-    },
-    {
-        "id": "secondary_relay5_switch",
-        "type": "ui_switch",
-        "z": "gate_main_tab",
-        "name": "",
-        "label": "Left light",
-        "group": "ui_group_secondary_gate",
-        "order": 5,
-        "width": "0",
-        "height": "0",
-        "passthru": false,
-        "decouple": "true",
-        "topic": "topic",
-        "topicType": "msg",
-        "onvalue": "ON",
-        "onvalueType": "str",
-        "onicon": "",
-        "oncolor": "",
-        "offvalue": "OFF",
-        "offvalueType": "str",
-        "officon": "",
-        "offcolor": "",
-        "x": 720,
-        "y": 1580,
-        "wires": [
-            [
-                "secondary_relay5_trigger"
-            ]
-        ]
     },
     {
         "id": "secondary_relay5_trigger",
@@ -561,7 +519,7 @@
         "y": 1660,
         "wires": [
             [
-                "secondary_relay6_switch",
+                "secondary_relay6_convert",
                 "secondary_relay6_store"
             ]
         ]
@@ -580,36 +538,6 @@
         "x": 540,
         "y": 1620,
         "wires": []
-    },
-    {
-        "id": "secondary_relay6_switch",
-        "type": "ui_switch",
-        "z": "gate_main_tab",
-        "name": "",
-        "label": "Right light",
-        "group": "ui_group_secondary_gate",
-        "order": 6,
-        "width": "0",
-        "height": "0",
-        "passthru": false,
-        "decouple": "true",
-        "topic": "topic",
-        "topicType": "msg",
-        "onvalue": "ON",
-        "onvalueType": "str",
-        "onicon": "",
-        "oncolor": "",
-        "offvalue": "OFF",
-        "offvalueType": "str",
-        "officon": "",
-        "offcolor": "",
-        "x": 720,
-        "y": 1660,
-        "wires": [
-            [
-                "secondary_relay6_trigger"
-            ]
-        ]
     },
     {
         "id": "secondary_relay6_trigger",
@@ -648,5 +576,545 @@
         "x": 1310,
         "y": 1660,
         "wires": []
+    },
+    {
+        "id": "secondary_relay2_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 1280,
+        "wires": [
+            [
+                "secondary_relay2_switch"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay2_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate - Open",
+        "label": "Deschide",
+        "group": "ui_group_secondary_gate",
+        "order": 2,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 790,
+        "y": 1280,
+        "wires": [
+            [
+                "secondary_relay2_bool_to_str"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay2_bool_to_str",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1050,
+        "y": 1280,
+        "wires": [
+            [
+                "secondary_relay2_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay3_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 1360,
+        "wires": [
+            [
+                "secondary_relay3_switch"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay3_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate - Trigger",
+        "label": "Trigger",
+        "group": "ui_group_secondary_gate",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 790,
+        "y": 1360,
+        "wires": [
+            [
+                "secondary_relay3_bool_to_str"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay3_bool_to_str",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1050,
+        "y": 1360,
+        "wires": [
+            [
+                "secondary_relay3_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay4_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 1440,
+        "wires": [
+            [
+                "secondary_relay4_switch"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay4_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate - Stop",
+        "label": "Stop",
+        "group": "ui_group_secondary_gate",
+        "order": 4,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 790,
+        "y": 1440,
+        "wires": [
+            [
+                "secondary_relay4_bool_to_str"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay4_bool_to_str",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1050,
+        "y": 1440,
+        "wires": [
+            [
+                "secondary_relay4_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay5_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 1580,
+        "wires": [
+            [
+                "secondary_relay5_switch"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay5_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate - Left Light",
+        "label": "Left light",
+        "group": "ui_group_secondary_gate",
+        "order": 5,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 790,
+        "y": 1580,
+        "wires": [
+            [
+                "secondary_relay5_bool_to_str"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay5_bool_to_str",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1050,
+        "y": 1580,
+        "wires": [
+            [
+                "secondary_relay5_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay6_convert",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 1660,
+        "wires": [
+            [
+                "secondary_relay6_switch"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay6_switch",
+        "type": "ui-switch",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate - Right Light",
+        "label": "Right light",
+        "group": "ui_group_secondary_gate",
+        "order": 6,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 790,
+        "y": 1660,
+        "wires": [
+            [
+                "secondary_relay6_bool_to_str"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay6_bool_to_str",
+        "type": "change",
+        "z": "gate_main_tab",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1050,
+        "y": 1660,
+        "wires": [
+            [
+                "secondary_relay6_trigger"
+            ]
+        ]
     }
 ]

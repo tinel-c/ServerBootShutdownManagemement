@@ -10,13 +10,26 @@
         "wires": []
     },
     {
-        "id": "garden_lights_telegram_in",
-        "type": "link in",
+        "id": "garden_lights_telegram_receiver",
+        "type": "telegram receiver",
         "z": "tab_dashboard",
-        "name": "Garden Lights Telegram In",
-        "links": [],
-        "x": 95,
-        "y": 120,
+        "name": "Lights Commands Receiver",
+        "bot": "telegram_bot_config",
+        "x": 140,
+        "y": 100,
+        "wires": [
+            ["garden_lights_telegram_router"]
+        ]
+    },
+    {
+        "id": "garden_lights_telegram_event",
+        "type": "telegram event",
+        "z": "tab_dashboard",
+        "name": "Lights Callback Events",
+        "bot": "telegram_bot_config",
+        "event": "callback_query",
+        "x": 140,
+        "y": 140,
         "wires": [
             ["garden_lights_telegram_router"]
         ]
@@ -26,20 +39,33 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Route Garden Lights Commands",
-        "func": "const command = msg.payload.command;\nconst chatId = msg.payload.chatId;\nconst requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);\n\nmsg.requestId = requestId;\nmsg.chatId = chatId;\n\nnode.warn(`[${requestId}] Garden Lights Command: ${command} from chat ${chatId}`);\n\nswitch(command) {\n    case '/lights_on':\n        return [msg, null, null, null];\n    case '/lights_off':\n        return [null, msg, null, null];\n    case '/lights_status':\n        return [null, null, msg, null];\n    case '/lights_help':\n        return [null, null, null, msg];\n    default:\n        return null;\n}",
-        "outputs": 4,
+        "func": "// Extract message data\nconst payload = msg.payload || {};\nlet chatId = payload.chatId;\nconst messageType = payload.type;\nlet text = (payload.content || '').trim();\n\n// Get user info\nconst originalMsg = msg.originalMessage || {};\nlet userId = originalMsg.from ? originalMsg.from.id : null;\nconst messageId = originalMsg.message_id;\n\n// Handle callback queries\nlet answerCallback = null;\nif (messageType === 'callback_query') {\n    text = payload.data || payload.callback_data || payload.content || \n           (originalMsg.data ? originalMsg.data : '') || '';\n    \n    if (!chatId) {\n        if (originalMsg.message && originalMsg.message.chat) {\n            chatId = originalMsg.message.chat.id;\n        } else if (originalMsg.chat) {\n            chatId = originalMsg.chat.id;\n        }\n    }\n    \n    if (originalMsg.from) {\n        userId = originalMsg.from.id;\n    }\n    \n    const callbackQueryId = payload.callback_query_id || payload.id || \n                            (originalMsg.id ? originalMsg.id.toString() : null) ||\n                            (originalMsg.query_id ? originalMsg.query_id.toString() : null);\n    \n    if (callbackQueryId) {\n        answerCallback = {\n            payload: {\n                callback_query_id: callbackQueryId,\n                text: '',\n                show_alert: false\n            },\n            topic: 'answerCallbackQuery'\n        };\n    }\n}\n\n// Check if it's a valid message\nif ((messageType !== 'message' && messageType !== 'callback_query') || !text || !chatId) {\n    return [null, null, null, null, answerCallback].filter(m => m !== null);\n}\n\n// Store chat ID\nif (!flow.get('lights_telegram_chat_ids')) {\n    flow.set('lights_telegram_chat_ids', []);\n}\nconst chatIds = flow.get('lights_telegram_chat_ids');\nif (!chatIds.includes(chatId)) {\n    chatIds.push(chatId);\n    flow.set('lights_telegram_chat_ids', chatIds);\n}\n\n// Parse command\nconst command = text.split(' ')[0].toLowerCase();\nconst args = text.split(' ').slice(1);\n\n// Only handle lights-specific commands\nif (!command.startsWith('/lights_')) {\n    return [null, null, null, null, answerCallback].filter(m => m !== null);\n}\n\nconst requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);\nnode.warn(`[${requestId}] Garden Lights Command: ${command} from chat ${chatId}`);\n\n// Prepare message\nmsg.requestId = requestId;\nmsg.chatId = chatId;\nmsg.telegram = {\n    chatId: chatId,\n    userId: userId,\n    messageId: messageId,\n    command: command,\n    args: args,\n    originalText: text\n};\n\n// Route to handler\nlet output = [null, null, null, null, answerCallback];\nswitch(command) {\n    case '/lights_on':\n        output[0] = msg;\n        break;\n    case '/lights_off':\n        output[1] = msg;\n        break;\n    case '/lights_status':\n        output[2] = msg;\n        break;\n    case '/lights_help':\n        output[3] = msg;\n        break;\n    default:\n        // Unknown lights command, do nothing\n        break;\n}\n\nreturn output.filter(m => m !== null);",
+        "outputs": 5,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 310,
+        "x": 360,
         "y": 120,
         "wires": [
             ["garden_lights_cmd_all_on"],
             ["garden_lights_cmd_all_off"],
             ["garden_lights_cmd_status"],
-            ["garden_lights_cmd_help"]
+            ["garden_lights_cmd_help"],
+            ["garden_lights_answer_callback"]
         ]
+    },
+    {
+        "id": "garden_lights_answer_callback",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Answer Callback",
+        "bot": "telegram_bot_config",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 640,
+        "y": 60,
+        "wires": [[]]
     },
     {
         "id": "garden_lights_cmd_all_on",

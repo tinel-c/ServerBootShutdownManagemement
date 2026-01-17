@@ -3,7 +3,7 @@
         "id": "garden_lights_telegram_comment",
         "type": "comment",
         "z": "tab_dashboard",
-        "name": "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 Garden Lights Telegram Integration \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
+        "name": "═══════════════ Garden Lights Telegram Integration ═══════════════",
         "info": "## Garden Lights Telegram Integration\n\n**Flow Number:** 321\n\n### Purpose\nProvides Telegram bot commands for garden lights control.\n\n### Commands\n- `/lights_on` - Turn all lights ON\n- `/lights_off` - Turn all lights OFF\n- `/lights_status` - Get status of all 16 lights\n- `/lights_help` - Show help for lights commands\n\n### Features\n- Master ON/OFF control for all lights\n- Comprehensive status display (16 lights)\n- Interactive inline keyboard\n- Command logging with request IDs\n- Integration with shared telegram_bot_config\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- garden_lights_state (flow context)\n\n### Integration\nCommands are routed from main Telegram interface (50-telegram-interface.json).",
         "x": 270,
         "y": 40,
@@ -18,9 +18,7 @@
         "x": 140,
         "y": 100,
         "wires": [
-            [
-                "garden_lights_telegram_router"
-            ]
+            ["garden_lights_telegram_router"]
         ]
     },
     {
@@ -33,9 +31,7 @@
         "x": 140,
         "y": 140,
         "wires": [
-            [
-                "garden_lights_telegram_router"
-            ]
+            ["garden_lights_telegram_router"]
         ]
     },
     {
@@ -43,7 +39,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Route Garden Lights Commands",
-        "func": "// Extract message data\nconst payload = msg.payload || {};\nlet chatId = payload.chatId;\nconst messageType = payload.type;\nlet text = (payload.content || '').trim();\n\n// Get user info\nconst originalMsg = msg.originalMessage || {};\nlet userId = originalMsg.from ? originalMsg.from.id : null;\nconst messageId = originalMsg.message_id;\n\n// Handle callback queries\nlet answerCallback = null;\nif (messageType === 'callback_query') {\n    text = payload.data || payload.callback_data || payload.content || \n           (originalMsg.data ? originalMsg.data : '') || '';\n    \n    if (!chatId) {\n        if (originalMsg.message && originalMsg.message.chat) {\n            chatId = originalMsg.message.chat.id;\n        } else if (originalMsg.chat) {\n            chatId = originalMsg.chat.id;\n        }\n    }\n    \n    if (originalMsg.from) {\n        userId = originalMsg.from.id;\n    }\n    \n    const callbackQueryId = payload.callback_query_id || payload.id || \n                            (originalMsg.id ? originalMsg.id.toString() : null) ||\n                            (originalMsg.query_id ? originalMsg.query_id.toString() : null);\n    \n    if (callbackQueryId) {\n        answerCallback = {\n            payload: {\n                callback_query_id: callbackQueryId,\n                text: '',\n                show_alert: false\n            },\n            topic: 'answerCallbackQuery'\n        };\n    }\n}\n\n// Check if it's a valid message\nif ((messageType !== 'message' && messageType !== 'callback_query') || !text || !chatId) {\n    return [null, null, null, null, answerCallback];\n}\n\n// Store chat ID\nif (!flow.get('lights_telegram_chat_ids')) {\n    flow.set('lights_telegram_chat_ids', []);\n}\nconst chatIds = flow.get('lights_telegram_chat_ids');\nif (!chatIds.includes(chatId)) {\n    chatIds.push(chatId);\n    flow.set('lights_telegram_chat_ids', chatIds);\n}\n\n// Parse command\nconst command = text.split(' ')[0].toLowerCase();\nconst args = text.split(' ').slice(1);\n\n// Only handle lights-specific commands\nif (!command.startsWith('/lights_')) {\n    return [null, null, null, null, answerCallback];\n}\n\nconst requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);\nnode.warn(`[${requestId}] Garden Lights Command: ${command} from chat ${chatId}`);\n\n// Prepare message\nmsg.requestId = requestId;\nmsg.chatId = chatId;\nmsg.telegram = {\n    chatId: chatId,\n    userId: userId,\n    messageId: messageId,\n    command: command,\n    args: args,\n    originalText: text\n};\n\n// Route to handler - CRITICAL: Return array with nulls in correct positions!\n// Node-RED routes based on array index, NOT by filtering nulls\n// Output 0: lights_on, Output 1: lights_off, Output 2: status, Output 3: help, Output 4: callback\nlet output = [null, null, null, null, null];\n\nswitch(command) {\n    case '/lights_on':\n        output[0] = msg;  // Route to wire 0 (lights_on handler)\n        output[4] = answerCallback;\n        break;\n    case '/lights_off':\n        output[1] = msg;  // Route to wire 1 (lights_off handler)\n        output[4] = answerCallback;\n        break;\n    case '/lights_status':\n        output[2] = msg;  // Route to wire 2 (status handler)\n        output[4] = answerCallback;\n        break;\n    case '/lights_help':\n        output[3] = msg;  // Route to wire 3 (help handler)\n        output[4] = answerCallback;\n        break;\n    default:\n        // Unknown lights command, return only callback answer\n        if (answerCallback) {\n            output[4] = answerCallback;\n        }\n        break;\n}\n\n// CRITICAL: Return full array with nulls - DO NOT FILTER!\nreturn output;",
+        "func": "// Extract message data\nconst payload = msg.payload || {};\nlet chatId = payload.chatId;\nconst messageType = payload.type;\nlet text = (payload.content || '').trim();\n\n// Get user info\nconst originalMsg = msg.originalMessage || {};\nlet userId = originalMsg.from ? originalMsg.from.id : null;\nconst messageId = originalMsg.message_id;\n\n// Handle callback queries\nlet answerCallback = null;\nif (messageType === 'callback_query') {\n    text = payload.data || payload.callback_data || payload.content || \n           (originalMsg.data ? originalMsg.data : '') || '';\n    \n    if (!chatId) {\n        if (originalMsg.message && originalMsg.message.chat) {\n            chatId = originalMsg.message.chat.id;\n        } else if (originalMsg.chat) {\n            chatId = originalMsg.chat.id;\n        }\n    }\n    \n    if (originalMsg.from) {\n        userId = originalMsg.from.id;\n    }\n    \n    const callbackQueryId = payload.callback_query_id || payload.id || \n                            (originalMsg.id ? originalMsg.id.toString() : null) ||\n                            (originalMsg.query_id ? originalMsg.query_id.toString() : null);\n    \n    if (callbackQueryId) {\n        answerCallback = {\n            payload: {\n                callback_query_id: callbackQueryId,\n                text: '',\n                show_alert: false\n            },\n            topic: 'answerCallbackQuery'\n        };\n    }\n}\n\n// Check if it's a valid message\nif ((messageType !== 'message' && messageType !== 'callback_query') || !text || !chatId) {\n    // CRITICAL: Must preserve array positions for Node-RED routing!\n    // Do NOT use .filter() - it removes nulls and breaks routing\n    return [null, null, null, null, answerCallback];\n}\n\n// Store chat ID\nif (!flow.get('lights_telegram_chat_ids')) {\n    flow.set('lights_telegram_chat_ids', []);\n}\nconst chatIds = flow.get('lights_telegram_chat_ids');\nif (!chatIds.includes(chatId)) {\n    chatIds.push(chatId);\n    flow.set('lights_telegram_chat_ids', chatIds);\n}\n\n// Parse command\nconst command = text.split(' ')[0].toLowerCase();\nconst args = text.split(' ').slice(1);\n\n// Only handle lights-specific commands\nif (!command.startsWith('/lights_')) {\n    // CRITICAL: Must preserve array positions for Node-RED routing!\n    // Do NOT use .filter() - it removes nulls and breaks routing\n    return [null, null, null, null, answerCallback];\n}\n\nconst requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);\nnode.warn(`[${requestId}] Garden Lights Command: ${command} from chat ${chatId}`);\n\n// Prepare message\nmsg.requestId = requestId;\nmsg.chatId = chatId;\nmsg.telegram = {\n    chatId: chatId,\n    userId: userId,\n    messageId: messageId,\n    command: command,\n    args: args,\n    originalText: text\n};\n\n// CRITICAL: Initialize array with null positions for ALL 5 outputs\n// Node-RED uses array INDEX to route to specific wires\n// output[0] → lights_on handler\n// output[1] → lights_off handler\n// output[2] → status handler\n// output[3] → help handler\n// output[4] → callback answer\nlet output = [null, null, null, null, null];\n\n// Route to appropriate handler\nswitch(command) {\n    case '/lights_on':\n        output[0] = msg;\n        output[4] = answerCallback;\n        break;\n    case '/lights_off':\n        output[1] = msg;\n        output[4] = answerCallback;\n        break;\n    case '/lights_status':\n        output[2] = msg;\n        output[4] = answerCallback;\n        break;\n    case '/lights_help':\n        output[3] = msg;\n        output[4] = answerCallback;\n        break;\n    default:\n        // Unknown lights command, only send callback\n        output[4] = answerCallback;\n        break;\n}\n\n// CRITICAL: Return FULL array with nulls preserved!\n// DO NOT USE .filter(m => m !== null) - it breaks routing!\nreturn output;",
         "outputs": 5,
         "noerr": 0,
         "initialize": "",
@@ -52,21 +48,11 @@
         "x": 360,
         "y": 120,
         "wires": [
-            [
-                "garden_lights_cmd_all_on"
-            ],
-            [
-                "garden_lights_cmd_all_off"
-            ],
-            [
-                "garden_lights_cmd_status"
-            ],
-            [
-                "garden_lights_cmd_help"
-            ],
-            [
-                "garden_lights_answer_callback"
-            ]
+            ["garden_lights_cmd_all_on"],
+            ["garden_lights_cmd_all_off"],
+            ["garden_lights_cmd_status"],
+            ["garden_lights_cmd_help"],
+            ["garden_lights_answer_callback"]
         ]
     },
     {
@@ -83,9 +69,7 @@
         "x": 640,
         "y": 60,
         "wires": [
-            [
-                "garden_lights_callback_sender"
-            ]
+            ["garden_lights_callback_sender"]
         ]
     },
     {
@@ -98,16 +82,14 @@
         "outputs": 1,
         "x": 880,
         "y": 60,
-        "wires": [
-            []
-        ]
+        "wires": [[]]
     },
     {
         "id": "garden_lights_cmd_all_on",
         "type": "function",
         "z": "tab_dashboard",
         "name": "All Lights ON",
-        "func": "node.warn(`[${msg.requestId}] Turning all garden lights ON`);\n\nreturn [\n    { payload: 'ON' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '\ud83d\udca1 All garden lights turned *ON*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "func": "node.warn(`[${msg.requestId}] Turning all garden lights ON`);\n\nreturn [\n    { payload: 'ON' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💡 All garden lights turned *ON*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
@@ -129,7 +111,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "All Lights OFF",
-        "func": "node.warn(`[${msg.requestId}] Turning all garden lights OFF`);\n\nreturn [\n    { payload: 'OFF' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '\ud83d\udca1 All garden lights turned *OFF*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "func": "node.warn(`[${msg.requestId}] Turning all garden lights OFF`);\n\nreturn [\n    { payload: 'OFF' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💡 All garden lights turned *OFF*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
@@ -160,9 +142,7 @@
         "x": 850,
         "y": 140,
         "wires": [
-            [
-                "garden_lights_rate_limit"
-            ]
+            ["garden_lights_rate_limit"]
         ]
     },
     {
@@ -185,9 +165,7 @@
         "x": 1080,
         "y": 140,
         "wires": [
-            [
-                "garden_lights_mqtt_out"
-            ]
+            ["garden_lights_mqtt_out"]
         ]
     },
     {
@@ -213,7 +191,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Get Lights Status",
-        "func": "node.warn(`[${msg.requestId}] Getting garden lights status`);\n\n// Get state from flow context\nconst state = flow.get('garden_lights_state') || {};\n\n// Build status message\nlet statusText = '\ud83d\udca1 *Garden Lights Status*\\n\\n';\n\n// Lights 1-12 (GardenAutomationLights)\nstatusText += '*GardenAutomationLights:*\\n';\nfor (let i = 1; i <= 12; i++) {\n    const status = state[`light_${i}`] || 'UNKNOWN';\n    const icon = status === 'ON' ? '\ud83d\udfe2' : status === 'OFF' ? '\u26ab' : '\u2753';\n    statusText += `${icon} Light ${i}: ${status}\\n`;\n}\n\n// Lights 13-16 (frontHousePower)\nstatusText += '\\n*Front House Power:*\\n';\nfor (let i = 13; i <= 16; i++) {\n    const status = state[`light_${i}`] || 'UNKNOWN';\n    const icon = status === 'ON' ? '\ud83d\udfe2' : status === 'OFF' ? '\u26ab' : '\u2753';\n    statusText += `${icon} Light ${i}: ${status}\\n`;\n}\n\n// Count lights\nconst lights = Object.values(state);\nconst onCount = lights.filter(s => s === 'ON').length;\nconst offCount = lights.filter(s => s === 'OFF').length;\nconst unknownCount = 16 - onCount - offCount;\n\nstatusText += `\\n*Summary:* ${onCount} ON | ${offCount} OFF | ${unknownCount} Unknown`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '\ud83d\udfe2 Turn All ON', callback_data: '/lights_on' }, { text: '\u26ab Turn All OFF', callback_data: '/lights_off' }],\n        [{ text: '\ud83d\udd04 Refresh Status', callback_data: '/lights_status' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: statusText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "func": "node.warn(`[${msg.requestId}] Getting garden lights status`);\n\n// Get state from flow context\nconst state = flow.get('garden_lights_state') || {};\n\n// Build status message\nlet statusText = '💡 *Garden Lights Status*\\n\\n';\n\n// Lights 1-12 (GardenAutomationLights)\nstatusText += '*GardenAutomationLights:*\\n';\nfor (let i = 1; i <= 12; i++) {\n    const status = state[`light_${i}`] || 'UNKNOWN';\n    const icon = status === 'ON' ? '🟢' : status === 'OFF' ? '⚫' : '❓';\n    statusText += `${icon} Light ${i}: ${status}\\n`;\n}\n\n// Lights 13-16 (frontHousePower)\nstatusText += '\\n*Front House Power:*\\n';\nfor (let i = 13; i <= 16; i++) {\n    const status = state[`light_${i}`] || 'UNKNOWN';\n    const icon = status === 'ON' ? '🟢' : status === 'OFF' ? '⚫' : '❓';\n    statusText += `${icon} Light ${i}: ${status}\\n`;\n}\n\n// Count lights\nconst lights = Object.values(state);\nconst onCount = lights.filter(s => s === 'ON').length;\nconst offCount = lights.filter(s => s === 'OFF').length;\nconst unknownCount = 16 - onCount - offCount;\n\nstatusText += `\\n*Summary:* ${onCount} ON | ${offCount} OFF | ${unknownCount} Unknown`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '🟢 Turn All ON', callback_data: '/lights_on' }, { text: '⚫ Turn All OFF', callback_data: '/lights_off' }],\n        [{ text: '🔄 Refresh Status', callback_data: '/lights_status' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: statusText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -222,9 +200,7 @@
         "x": 590,
         "y": 260,
         "wires": [
-            [
-                "garden_lights_telegram_out"
-            ]
+            ["garden_lights_telegram_out"]
         ]
     },
     {
@@ -232,7 +208,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Lights Help",
-        "func": "node.warn(`[${msg.requestId}] Garden lights help requested`);\n\nconst helpText = `\ud83d\udca1 *Garden Lights Control*\\n\\n` +\n    `*Available Commands:*\\n` +\n    `\ud83d\udfe2 \\`/lights_on\\` - Turn all 16 lights ON\\n` +\n    `\u26ab \\`/lights_off\\` - Turn all 16 lights OFF\\n` +\n    `\ud83d\udcca \\`/lights_status\\` - Get status of all lights\\n` +\n    `\u2753 \\`/lights_help\\` - Show this help\\n\\n` +\n    `*Hardware:*\\n` +\n    `\u2022 Lights 1-12: GardenAutomationLights (12-relay)\\n` +\n    `\u2022 Lights 13-16: frontHousePower (4-relay)\\n\\n` +\n    `*Quick Actions* \u2b07\ufe0f`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '\ud83d\udfe2 All ON', callback_data: '/lights_on' }, { text: '\u26ab All OFF', callback_data: '/lights_off' }],\n        [{ text: '\ud83d\udcca Status', callback_data: '/lights_status' }],\n        [{ text: '\ud83c\udfe0 Main Menu', callback_data: '/help' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: helpText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "func": "node.warn(`[${msg.requestId}] Garden lights help requested`);\n\nconst helpText = `💡 *Garden Lights Control*\\n\\n` +\n    `*Available Commands:*\\n` +\n    `🟢 \\`/lights_on\\` - Turn all 16 lights ON\\n` +\n    `⚫ \\`/lights_off\\` - Turn all 16 lights OFF\\n` +\n    `📊 \\`/lights_status\\` - Get status of all lights\\n` +\n    `❓ \\`/lights_help\\` - Show this help\\n\\n` +\n    `*Hardware:*\\n` +\n    `• Lights 1-12: GardenAutomationLights (12-relay)\\n` +\n    `• Lights 13-16: frontHousePower (4-relay)\\n\\n` +\n    `*Quick Actions* ⬇️`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '🟢 All ON', callback_data: '/lights_on' }, { text: '⚫ All OFF', callback_data: '/lights_off' }],\n        [{ text: '📊 Status', callback_data: '/lights_status' }],\n        [{ text: '🏠 Main Menu', callback_data: '/help' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: helpText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -241,9 +217,7 @@
         "x": 580,
         "y": 340,
         "wires": [
-            [
-                "garden_lights_telegram_out"
-            ]
+            ["garden_lights_telegram_out"]
         ]
     },
     {
@@ -276,9 +250,7 @@
         "x": 140,
         "y": 440,
         "wires": [
-            [
-                "garden_lights_update_state_1"
-            ]
+            ["garden_lights_update_state_1"]
         ]
     },
     {
@@ -312,9 +284,7 @@
         "x": 140,
         "y": 480,
         "wires": [
-            [
-                "garden_lights_update_state_2"
-            ]
+            ["garden_lights_update_state_2"]
         ]
     },
     {
@@ -348,9 +318,7 @@
         "x": 140,
         "y": 520,
         "wires": [
-            [
-                "garden_lights_update_state_3"
-            ]
+            ["garden_lights_update_state_3"]
         ]
     },
     {
@@ -384,9 +352,7 @@
         "x": 140,
         "y": 560,
         "wires": [
-            [
-                "garden_lights_update_state_4"
-            ]
+            ["garden_lights_update_state_4"]
         ]
     },
     {
@@ -420,9 +386,7 @@
         "x": 140,
         "y": 600,
         "wires": [
-            [
-                "garden_lights_update_state_5"
-            ]
+            ["garden_lights_update_state_5"]
         ]
     },
     {
@@ -456,9 +420,7 @@
         "x": 140,
         "y": 640,
         "wires": [
-            [
-                "garden_lights_update_state_6"
-            ]
+            ["garden_lights_update_state_6"]
         ]
     },
     {
@@ -492,9 +454,7 @@
         "x": 140,
         "y": 680,
         "wires": [
-            [
-                "garden_lights_update_state_7"
-            ]
+            ["garden_lights_update_state_7"]
         ]
     },
     {
@@ -528,9 +488,7 @@
         "x": 140,
         "y": 720,
         "wires": [
-            [
-                "garden_lights_update_state_8"
-            ]
+            ["garden_lights_update_state_8"]
         ]
     },
     {
@@ -564,9 +522,7 @@
         "x": 140,
         "y": 760,
         "wires": [
-            [
-                "garden_lights_update_state_9"
-            ]
+            ["garden_lights_update_state_9"]
         ]
     },
     {
@@ -600,9 +556,7 @@
         "x": 140,
         "y": 800,
         "wires": [
-            [
-                "garden_lights_update_state_10"
-            ]
+            ["garden_lights_update_state_10"]
         ]
     },
     {
@@ -636,9 +590,7 @@
         "x": 140,
         "y": 840,
         "wires": [
-            [
-                "garden_lights_update_state_11"
-            ]
+            ["garden_lights_update_state_11"]
         ]
     },
     {
@@ -672,9 +624,7 @@
         "x": 140,
         "y": 880,
         "wires": [
-            [
-                "garden_lights_update_state_12"
-            ]
+            ["garden_lights_update_state_12"]
         ]
     },
     {
@@ -708,9 +658,7 @@
         "x": 140,
         "y": 940,
         "wires": [
-            [
-                "garden_lights_update_state_13"
-            ]
+            ["garden_lights_update_state_13"]
         ]
     },
     {
@@ -744,9 +692,7 @@
         "x": 140,
         "y": 980,
         "wires": [
-            [
-                "garden_lights_update_state_14"
-            ]
+            ["garden_lights_update_state_14"]
         ]
     },
     {
@@ -780,9 +726,7 @@
         "x": 140,
         "y": 1020,
         "wires": [
-            [
-                "garden_lights_update_state_15"
-            ]
+            ["garden_lights_update_state_15"]
         ]
     },
     {
@@ -816,9 +760,7 @@
         "x": 140,
         "y": 1060,
         "wires": [
-            [
-                "garden_lights_update_state_16"
-            ]
+            ["garden_lights_update_state_16"]
         ]
     },
     {

@@ -3,7 +3,14 @@
 # Check environment configuration and list missing variables
 #
 
-ENV_FILE="config/.env"
+# Try installation directory first, then local
+if [ -f "/opt/dell_server_management/config/.env" ]; then
+    ENV_FILE="/opt/dell_server_management/config/.env"
+elif [ -f "config/.env" ]; then
+    ENV_FILE="config/.env"
+else
+    ENV_FILE="config/.env"  # Will fail with proper error message
+fi
 
 # Colors
 RED='\033[0;31m'

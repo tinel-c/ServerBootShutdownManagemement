@@ -5,12 +5,13 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 ## Features
 
 ### Server Management
-- 🚀 **Remote Boot** - Wake-on-LAN, IPMI (Dell T310), and iLO (HP DL360p) based boot
+- 🚀 **Remote Boot** - Wake-on-LAN (Dell T310) and iLO (HP DL360p) based boot
 - 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
-- 📊 **Status Monitoring** - Real-time server status via MQTT
+- 📊 **Status Monitoring** - Real-time server status via Proxmox API (Dell T310) and iLO (HP DL360p)
 - 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
 - 🤖 **Smart Automation** - Client-aware boot, 5-minute grace periods, command cooldown protection
 - 📋 **Activity Logging** - Complete audit trail with triggers, commands, and status changes
+- 🔄 **Auto-Retry** - Automatic retry logic for transient connection failures
 
 ### Client Management (NEW v2.4.0)
 - 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
@@ -19,10 +20,15 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 - 🔄 **Auto-Update** - Clients self-update from GitHub releases automatically
 - 🎨 **System Tray** - Modern icon with status indicators and update checks
 
-### User Interface
+### User Interface & Management
 - 🖥️ **Premium Dashboard** - Modern glassmorphism-style Node-RED interface with live countdowns
 - 🎛️ **Client Control Panel** - Individual and bulk client shutdown operations
-- 🔒 **Secure** - TLS/SSL support, credential management
+- 🛠️ **Management Scripts** - Easy-to-use CLI tools for system management
+  - `status.sh` - Check service status with color-coded output
+  - `manage.sh` - Start/stop/restart services with one command
+  - `update.sh` - Safe updates with automatic config preservation
+  - `check_env.sh` - Validate environment configuration
+- 🔒 **Secure** - TLS/SSL support, credential management, secure .env files
 - 📝 **Comprehensive Logging** - Detailed logs for troubleshooting
 - 🔄 **Auto-Restart** - Systemd services with automatic restart
 
@@ -40,8 +46,14 @@ The system uses a **centralized automation server** running Node-RED dashboard, 
 - **Activity Logging**: Complete audit trail of all automation events
 
 ### Server Control Methods:
-- **Dell T310**: Wake-on-LAN or IPMI for boot, Proxmox API for graceful shutdown
-- **HP DL360p**: iLO for boot, Proxmox API for graceful shutdown
+- **Dell T310**: 
+  - **Boot**: Wake-on-LAN (magic packet)
+  - **Status**: Proxmox API (reliable, no IPMI needed)
+  - **Shutdown**: Proxmox API for graceful VM shutdown
+- **HP DL360p**: 
+  - **Boot**: iLO power-on command
+  - **Status**: iLO with automatic retry
+  - **Shutdown**: Proxmox API for graceful VM shutdown
 
 Status and health monitoring is published back through MQTT to the dashboard for real-time visibility.
 
@@ -52,9 +64,8 @@ Status and health monitoring is published back through MQTT to the dashboard for
 
 ### Prerequisites
 
-- Dell T310 server with IPMI enabled (optional)
+- Dell T310 server with Proxmox VE (IPMI optional)
 - HP DL360p server with iLO enabled (optional)
-- Proxmox VE installed on Dell T310 (optional)
 - Ubuntu VM for running management scripts
 - MQTT broker (Mosquitto recommended)
 - Network connectivity between all components
@@ -69,35 +80,79 @@ Status and health monitoring is published back through MQTT to the dashboard for
 
 2. **Run the installation script:**
    ```bash
-   sudo chmod +x install.sh
+   chmod +x install.sh
    sudo ./install.sh
    ```
 
-3. **Configure the system:**
-   
-   Edit the configuration files with your settings:
+3. **Configure environment variables:**
    
    ```bash
-   # Edit environment variables
+   # Generate .env template
+   ./generate_env_template.sh
+   
+   # Copy and edit with your settings
+   sudo cp config/.env.example /opt/dell_server_management/config/.env
    sudo nano /opt/dell_server_management/config/.env
    
-   # Edit MQTT configuration
-   sudo nano /opt/dell_server_management/config/mqtt_config.yaml
+   # Set secure permissions
+   sudo chmod 600 /opt/dell_server_management/config/.env
    
-   # Edit server configuration
-   sudo nano /opt/dell_server_management/config/server_config.yaml
+   # Validate configuration
+   ./check_env.sh
    ```
+   
+   **Required variables:**
+   - `MQTT_BROKER_HOST`, `MQTT_BROKER_PORT`, `MQTT_USERNAME`, `MQTT_PASSWORD`
+   - `T310_PROXMOX_HOST`, `T310_PROXMOX_USERNAME`, `T310_PROXMOX_PASSWORD`
+   - `T310_MAC_ADDRESS` (for Wake-on-LAN)
+   
+   See [ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md) for detailed configuration instructions.
 
 4. **Enable and start services:**
    ```bash
-   sudo systemctl enable mqtt-boot-listener.service
-   sudo systemctl enable mqtt-shutdown-listener.service
-   sudo systemctl enable status-publisher.service
+   # Use the management script for convenience
+   chmod +x manage.sh status.sh update.sh check_env.sh
+   sudo ./manage.sh enable
+   sudo ./manage.sh start
    
-   sudo systemctl start mqtt-boot-listener.service
-   sudo systemctl start mqtt-shutdown-listener.service
-   sudo systemctl start status-publisher.service
+   # Check status
+   ./status.sh -l
    ```
+
+### Management Scripts
+
+The system includes convenient management scripts for daily operations:
+
+#### Check Service Status
+```bash
+./status.sh              # Basic status
+./status.sh -l           # Status with recent logs
+./status.sh -l -n 50     # Status with 50 log lines
+./status.sh -a           # Show everything
+```
+
+#### Manage Services
+```bash
+sudo ./manage.sh start    # Start all services
+sudo ./manage.sh stop     # Stop all services
+sudo ./manage.sh restart  # Restart all services
+sudo ./manage.sh enable   # Enable auto-start on boot
+sudo ./manage.sh status   # Check status
+sudo ./manage.sh logs     # View live logs
+```
+
+#### Update System
+```bash
+git pull
+sudo ./update.sh          # Safe update with config preservation
+```
+
+#### Validate Configuration
+```bash
+./check_env.sh            # Check environment variables
+```
+
+See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for complete command reference.
 
 5. **Verify services are running:**
    ```bash

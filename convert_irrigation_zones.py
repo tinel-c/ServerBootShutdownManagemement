@@ -248,7 +248,7 @@ def convert_irrigation_flow(input_file, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(converted_flow, f, indent=4)
     
-    print("✅ Conversion complete!")
+    print("[OK] Conversion complete!")
     print("\nNext steps:")
     print("1. Import 420-irrigation-zones-controls.json into Node-RED")
     print("2. Deploy and test")
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     output_file = Path("nodered/flows/420-irrigation-zones-controls.json")
     
     if not input_file.exists():
-        print(f"❌ Error: {input_file} not found!")
+        print(f"[ERROR] File not found: {input_file}")
         print("\nPlease paste your original irrigation flow into:")
         print(f"  {input_file.absolute()}")
         sys.exit(1)
@@ -269,7 +269,7 @@ if __name__ == "__main__":
     try:
         convert_irrigation_flow(input_file, output_file)
     except Exception as e:
-        print(f"❌ Error during conversion: {e}")
+        print(f"[ERROR] Error during conversion: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -27,12 +27,12 @@
         "wires": [
             [
                 "garden_power_store_metrics",
-                "garden_power_voltage_display",
-                "garden_power_current_display",
-                "garden_power_power_display",
-                "garden_power_total_display",
-                "garden_power_today_display",
-                "garden_power_yesterday_display"
+                "garden_power_extract_voltage",
+                "garden_power_extract_current",
+                "garden_power_extract_power",
+                "garden_power_extract_total",
+                "garden_power_extract_today",
+                "garden_power_extract_yesterday"
             ]
         ]
     },
@@ -52,6 +52,23 @@
         "wires": []
     },
     {
+        "id": "garden_power_extract_voltage",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Extract Voltage",
+        "func": "if (msg.payload && msg.payload.ENERGY) {\n    msg.payload = msg.payload.ENERGY.Voltage + ' V';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 200,
+        "wires": [
+            ["garden_power_voltage_display"]
+        ]
+    },
+    {
         "id": "garden_power_voltage_display",
         "type": "ui-text",
         "z": "tab_dashboard",
@@ -61,16 +78,33 @@
         "height": "0",
         "name": "Voltage Display",
         "label": "Voltage",
-        "format": "{{msg.payload.ENERGY.Voltage}} V",
+        "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,
         "font": "",
         "fontSize": 16,
         "color": "#717171",
         "className": "",
-        "x": 540,
+        "x": 680,
         "y": 200,
         "wires": []
+    },
+    {
+        "id": "garden_power_extract_current",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Extract Current",
+        "func": "if (msg.payload && msg.payload.ENERGY) {\n    msg.payload = msg.payload.ENERGY.Current + ' A';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 240,
+        "wires": [
+            ["garden_power_current_display"]
+        ]
     },
     {
         "id": "garden_power_current_display",
@@ -82,16 +116,33 @@
         "height": "0",
         "name": "Current Display",
         "label": "Current",
-        "format": "{{msg.payload.ENERGY.Current}} A",
+        "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,
         "font": "",
         "fontSize": 16,
         "color": "#717171",
         "className": "",
-        "x": 540,
+        "x": 680,
         "y": 240,
         "wires": []
+    },
+    {
+        "id": "garden_power_extract_power",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Extract Power",
+        "func": "if (msg.payload && msg.payload.ENERGY) {\n    msg.payload = msg.payload.ENERGY.Power + ' W';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 280,
+        "wires": [
+            ["garden_power_power_display"]
+        ]
     },
     {
         "id": "garden_power_power_display",
@@ -103,16 +154,33 @@
         "height": "0",
         "name": "Power Display",
         "label": "Power",
-        "format": "{{msg.payload.ENERGY.Power}} W",
+        "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,
         "font": "",
         "fontSize": 16,
         "color": "#717171",
         "className": "",
-        "x": 530,
+        "x": 670,
         "y": 280,
         "wires": []
+    },
+    {
+        "id": "garden_power_extract_total",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Extract Total",
+        "func": "if (msg.payload && msg.payload.ENERGY) {\n    msg.payload = msg.payload.ENERGY.Total + ' kWh';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 320,
+        "wires": [
+            ["garden_power_total_display"]
+        ]
     },
     {
         "id": "garden_power_total_display",
@@ -124,16 +192,33 @@
         "height": "0",
         "name": "Total Consumption Display",
         "label": "Total Consumption",
-        "format": "{{msg.payload.ENERGY.Total}} kWh",
+        "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,
         "font": "",
         "fontSize": 16,
         "color": "#717171",
         "className": "",
-        "x": 570,
+        "x": 680,
         "y": 320,
         "wires": []
+    },
+    {
+        "id": "garden_power_extract_today",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Extract Today",
+        "func": "if (msg.payload && msg.payload.ENERGY) {\n    msg.payload = msg.payload.ENERGY.Today + ' kWh';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 360,
+        "wires": [
+            ["garden_power_today_display"]
+        ]
     },
     {
         "id": "garden_power_today_display",
@@ -145,16 +230,33 @@
         "height": "0",
         "name": "Today Consumption Display",
         "label": "Today Consumption",
-        "format": "{{msg.payload.ENERGY.Today}} kWh",
+        "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,
         "font": "",
         "fontSize": 16,
         "color": "#717171",
         "className": "",
-        "x": 570,
+        "x": 680,
         "y": 360,
         "wires": []
+    },
+    {
+        "id": "garden_power_extract_yesterday",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Extract Yesterday",
+        "func": "if (msg.payload && msg.payload.ENERGY) {\n    msg.payload = msg.payload.ENERGY.Yesterday + ' kWh';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 400,
+        "wires": [
+            ["garden_power_yesterday_display"]
+        ]
     },
     {
         "id": "garden_power_yesterday_display",
@@ -166,14 +268,14 @@
         "height": "0",
         "name": "Yesterday Consumption Display",
         "label": "Yesterday Consumption",
-        "format": "{{msg.payload.ENERGY.Yesterday}} kWh",
+        "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,
         "font": "",
         "fontSize": 16,
         "color": "#717171",
         "className": "",
-        "x": 580,
+        "x": 690,
         "y": 400,
         "wires": []
     },

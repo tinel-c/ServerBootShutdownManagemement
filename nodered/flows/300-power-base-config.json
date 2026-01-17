@@ -1,0 +1,39 @@
+[
+    {
+        "id": "power_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ POWER MONITORING DOMAIN - Base Configuration ═══════════════",
+        "info": "## Power Monitoring Domain - Base Configuration\n\n**Domain Number:** 300-399\n\n### Purpose\nProvides base configuration for all power monitoring flows.\n\n### Components\n- UI Page: Power Monitoring\n- UI Groups: Garden Power\n\n### Dependencies\n- Requires: Dashboard 2.0 (@flowfuse/node-red-dashboard)\n- Requires: mqtt_broker_local\n\n### Flow Context Variables\n- `garden_power_state` - Current power state and metrics\n\n### Related Flows\n- 310-garden-power-monitor.json - Garden power monitoring\n- 311-garden-power-telegram.json - Telegram integration",
+        "x": 310,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "ui_page_power",
+        "type": "ui-page",
+        "name": "Power Monitoring",
+        "ui": "ui_base",
+        "path": "/power",
+        "icon": "flash_on",
+        "layout": "grid",
+        "theme": "theme_default",
+        "order": 3,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_garden_power",
+        "type": "ui-group",
+        "name": "Garden Power",
+        "page": "ui_page_power",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    }
+]

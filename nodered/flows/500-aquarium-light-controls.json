@@ -4,7 +4,7 @@
         "type": "comment",
         "z": "tab_dashboard",
         "name": "═══════════════ AQUARIUM LIGHT CONTROLS ═══════════════",
-        "info": "## Aquarium Light Control\n\n**Flow Number:** 500\n**Domain:** Home Automation\n\n### Purpose\nControls aquarium light via Tasmota device.\n\n### Hardware\n- Device: sursaAcvariu (Tasmota)\n- Control: Single relay (POWER)\n\n### Features\n- Manual on/off control\n- Dashboard 2.0 UI\n- State tracking\n- Decoupled switch (prevents feedback loops)\n\n### MQTT Topics\n- Status: stat/sursaAcvariu/POWER\n- Command: cmnd/sursaAcvariu/POWER\n\n### Dependencies\n- mqtt_broker_local\n- Dashboard 2.0 (@flowfuse/node-red-dashboard)\n\n### UI Components\n- ui-switch (Dashboard 2.0)\n- Located in 'Acvariu' group on 'Home' page",
+        "info": "## Aquarium Light Control\n\n**Flow Number:** 500\n**Domain:** Home Automation\n\n### Purpose\nControls aquarium light via Tasmota device with manual and automatic scheduling.\n\n### Hardware\n- Device: sursaAcvariu (Tasmota)\n- Control: Single relay (POWER)\n\n### Features\n- Manual on/off control via Dashboard\n- Automatic daily schedule (06:00 ON, 22:00 OFF)\n- Dashboard 2.0 UI\n- State tracking in global context\n- Decoupled switch (prevents feedback loops)\n- Timer-based automation\n\n### MQTT Topics\n- Status: stat/sursaAcvariu/POWER\n- Command: cmnd/sursaAcvariu/POWER\n\n### Schedule\n- **Morning ON:** 06:00 (daily)\n- **Night OFF:** 22:00 (daily)\n- Uses node-red-contrib-timerswitch\n\n### Dependencies\n- mqtt_broker_local\n- Dashboard 2.0 (@flowfuse/node-red-dashboard)\n- node-red-contrib-timerswitch (for automation)\n\n### UI Components\n- ui-switch (Dashboard 2.0)\n- Located in 'Acvariu' group on 'Home' page",
         "x": 250,
         "y": 40,
         "wires": []
@@ -179,6 +179,43 @@
         "disabled": "false"
     },
     {
+        "id": "aquarium_automation_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "─────────── AUTOMATIC SCHEDULE ───────────",
+        "info": "## Aquarium Light Timer Schedule\n\n**Purpose:** Automatically turn aquarium light ON/OFF on schedule\n\n**Schedule:**\n- ON: 06:00 (morning)\n- OFF: 22:00 (night)\n\n**Hardware:**\n- Device: sursaAcvariu (Tasmota)\n- Command topic: cmnd/sursaAcvariu/POWER\n\n**Dependencies:**\n- node-red-contrib-timerswitch (specialized library)\n- mqtt_broker_local",
+        "x": 220,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "aquarium_timerswitch",
+        "type": "timerswitch",
+        "z": "tab_dashboard",
+        "name": "Aquarium Daily Schedule",
+        "ontopic": "",
+        "offtopic": "",
+        "onpayload": "ON",
+        "offpayload": "OFF",
+        "disabled": false,
+        "schedules": [
+            {
+                "on_h": "06",
+                "on_m": "00",
+                "on_s": "00",
+                "off_h": "22",
+                "off_m": "00",
+                "off_s": "00",
+                "valid": true
+            }
+        ],
+        "x": 190,
+        "y": 300,
+        "wires": [
+            ["aquarium_command_out"]
+        ]
+    },
+    {
         "id": "aquarium_init_inject",
         "type": "inject",
         "z": "tab_dashboard",
@@ -190,7 +227,7 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 190,
-        "y": 260,
+        "y": 380,
         "wires": [
             ["aquarium_init_function"]
         ]
@@ -207,7 +244,7 @@
         "finalize": "",
         "libs": [],
         "x": 450,
-        "y": 260,
+        "y": 380,
         "wires": []
     }
 ]

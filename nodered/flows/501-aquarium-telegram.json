@@ -1,0 +1,207 @@
+[
+    {
+        "id": "aquarium_telegram_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ AQUARIUM TELEGRAM INTEGRATION ═══════════════",
+        "info": "## Aquarium Light Telegram Integration\n\n**Flow Number:** 501\n**Domain:** Home Automation\n\n### Purpose\nProvides Telegram bot commands for aquarium light control.\n\n### Commands\n- `/aquarium_on` - Turn aquarium light ON\n- `/aquarium_off` - Turn aquarium light OFF\n- `/aquarium_toggle` - Toggle light state\n- `/aquarium_status` - Get current light status\n- `/aquarium_help` - Show aquarium commands help\n\n### Features\n- Simple on/off/toggle control\n- Status query with inline buttons\n- Interactive inline keyboard\n- Command logging with request IDs\n- Integration with shared telegram_bot_config\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- global.aquarium_state (for status)\n\n### Integration\nCommands are routed from main Telegram interface (50-telegram-interface.json).",
+        "x": 280,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "aquarium_telegram_receiver",
+        "type": "telegram receiver",
+        "z": "tab_dashboard",
+        "name": "Aquarium Commands Receiver",
+        "bot": "telegram_bot_config",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            ["aquarium_telegram_router"]
+        ]
+    },
+    {
+        "id": "aquarium_telegram_event",
+        "type": "telegram event",
+        "z": "tab_dashboard",
+        "name": "Aquarium Callback Events",
+        "bot": "telegram_bot_config",
+        "event": "callback_query",
+        "x": 150,
+        "y": 160,
+        "wires": [
+            ["aquarium_telegram_router"]
+        ]
+    },
+    {
+        "id": "aquarium_telegram_router",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Route Aquarium Commands",
+        "func": "// Extract message data\nconst payload = msg.payload || {};\nlet chatId = payload.chatId;\nconst messageType = payload.type;\nlet text = (payload.content || '').trim();\n\n// Get user info\nconst originalMsg = msg.originalMessage || {};\nlet userId = originalMsg.from ? originalMsg.from.id : null;\nconst messageId = originalMsg.message_id;\n\n// Handle callback queries\nlet answerCallback = null;\nif (messageType === 'callback_query') {\n    text = payload.data || payload.callback_data || payload.content || \n           (originalMsg.data ? originalMsg.data : '') || '';\n    \n    if (!chatId) {\n        if (originalMsg.message && originalMsg.message.chat) {\n            chatId = originalMsg.message.chat.id;\n        } else if (originalMsg.chat) {\n            chatId = originalMsg.chat.id;\n        }\n    }\n    \n    if (originalMsg.from) {\n        userId = originalMsg.from.id;\n    }\n    \n    const callbackQueryId = payload.callback_query_id || payload.id || \n                            (originalMsg.id ? originalMsg.id.toString() : null) ||\n                            (originalMsg.query_id ? originalMsg.query_id.toString() : null);\n    \n    if (callbackQueryId) {\n        answerCallback = {\n            payload: {\n                callback_query_id: callbackQueryId,\n                text: '',\n                show_alert: false\n            },\n            topic: 'answerCallbackQuery'\n        };\n    }\n}\n\n// Check if it's a valid message\nif ((messageType !== 'message' && messageType !== 'callback_query') || !text || !chatId) {\n    return [null, null, null, null, null, null, answerCallback];\n}\n\n// Store chat ID\nif (!global.get('aquarium_telegram_chat_ids')) {\n    global.set('aquarium_telegram_chat_ids', []);\n}\nconst chatIds = global.get('aquarium_telegram_chat_ids');\nif (!chatIds.includes(chatId)) {\n    chatIds.push(chatId);\n    global.set('aquarium_telegram_chat_ids', chatIds);\n}\n\n// Parse command\nconst command = text.split(' ')[0].toLowerCase();\nconst args = text.split(' ').slice(1);\n\n// Only handle aquarium-specific commands\nif (!command.startsWith('/aquarium_')) {\n    return [null, null, null, null, null, null, answerCallback];\n}\n\nconst requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);\nnode.warn(`[${requestId}] Aquarium Command: ${command} from chat ${chatId}`);\n\n// Prepare message\nmsg.requestId = requestId;\nmsg.chatId = chatId;\nmsg.telegram = {\n    chatId: chatId,\n    userId: userId,\n    messageId: messageId,\n    command: command,\n    args: args,\n    originalText: text\n};\n\n// Initialize array with null positions for ALL 6 outputs\nlet output = [null, null, null, null, null, null, null];\n\n// Route to handler\nswitch(command) {\n    case '/aquarium_on':\n        output[0] = msg;\n        output[6] = answerCallback;\n        break;\n    case '/aquarium_off':\n        output[1] = msg;\n        output[6] = answerCallback;\n        break;\n    case '/aquarium_toggle':\n        output[2] = msg;\n        output[6] = answerCallback;\n        break;\n    case '/aquarium_status':\n        output[3] = msg;\n        output[6] = answerCallback;\n        break;\n    case '/aquarium_help':\n        output[4] = msg;\n        output[6] = answerCallback;\n        break;\n    default:\n        // Unknown aquarium command, only send callback\n        output[6] = answerCallback;\n        break;\n}\n\nreturn output;",
+        "outputs": 7,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 140,
+        "wires": [
+            ["aquarium_cmd_on"],
+            ["aquarium_cmd_off"],
+            ["aquarium_cmd_toggle"],
+            ["aquarium_cmd_status"],
+            ["aquarium_cmd_help"],
+            [],
+            ["aquarium_answer_callback"]
+        ]
+    },
+    {
+        "id": "aquarium_answer_callback",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Answer Aquarium Callback",
+        "func": "if (msg.payload && msg.payload.callback_query_id) {\n    msg.payload = {\n        callback_query_id: msg.payload.callback_query_id,\n        text: msg.payload.text || '',\n        show_alert: msg.payload.show_alert || false\n    };\n    msg.topic = 'answerCallbackQuery';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 80,
+        "wires": [
+            ["aquarium_callback_sender"]
+        ]
+    },
+    {
+        "id": "aquarium_callback_sender",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Send Callback Answer",
+        "bot": "telegram_bot_config",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 920,
+        "y": 80,
+        "wires": [[]]
+    },
+    {
+        "id": "aquarium_cmd_on",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Turn ON",
+        "func": "node.warn(`[${msg.requestId}] Turning aquarium light ON`);\n\nreturn [\n    { payload: 'ON', topic: 'cmnd/sursaAcvariu/POWER' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '🐠 Aquarium light turned *ON*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 180,
+        "wires": [
+            ["aquarium_mqtt_out"],
+            ["aquarium_telegram_out"]
+        ]
+    },
+    {
+        "id": "aquarium_cmd_off",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Turn OFF",
+        "func": "node.warn(`[${msg.requestId}] Turning aquarium light OFF`);\n\nreturn [\n    { payload: 'OFF', topic: 'cmnd/sursaAcvariu/POWER' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '🐠 Aquarium light turned *OFF*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 240,
+        "wires": [
+            ["aquarium_mqtt_out"],
+            ["aquarium_telegram_out"]
+        ]
+    },
+    {
+        "id": "aquarium_cmd_toggle",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Toggle",
+        "func": "node.warn(`[${msg.requestId}] Toggling aquarium light`);\n\nreturn [\n    { payload: 'TOGGLE', topic: 'cmnd/sursaAcvariu/POWER' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '🐠 Aquarium light *toggled*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 300,
+        "wires": [
+            ["aquarium_mqtt_out"],
+            ["aquarium_telegram_out"]
+        ]
+    },
+    {
+        "id": "aquarium_mqtt_out",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Aquarium Command",
+        "topic": "",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 900,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "aquarium_cmd_status",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Get Status",
+        "func": "node.warn(`[${msg.requestId}] Getting aquarium light status`);\n\n// Get state from global context\nconst state = global.get('aquarium_state') || {};\n\n// Build status message\nlet statusText = '🐠 *Aquarium Light Status*\\n\\n';\n\nconst lightStatus = state.light_power || 'UNKNOWN';\nconst statusEmoji = lightStatus === 'ON' ? '💡' : (lightStatus === 'OFF' ? '⚫' : '❓');\n\nstatusText += `${statusEmoji} *Light*: ${lightStatus}\\n`;\n\nif (state.lastUpdate) {\n    const lastUpdate = new Date(state.lastUpdate);\n    statusText += `\\n⏰ Last update: ${lastUpdate.toLocaleString()}\\n`;\n}\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [\n            { text: '💡 Turn ON', callback_data: '/aquarium_on' },\n            { text: '⚫ Turn OFF', callback_data: '/aquarium_off' }\n        ],\n        [\n            { text: '🔄 Toggle', callback_data: '/aquarium_toggle' },\n            { text: '📊 Refresh Status', callback_data: '/aquarium_status' }\n        ],\n        [\n            { text: '❓ Help', callback_data: '/aquarium_help' }\n        ]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: statusText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 360,
+        "wires": [
+            ["aquarium_telegram_out"]
+        ]
+    },
+    {
+        "id": "aquarium_cmd_help",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Show Help",
+        "func": "node.warn(`[${msg.requestId}] Aquarium help requested`);\n\nconst helpText = `🐠 *Aquarium Light Control*\\n\\n` +\n    `*Available Commands:*\\n` +\n    `💡 \\`/aquarium_on\\` - Turn light ON\\n` +\n    `⚫ \\`/aquarium_off\\` - Turn light OFF\\n` +\n    `🔄 \\`/aquarium_toggle\\` - Toggle light\\n` +\n    `📊 \\`/aquarium_status\\` - Get current status\\n` +\n    `❓ \\`/aquarium_help\\` - Show this help\\n\\n` +\n    `*Hardware:*\\n` +\n    `• Tasmota device (sursaAcvariu)\\n` +\n    `• Single relay control\\n\\n` +\n    `*Quick Actions* ⬇️`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [\n            { text: '💡 Turn ON', callback_data: '/aquarium_on' },\n            { text: '⚫ Turn OFF', callback_data: '/aquarium_off' }\n        ],\n        [\n            { text: '🔄 Toggle', callback_data: '/aquarium_toggle' },\n            { text: '📊 Status', callback_data: '/aquarium_status' }\n        ],\n        [\n            { text: '🏠 Main Menu', callback_data: '/help' }\n        ]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: helpText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 420,
+        "wires": [
+            ["aquarium_telegram_out"]
+        ]
+    },
+    {
+        "id": "aquarium_telegram_out",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Send to Telegram",
+        "bot": "telegram_bot_config",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 900,
+        "y": 360,
+        "wires": [[]]
+    }
+]

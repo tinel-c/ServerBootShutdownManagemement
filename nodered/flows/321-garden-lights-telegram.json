@@ -125,6 +125,29 @@
         "x": 850,
         "y": 140,
         "wires": [
+            ["garden_lights_rate_limit"]
+        ]
+    },
+    {
+        "id": "garden_lights_rate_limit",
+        "type": "delay",
+        "z": "tab_dashboard",
+        "name": "Rate Limit (100ms delay)",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "10",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1080,
+        "y": 140,
+        "wires": [
             ["garden_lights_mqtt_out"]
         ]
     },
@@ -142,7 +165,7 @@
         "correl": "",
         "expiry": "",
         "broker": "mqtt_broker_local",
-        "x": 1100,
+        "x": 1340,
         "y": 140,
         "wires": []
     },

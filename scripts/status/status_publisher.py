@@ -260,13 +260,20 @@ def load_config() -> Dict[str, Any]:
             return {k: replace_env_vars(v) for k, v in obj.items()}
         elif isinstance(obj, list):
             return [replace_env_vars(item) for item in obj]
-        elif isinstance(obj, str) and obj.startswith('${') and obj.endswith('}'):
-            env_var = obj[2:-1]
-            val = os.getenv(env_var)
-            if val is None:
-                print(f"WARNING: Environment variable {env_var} not set! Keeping placeholder.")
-                return obj
-            return val
+        elif isinstance(obj, str) and '${' in obj:
+            # Use regex to replace all ${VAR} patterns in the string
+            import re
+            pattern = r'\$\{([^}]+)\}'
+            
+            def replacer(match):
+                env_var = match.group(1)
+                val = os.getenv(env_var)
+                if val is None:
+                    print(f"WARNING: Environment variable {env_var} not set! Keeping placeholder.")
+                    return match.group(0)  # Keep original placeholder
+                return val
+            
+            return re.sub(pattern, replacer, obj)
         return obj
     
     config = replace_env_vars(config)

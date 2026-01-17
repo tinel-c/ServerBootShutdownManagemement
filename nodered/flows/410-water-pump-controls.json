@@ -1,0 +1,659 @@
+[
+    {
+        "id": "water_pump_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ WATER PUMP CONTROL (4 RELAYS) ═══════════════",
+        "info": "## Water Pump Control\n\n**Flow Number:** 410\n**Device:** Tasmota 4-relay board (`pompaApa`)\n\n### Relays\n1. **POWER1** - Porneste pompa (Start pump)\n2. **POWER2** - Elimina apa (Drain water) - 10s pulse\n3. **POWER3** - Alimentare sant 1 (Feed trench 1)\n4. **POWER4** - Alimentare sant 2 (Feed trench 2)\n\n### MQTT Topics\n- Status: `stat/pompaApa/POWER1-4`\n- Command: `cmnd/pompaApa/Power1-4`\n\n### Special Features\n- Relay 2 has automatic 10-second pulse (auto-off after 10s)\n- All switches use Dashboard 2.0 (ui-switch)\n- State tracked in global context\n\n### Dependencies\n- ui_group_water_pump (from 400-irrigation-base-config.json)\n- mqtt_broker_local\n- water_pump_state (global context)",
+        "x": 290,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "water_pump_status_1",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Pump Power Status",
+        "topic": "stat/pompaApa/POWER1",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 120,
+        "wires": [
+            ["water_pump_convert_1", "water_pump_store_1"]
+        ]
+    },
+    {
+        "id": "water_pump_store_1",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Store Pump Power State",
+        "func": "const state = global.get('water_pump_state') || {};\nstate.pump_power = msg.payload;\nstate.lastUpdate = new Date().toISOString();\nglobal.set('water_pump_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "water_pump_convert_1",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 120,
+        "wires": [
+            ["water_pump_switch_1"]
+        ]
+    },
+    {
+        "id": "water_pump_switch_1",
+        "type": "ui-switch",
+        "z": "tab_dashboard",
+        "group": "ui_group_water_pump",
+        "name": "Porneste pompa",
+        "label": "Porneste pompa",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 680,
+        "y": 120,
+        "wires": [
+            ["water_pump_bool_to_str_1"]
+        ]
+    },
+    {
+        "id": "water_pump_bool_to_str_1",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 920,
+        "y": 120,
+        "wires": [
+            ["water_pump_mqtt_out_1"]
+        ]
+    },
+    {
+        "id": "water_pump_mqtt_out_1",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Pump Power Command",
+        "topic": "cmnd/pompaApa/Power1",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1170,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "water_pump_status_2",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Drain Water Status",
+        "topic": "stat/pompaApa/POWER2",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 220,
+        "wires": [
+            ["water_pump_convert_2", "water_pump_store_2"]
+        ]
+    },
+    {
+        "id": "water_pump_store_2",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Store Drain Water State",
+        "func": "const state = global.get('water_pump_state') || {};\nstate.drain_water = msg.payload;\nstate.lastUpdate = new Date().toISOString();\nglobal.set('water_pump_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "water_pump_convert_2",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 220,
+        "wires": [
+            ["water_pump_switch_2"]
+        ]
+    },
+    {
+        "id": "water_pump_switch_2",
+        "type": "ui-switch",
+        "z": "tab_dashboard",
+        "group": "ui_group_water_pump",
+        "name": "Elimina apa",
+        "label": "Elimina apa (10s)",
+        "order": 2,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 670,
+        "y": 220,
+        "wires": [
+            ["water_pump_bool_to_str_2"]
+        ]
+    },
+    {
+        "id": "water_pump_bool_to_str_2",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 920,
+        "y": 220,
+        "wires": [
+            ["water_pump_trigger_2"]
+        ]
+    },
+    {
+        "id": "water_pump_trigger_2",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "10s Pulse",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "10",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 1090,
+        "y": 220,
+        "wires": [
+            ["water_pump_mqtt_out_2"]
+        ]
+    },
+    {
+        "id": "water_pump_mqtt_out_2",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Drain Water Command",
+        "topic": "cmnd/pompaApa/Power2",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1280,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "water_pump_status_3",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Feed Trench 1 Status",
+        "topic": "stat/pompaApa/POWER3",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 320,
+        "wires": [
+            ["water_pump_convert_3", "water_pump_store_3"]
+        ]
+    },
+    {
+        "id": "water_pump_store_3",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Store Feed Trench 1 State",
+        "func": "const state = global.get('water_pump_state') || {};\nstate.feed_trench_1 = msg.payload;\nstate.lastUpdate = new Date().toISOString();\nglobal.set('water_pump_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "water_pump_convert_3",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 320,
+        "wires": [
+            ["water_pump_switch_3"]
+        ]
+    },
+    {
+        "id": "water_pump_switch_3",
+        "type": "ui-switch",
+        "z": "tab_dashboard",
+        "group": "ui_group_water_pump",
+        "name": "Alimentare sant 1",
+        "label": "Alimentare sant 1",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 690,
+        "y": 320,
+        "wires": [
+            ["water_pump_bool_to_str_3"]
+        ]
+    },
+    {
+        "id": "water_pump_bool_to_str_3",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 920,
+        "y": 320,
+        "wires": [
+            ["water_pump_mqtt_out_3"]
+        ]
+    },
+    {
+        "id": "water_pump_mqtt_out_3",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Feed Trench 1 Command",
+        "topic": "cmnd/pompaApa/Power3",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1180,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "water_pump_status_4",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Feed Trench 2 Status",
+        "topic": "stat/pompaApa/POWER4",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 420,
+        "wires": [
+            ["water_pump_convert_4", "water_pump_store_4"]
+        ]
+    },
+    {
+        "id": "water_pump_store_4",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Store Feed Trench 2 State",
+        "func": "const state = global.get('water_pump_state') || {};\nstate.feed_trench_2 = msg.payload;\nstate.lastUpdate = new Date().toISOString();\nglobal.set('water_pump_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "water_pump_convert_4",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "ON/OFF to Boolean",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "OFF",
+                "fromt": "str",
+                "to": "false",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "ON",
+                "fromt": "str",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 420,
+        "wires": [
+            ["water_pump_switch_4"]
+        ]
+    },
+    {
+        "id": "water_pump_switch_4",
+        "type": "ui-switch",
+        "z": "tab_dashboard",
+        "group": "ui_group_water_pump",
+        "name": "Alimentare sant 2",
+        "label": "Alimentare sant 2",
+        "order": 4,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 690,
+        "y": 420,
+        "wires": [
+            ["water_pump_bool_to_str_4"]
+        ]
+    },
+    {
+        "id": "water_pump_bool_to_str_4",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Boolean to ON/OFF",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "false",
+                "fromt": "bool",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "true",
+                "fromt": "bool",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 920,
+        "y": 420,
+        "wires": [
+            ["water_pump_mqtt_out_4"]
+        ]
+    },
+    {
+        "id": "water_pump_mqtt_out_4",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Feed Trench 2 Command",
+        "topic": "cmnd/pompaApa/Power4",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1180,
+        "y": 420,
+        "wires": []
+    }
+]

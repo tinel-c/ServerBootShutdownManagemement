@@ -1,0 +1,71 @@
+[
+    {
+        "id": "irrigation_base_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ IRRIGATION DOMAIN - BASE CONFIG ═══════════════",
+        "info": "## Irrigation Domain - Base Configuration\n\n**Flow Number:** 400\n**Domain:** Irrigation & Water Management\n\n### Purpose\nBase configuration for irrigation and water pump automation.\n\n### UI Components\n- Page: Irrigation\n- Groups: Water Pump Control, Irrigation Status\n\n### Context\n- Uses GLOBAL context for state sharing across flows\n- Shared with Telegram integration (411)\n\n### Dependencies\n- mqtt_broker_local\n- telegram_bot_config (shared)",
+        "x": 300,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "ui_page_irrigation",
+        "type": "ui-page",
+        "name": "Irrigation",
+        "ui": "ui_base",
+        "path": "/irrigation",
+        "icon": "water",
+        "layout": "grid",
+        "theme": "theme_base",
+        "order": 4,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_water_pump",
+        "type": "ui-group",
+        "name": "Water Pump Control",
+        "page": "ui_page_irrigation",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "irrigation_context_init",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Initialize Irrigation State",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 120,
+        "wires": [
+            ["irrigation_init_function"]
+        ]
+    },
+    {
+        "id": "irrigation_init_function",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Initialize Water Pump State",
+        "func": "// Initialize global context for water pump state\nif (!global.get('water_pump_state')) {\n    global.set('water_pump_state', {\n        pump_power: 'UNKNOWN',\n        drain_water: 'UNKNOWN',\n        feed_trench_1: 'UNKNOWN',\n        feed_trench_2: 'UNKNOWN',\n        lastUpdate: new Date().toISOString()\n    });\n    node.warn('Initialized water_pump_state in global context');\n} else {\n    node.warn('water_pump_state already exists in global context');\n}\n\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 120,
+        "wires": []
+    }
+]

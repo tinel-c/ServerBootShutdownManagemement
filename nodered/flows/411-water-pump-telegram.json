@@ -1,0 +1,285 @@
+[
+    {
+        "id": "water_pump_telegram_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ WATER PUMP TELEGRAM INTEGRATION ═══════════════",
+        "info": "## Water Pump Telegram Integration\n\n**Flow Number:** 411\n\n### Purpose\nProvides Telegram bot commands for water pump control.\n\n### Commands\n- `/pump_start` - Start main water pump\n- `/pump_stop` - Stop main water pump\n- `/pump_drain` - Drain water (10s pulse)\n- `/pump_trench1_on` - Feed trench 1 ON\n- `/pump_trench1_off` - Feed trench 1 OFF\n- `/pump_trench2_on` - Feed trench 2 ON\n- `/pump_trench2_off` - Feed trench 2 OFF\n- `/pump_status` - Get status of all relays\n- `/pump_help` - Show help for pump commands\n\n### Features\n- Individual relay control\n- Comprehensive status display (4 relays)\n- Interactive inline keyboard\n- Command logging with request IDs\n- Integration with shared telegram_bot_config\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- water_pump_state (global context)\n\n### Integration\nCommands are routed from main Telegram interface (50-telegram-interface.json).",
+        "x": 270,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "water_pump_telegram_receiver",
+        "type": "telegram receiver",
+        "z": "tab_dashboard",
+        "name": "Pump Commands Receiver",
+        "bot": "telegram_bot_config",
+        "x": 140,
+        "y": 100,
+        "wires": [
+            ["water_pump_telegram_router"]
+        ]
+    },
+    {
+        "id": "water_pump_telegram_event",
+        "type": "telegram event",
+        "z": "tab_dashboard",
+        "name": "Pump Callback Events",
+        "bot": "telegram_bot_config",
+        "event": "callback_query",
+        "x": 140,
+        "y": 140,
+        "wires": [
+            ["water_pump_telegram_router"]
+        ]
+    },
+    {
+        "id": "water_pump_telegram_router",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Route Water Pump Commands",
+        "func": "// Extract message data\nconst payload = msg.payload || {};\nlet chatId = payload.chatId;\nconst messageType = payload.type;\nlet text = (payload.content || '').trim();\n\n// Get user info\nconst originalMsg = msg.originalMessage || {};\nlet userId = originalMsg.from ? originalMsg.from.id : null;\nconst messageId = originalMsg.message_id;\n\n// Handle callback queries\nlet answerCallback = null;\nif (messageType === 'callback_query') {\n    text = payload.data || payload.callback_data || payload.content || \n           (originalMsg.data ? originalMsg.data : '') || '';\n    \n    if (!chatId) {\n        if (originalMsg.message && originalMsg.message.chat) {\n            chatId = originalMsg.message.chat.id;\n        } else if (originalMsg.chat) {\n            chatId = originalMsg.chat.id;\n        }\n    }\n    \n    if (originalMsg.from) {\n        userId = originalMsg.from.id;\n    }\n    \n    const callbackQueryId = payload.callback_query_id || payload.id || \n                            (originalMsg.id ? originalMsg.id.toString() : null) ||\n                            (originalMsg.query_id ? originalMsg.query_id.toString() : null);\n    \n    if (callbackQueryId) {\n        answerCallback = {\n            payload: {\n                callback_query_id: callbackQueryId,\n                text: '',\n                show_alert: false\n            },\n            topic: 'answerCallbackQuery'\n        };\n    }\n}\n\n// Check if it's a valid message\nif ((messageType !== 'message' && messageType !== 'callback_query') || !text || !chatId) {\n    return [null, null, null, null, null, null, null, null, null, null, answerCallback];\n}\n\n// Parse command\nconst command = text.split(' ')[0].toLowerCase();\nconst args = text.split(' ').slice(1);\n\n// Only handle pump-specific commands\nif (!command.startsWith('/pump_')) {\n    return [null, null, null, null, null, null, null, null, null, null, answerCallback];\n}\n\nconst requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);\nnode.warn(`[${requestId}] Water Pump Command: ${command} from chat ${chatId}`);\n\n// Prepare message\nmsg.requestId = requestId;\nmsg.chatId = chatId;\nmsg.telegram = {\n    chatId: chatId,\n    userId: userId,\n    messageId: messageId,\n    command: command,\n    args: args,\n    originalText: text\n};\n\n// Initialize array with null positions for ALL 11 outputs\nlet output = [null, null, null, null, null, null, null, null, null, null, null];\n\n// Route to appropriate handler\nswitch(command) {\n    case '/pump_start':\n        output[0] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_stop':\n        output[1] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_drain':\n        output[2] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_trench1_on':\n        output[3] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_trench1_off':\n        output[4] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_trench2_on':\n        output[5] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_trench2_off':\n        output[6] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_status':\n        output[7] = msg;\n        output[10] = answerCallback;\n        break;\n    case '/pump_help':\n        output[8] = msg;\n        output[10] = answerCallback;\n        break;\n    default:\n        // Unknown pump command, only send callback\n        output[10] = answerCallback;\n        break;\n}\n\n// Return FULL array with nulls preserved\nreturn output;",
+        "outputs": 11,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 120,
+        "wires": [
+            ["water_pump_cmd_start"],
+            ["water_pump_cmd_stop"],
+            ["water_pump_cmd_drain"],
+            ["water_pump_cmd_trench1_on"],
+            ["water_pump_cmd_trench1_off"],
+            ["water_pump_cmd_trench2_on"],
+            ["water_pump_cmd_trench2_off"],
+            ["water_pump_cmd_status"],
+            ["water_pump_cmd_help"],
+            [],
+            ["water_pump_answer_callback"]
+        ]
+    },
+    {
+        "id": "water_pump_answer_callback",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Answer Pump Callback",
+        "func": "if (msg.payload && msg.payload.callback_query_id) {\n    msg.payload = {\n        callback_query_id: msg.payload.callback_query_id,\n        text: msg.payload.text || '',\n        show_alert: msg.payload.show_alert || false\n    };\n    msg.topic = 'answerCallbackQuery';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 60,
+        "wires": [
+            ["water_pump_callback_sender"]
+        ]
+    },
+    {
+        "id": "water_pump_callback_sender",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Send Callback Answer",
+        "bot": "telegram_bot_config",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 900,
+        "y": 60,
+        "wires": [[]]
+    },
+    {
+        "id": "water_pump_cmd_start",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Pump Start",
+        "func": "node.warn(`[${msg.requestId}] Starting water pump`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power1',\n        payload: 'ON' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💧 Starting water pump...',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 120,
+        "wires": [
+            ["water_pump_mqtt_out"],
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_cmd_stop",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Pump Stop",
+        "func": "node.warn(`[${msg.requestId}] Stopping water pump`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power1',\n        payload: 'OFF' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '⏹️ Stopping water pump...',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 180,
+        "wires": [
+            ["water_pump_mqtt_out"],
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_cmd_drain",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Pump Drain",
+        "func": "node.warn(`[${msg.requestId}] Activating drain water (10s pulse)`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power2',\n        payload: 'ON' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💧 Draining water (10 seconds)...',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 240,
+        "wires": [
+            ["water_pump_mqtt_out"],
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_cmd_trench1_on",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Trench 1 ON",
+        "func": "node.warn(`[${msg.requestId}] Turning ON feed trench 1`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power3',\n        payload: 'ON' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '🚰 Feed Trench 1 turned *ON*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 300,
+        "wires": [
+            ["water_pump_mqtt_out"],
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_cmd_trench1_off",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Trench 1 OFF",
+        "func": "node.warn(`[${msg.requestId}] Turning OFF feed trench 1`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power3',\n        payload: 'OFF' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '🚰 Feed Trench 1 turned *OFF*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 360,
+        "wires": [
+            ["water_pump_mqtt_out"],
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_cmd_trench2_on",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Trench 2 ON",
+        "func": "node.warn(`[${msg.requestId}] Turning ON feed trench 2`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power4',\n        payload: 'ON' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '🚰 Feed Trench 2 turned *ON*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 420,
+        "wires": [
+            ["water_pump_mqtt_out"],
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_cmd_trench2_off",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Trench 2 OFF",
+        "func": "node.warn(`[${msg.requestId}] Turning OFF feed trench 2`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power4',\n        payload: 'OFF' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '🚰 Feed Trench 2 turned *OFF*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 480,
+        "wires": [
+            ["water_pump_mqtt_out"],
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_mqtt_out",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Pump Command",
+        "topic": "",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 900,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "water_pump_cmd_status",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Get Pump Status",
+        "func": "node.warn(`[${msg.requestId}] Getting water pump status`);\n\n// Get state from GLOBAL context\nconst state = global.get('water_pump_state') || {};\n\n// Build status message\nlet statusText = '💧 *Water Pump Status*\\n\\n';\n\n// Pump Power\nconst pumpStatus = state.pump_power || 'UNKNOWN';\nconst pumpIcon = pumpStatus === 'ON' ? '🟢' : pumpStatus === 'OFF' ? '⚫' : '❓';\nstatusText += `${pumpIcon} *Pump Power*: ${pumpStatus}\\n`;\n\n// Drain Water\nconst drainStatus = state.drain_water || 'UNKNOWN';\nconst drainIcon = drainStatus === 'ON' ? '🟢' : drainStatus === 'OFF' ? '⚫' : '❓';\nstatusText += `${drainIcon} *Drain Water*: ${drainStatus}\\n`;\n\n// Feed Trench 1\nconst trench1Status = state.feed_trench_1 || 'UNKNOWN';\nconst trench1Icon = trench1Status === 'ON' ? '🟢' : trench1Status === 'OFF' ? '⚫' : '❓';\nstatusText += `${trench1Icon} *Feed Trench 1*: ${trench1Status}\\n`;\n\n// Feed Trench 2\nconst trench2Status = state.feed_trench_2 || 'UNKNOWN';\nconst trench2Icon = trench2Status === 'ON' ? '🟢' : trench2Status === 'OFF' ? '⚫' : '❓';\nstatusText += `${trench2Icon} *Feed Trench 2*: ${trench2Status}\\n`;\n\nif (state.lastUpdate) {\n    const lastUpdate = new Date(state.lastUpdate).toLocaleString('ro-RO');\n    statusText += `\\n🕐 Last update: ${lastUpdate}`;\n}\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '💧 Start Pump', callback_data: '/pump_start' }, { text: '⏹️ Stop Pump', callback_data: '/pump_stop' }],\n        [{ text: '🚰 Drain Water', callback_data: '/pump_drain' }],\n        [{ text: '🔄 Refresh Status', callback_data: '/pump_status' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: statusText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 560,
+        "wires": [
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_cmd_help",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Pump Help",
+        "func": "node.warn(`[${msg.requestId}] Water pump help requested`);\n\nconst helpText = `💧 *Water Pump Control*\\n\\n` +\n    `*Available Commands:*\\n` +\n    `💧 \\`/pump_start\\` - Start main water pump\\n` +\n    `⏹️ \\`/pump_stop\\` - Stop main water pump\\n` +\n    `🚰 \\`/pump_drain\\` - Drain water (10s pulse)\\n` +\n    `🟢 \\`/pump_trench1_on\\` - Feed trench 1 ON\\n` +\n    `⚫ \\`/pump_trench1_off\\` - Feed trench 1 OFF\\n` +\n    `🟢 \\`/pump_trench2_on\\` - Feed trench 2 ON\\n` +\n    `⚫ \\`/pump_trench2_off\\` - Feed trench 2 OFF\\n` +\n    `📊 \\`/pump_status\\` - Get status of all relays\\n` +\n    `❓ \\`/pump_help\\` - Show this help\\n\\n` +\n    `*Hardware:*\\n` +\n    `• Device: pompaApa (Tasmota 4-relay)\\n` +\n    `• Relay 1: Main pump\\n` +\n    `• Relay 2: Drain water (auto 10s)\\n` +\n    `• Relay 3: Feed trench 1\\n` +\n    `• Relay 4: Feed trench 2\\n\\n` +\n    `*Quick Actions* ⬇️`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '💧 Start', callback_data: '/pump_start' }, { text: '⏹️ Stop', callback_data: '/pump_stop' }],\n        [{ text: '🚰 Drain', callback_data: '/pump_drain' }],\n        [{ text: '📊 Status', callback_data: '/pump_status' }],\n        [{ text: '🏠 Main Menu', callback_data: '/help' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: helpText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 640,
+        "wires": [
+            ["water_pump_telegram_out"]
+        ]
+    },
+    {
+        "id": "water_pump_telegram_out",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Send to Telegram",
+        "bot": "telegram_bot_config",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 900,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    }
+]

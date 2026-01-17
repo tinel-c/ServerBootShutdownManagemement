@@ -3,7 +3,7 @@
         "id": "garden_lights_comment",
         "type": "comment",
         "z": "tab_dashboard",
-        "name": "═══════════════ Garden Lights Control (16 Switches) ═══════════════",
+        "name": "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 Garden Lights Control (16 Switches) \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
         "info": "## Garden Lights Control\n\n**Flow Number:** 320\n\n### Purpose\nControls 16 garden light switches via MQTT.\n\n### Hardware\n- **GardenAutomationLights** (Tasmota) - 12 relays\n- **frontHousePower** (Sonoff Power) - 4 relays\n\n### MQTT Topics\n**GardenAutomationLights (Switches 1-12):**\n- Status: `GardenAutomationLights/STAT/Relay[1-12]`\n- Command: `GardenAutomationLights/CMD/Relay[1-12]`\n\n**frontHousePower (Switches 13-16):**\n- Status: `stat/frontHousePower/POWER[1-4]`\n- Command: `cmnd/frontHousePower/POWER[1-4]`\n\n### Features\n- 16 individual light switches\n- Master ON/OFF buttons (control all lights)\n- Real-time status from MQTT\n- Dashboard 2.0 UI\n\n### UI Components\n- Page: Power Monitoring\n- Group: Garden Lights\n- 16 x ui-switch (individual control)\n- 2 x ui-button (master ON/OFF)\n\n### Dependencies\n- mqtt_broker_local\n- ui_group_garden_lights",
         "x": 270,
         "y": 40,
@@ -25,7 +25,9 @@
         "x": 140,
         "y": 120,
         "wires": [
-            ["garden_lights_switch_1"]
+            [
+                "garden_lights_switch_1"
+            ]
         ]
     },
     {
@@ -39,7 +41,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -57,7 +59,9 @@
         "x": 380,
         "y": 120,
         "wires": [
-            ["garden_lights_mqtt_out_1"]
+            [
+                "garden_lights_mqtt_out_1"
+            ]
         ]
     },
     {
@@ -94,7 +98,9 @@
         "x": 140,
         "y": 160,
         "wires": [
-            ["garden_lights_switch_2"]
+            [
+                "garden_lights_switch_2"
+            ]
         ]
     },
     {
@@ -108,7 +114,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -126,7 +132,9 @@
         "x": 380,
         "y": 160,
         "wires": [
-            ["garden_lights_mqtt_out_2"]
+            [
+                "garden_lights_mqtt_out_2"
+            ]
         ]
     },
     {
@@ -163,7 +171,9 @@
         "x": 140,
         "y": 200,
         "wires": [
-            ["garden_lights_switch_3"]
+            [
+                "garden_lights_switch_3"
+            ]
         ]
     },
     {
@@ -177,7 +187,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -195,7 +205,9 @@
         "x": 380,
         "y": 200,
         "wires": [
-            ["garden_lights_mqtt_out_3"]
+            [
+                "garden_lights_mqtt_out_3"
+            ]
         ]
     },
     {
@@ -232,7 +244,9 @@
         "x": 140,
         "y": 240,
         "wires": [
-            ["garden_lights_switch_4"]
+            [
+                "garden_lights_switch_4"
+            ]
         ]
     },
     {
@@ -246,7 +260,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -264,7 +278,9 @@
         "x": 380,
         "y": 240,
         "wires": [
-            ["garden_lights_mqtt_out_4"]
+            [
+                "garden_lights_mqtt_out_4"
+            ]
         ]
     },
     {
@@ -301,7 +317,9 @@
         "x": 140,
         "y": 280,
         "wires": [
-            ["garden_lights_switch_5"]
+            [
+                "garden_lights_switch_5"
+            ]
         ]
     },
     {
@@ -315,7 +333,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -333,7 +351,9 @@
         "x": 380,
         "y": 280,
         "wires": [
-            ["garden_lights_mqtt_out_5"]
+            [
+                "garden_lights_mqtt_out_5"
+            ]
         ]
     },
     {
@@ -370,7 +390,9 @@
         "x": 140,
         "y": 320,
         "wires": [
-            ["garden_lights_switch_6"]
+            [
+                "garden_lights_switch_6"
+            ]
         ]
     },
     {
@@ -384,7 +406,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -402,7 +424,9 @@
         "x": 380,
         "y": 320,
         "wires": [
-            ["garden_lights_mqtt_out_6"]
+            [
+                "garden_lights_mqtt_out_6"
+            ]
         ]
     },
     {
@@ -439,7 +463,9 @@
         "x": 140,
         "y": 360,
         "wires": [
-            ["garden_lights_switch_7"]
+            [
+                "garden_lights_switch_7"
+            ]
         ]
     },
     {
@@ -453,7 +479,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -471,7 +497,9 @@
         "x": 380,
         "y": 360,
         "wires": [
-            ["garden_lights_mqtt_out_7"]
+            [
+                "garden_lights_mqtt_out_7"
+            ]
         ]
     },
     {
@@ -508,7 +536,9 @@
         "x": 140,
         "y": 400,
         "wires": [
-            ["garden_lights_switch_8"]
+            [
+                "garden_lights_switch_8"
+            ]
         ]
     },
     {
@@ -522,7 +552,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -540,7 +570,9 @@
         "x": 380,
         "y": 400,
         "wires": [
-            ["garden_lights_mqtt_out_8"]
+            [
+                "garden_lights_mqtt_out_8"
+            ]
         ]
     },
     {
@@ -577,7 +609,9 @@
         "x": 140,
         "y": 440,
         "wires": [
-            ["garden_lights_switch_9"]
+            [
+                "garden_lights_switch_9"
+            ]
         ]
     },
     {
@@ -591,7 +625,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -609,7 +643,9 @@
         "x": 380,
         "y": 440,
         "wires": [
-            ["garden_lights_mqtt_out_9"]
+            [
+                "garden_lights_mqtt_out_9"
+            ]
         ]
     },
     {
@@ -646,7 +682,9 @@
         "x": 140,
         "y": 480,
         "wires": [
-            ["garden_lights_switch_10"]
+            [
+                "garden_lights_switch_10"
+            ]
         ]
     },
     {
@@ -660,7 +698,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -678,7 +716,9 @@
         "x": 380,
         "y": 480,
         "wires": [
-            ["garden_lights_mqtt_out_10"]
+            [
+                "garden_lights_mqtt_out_10"
+            ]
         ]
     },
     {
@@ -715,7 +755,9 @@
         "x": 140,
         "y": 520,
         "wires": [
-            ["garden_lights_switch_11"]
+            [
+                "garden_lights_switch_11"
+            ]
         ]
     },
     {
@@ -729,7 +771,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -747,7 +789,9 @@
         "x": 380,
         "y": 520,
         "wires": [
-            ["garden_lights_mqtt_out_11"]
+            [
+                "garden_lights_mqtt_out_11"
+            ]
         ]
     },
     {
@@ -784,7 +828,9 @@
         "x": 140,
         "y": 560,
         "wires": [
-            ["garden_lights_switch_12"]
+            [
+                "garden_lights_switch_12"
+            ]
         ]
     },
     {
@@ -798,7 +844,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -816,7 +862,9 @@
         "x": 380,
         "y": 560,
         "wires": [
-            ["garden_lights_mqtt_out_12"]
+            [
+                "garden_lights_mqtt_out_12"
+            ]
         ]
     },
     {
@@ -853,7 +901,9 @@
         "x": 140,
         "y": 620,
         "wires": [
-            ["garden_lights_switch_13"]
+            [
+                "garden_lights_switch_13"
+            ]
         ]
     },
     {
@@ -867,7 +917,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -885,7 +935,9 @@
         "x": 380,
         "y": 620,
         "wires": [
-            ["garden_lights_mqtt_out_13"]
+            [
+                "garden_lights_mqtt_out_13"
+            ]
         ]
     },
     {
@@ -922,7 +974,9 @@
         "x": 140,
         "y": 660,
         "wires": [
-            ["garden_lights_switch_14"]
+            [
+                "garden_lights_switch_14"
+            ]
         ]
     },
     {
@@ -936,7 +990,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -954,7 +1008,9 @@
         "x": 380,
         "y": 660,
         "wires": [
-            ["garden_lights_mqtt_out_14"]
+            [
+                "garden_lights_mqtt_out_14"
+            ]
         ]
     },
     {
@@ -991,7 +1047,9 @@
         "x": 140,
         "y": 700,
         "wires": [
-            ["garden_lights_switch_15"]
+            [
+                "garden_lights_switch_15"
+            ]
         ]
     },
     {
@@ -1005,7 +1063,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -1023,7 +1081,9 @@
         "x": 380,
         "y": 700,
         "wires": [
-            ["garden_lights_mqtt_out_15"]
+            [
+                "garden_lights_mqtt_out_15"
+            ]
         ]
     },
     {
@@ -1060,7 +1120,9 @@
         "x": 140,
         "y": 740,
         "wires": [
-            ["garden_lights_switch_16"]
+            [
+                "garden_lights_switch_16"
+            ]
         ]
     },
     {
@@ -1074,7 +1136,7 @@
         "width": "0",
         "height": "0",
         "passthru": false,
-        "decouple": false,
+        "decouple": true,
         "topic": "topic",
         "topicType": "msg",
         "style": "",
@@ -1092,7 +1154,9 @@
         "x": 380,
         "y": 740,
         "wires": [
-            ["garden_lights_mqtt_out_16"]
+            [
+                "garden_lights_mqtt_out_16"
+            ]
         ]
     },
     {

@@ -55,6 +55,19 @@ apt-get install -y \
 
 # Step 2: Create installation directory
 print_info "Step 2: Creating installation directory..."
+
+# Check for existing .env BEFORE backing up the directory
+HAS_EXISTING_ENV=false
+if [ -f "$INSTALL_DIR/config/.env" ]; then
+    print_warn "Found existing .env configuration. Preserving it..."
+    # Create temp backup in /tmp (survives directory moves)
+    cp "$INSTALL_DIR/config/.env" /tmp/dell_server_management_env.bak.$(date +%Y%m%d_%H%M%S)
+    # Keep the most recent backup with a simple name for restore
+    cp "$INSTALL_DIR/config/.env" /tmp/dell_server_management_env.bak
+    HAS_EXISTING_ENV=true
+    print_info "Configuration backed up to /tmp/dell_server_management_env.bak"
+fi
+
 if [ -d "$INSTALL_DIR" ]; then
     print_warn "Installation directory already exists. Backing up..."
     mv "$INSTALL_DIR" "${INSTALL_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
@@ -66,27 +79,17 @@ cd "$INSTALL_DIR"
 # Step 3: Copy project files
 print_info "Step 3: Copying project files..."
 
-# Check for existing .env and back it up
-if [ -f "$INSTALL_DIR/config/.env" ]; then
-    print_warn "Found existing .env configuration. Preserving it..."
-    # Create temp backup
-    cp "$INSTALL_DIR/config/.env" /tmp/dell_server_management_env.bak
-    HAS_EXISTING_ENV=true
-else
-    HAS_EXISTING_ENV=false
-fi
-
-# Copy files
+# Copy files from source
 cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
 
 # Restore .env if it existed
 if [ "$HAS_EXISTING_ENV" = true ]; then
     print_info "Restoring preserved .env configuration..."
-    mv /tmp/dell_server_management_env.bak "$INSTALL_DIR/config/.env"
+    cp /tmp/dell_server_management_env.bak "$INSTALL_DIR/config/.env"
     
     # Ensure permissions are still correct
     chmod 600 "$INSTALL_DIR/config/.env"
-    print_info "Configuration preserved."
+    print_info "✓ Configuration successfully preserved from previous installation!"
 fi
 
 # Step 4: Create Python virtual environment

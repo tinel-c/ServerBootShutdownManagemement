@@ -100,26 +100,42 @@ class IPMIWrapper:
             logger.error(f"Error executing IPMI command: {e}")
             return False, "", str(e)
     
-    def get_power_status(self) -> Optional[str]:
+    def get_power_status(self, retries: int = 2, retry_delay: float = 1.0) -> Optional[str]:
         """
-        Get current power status of the server.
+        Get current power status of the server with automatic retry on failure.
+        
+        Args:
+            retries: Number of retry attempts on failure (default: 2)
+            retry_delay: Delay between retries in seconds (default: 1.0)
         
         Returns:
             Power status string ("on" or "off") or None on error
         """
         logger.info("Getting power status")
-        success, stdout, stderr = self._execute_command(["chassis", "power", "status"])
         
-        if success:
-            # Parse output: "Chassis Power is on" or "Chassis Power is off"
-            if "on" in stdout.lower():
-                logger.info("Server is powered ON")
-                return "on"
-            elif "off" in stdout.lower():
-                logger.info("Server is powered OFF")
-                return "off"
+        for attempt in range(retries + 1):
+            if attempt > 0:
+                logger.warning(f"Retrying IPMI command (attempt {attempt + 1}/{retries + 1}) after {retry_delay}s delay...")
+                time.sleep(retry_delay)
+            
+            success, stdout, stderr = self._execute_command(["chassis", "power", "status"])
+            
+            if success:
+                # Parse output: "Chassis Power is on" or "Chassis Power is off"
+                if "on" in stdout.lower():
+                    logger.info("Server is powered ON")
+                    return "on"
+                elif "off" in stdout.lower():
+                    logger.info("Server is powered OFF")
+                    return "off"
+            else:
+                # Log the failure but continue to retry if attempts remain
+                if attempt < retries:
+                    logger.warning(f"IPMI command failed (attempt {attempt + 1}/{retries + 1}): {stderr}")
+                else:
+                    logger.error(f"IPMI command failed after {retries + 1} attempts: {stderr}")
         
-        logger.error(f"Failed to get power status: {stderr}")
+        # All retries exhausted
         return None
     
     def power_on(self) -> bool:

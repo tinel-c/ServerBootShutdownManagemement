@@ -66,6 +66,60 @@ class StatusPublisher:
         
         logger.info("Status publisher initialized")
     
+    def get_server_status_from_proxmox(self, server_name: str, server_config: Dict[str, Any]) -> Optional[str]:
+        """
+        Get server power status from Proxmox API instead of IPMI/iLO.
+        
+        Args:
+            server_name: Name of the server
+            server_config: Server configuration dictionary
+            
+        Returns:
+            Power status string ("on" or "off") or None on error
+        """
+        proxmox_config = server_config.get('proxmox', {})
+        if not proxmox_config:
+            logger.warning(f"No Proxmox configuration found for {server_name}")
+            return None
+        
+        try:
+            from proxmoxer import ProxmoxAPI
+            
+            # Parse API URL to get host
+            api_url = proxmox_config.get('api_url', '')
+            proxmox_host = api_url.replace('/api2/json', '').replace('https://', '').replace('http://', '').replace(':8006', '')
+            
+            proxmox = ProxmoxAPI(
+                proxmox_host,
+                user=proxmox_config.get('username'),
+                password=proxmox_config.get('password'),
+                verify_ssl=proxmox_config.get('verify_ssl', False),
+                timeout=5
+            )
+            
+            # Get nodes status
+            nodes = proxmox.nodes.get()
+            
+            # For standalone Proxmox, there should be one node
+            # If node status is 'online', server is on
+            for node in nodes:
+                node_status = node.get('status', 'unknown')
+                logger.debug(f"Proxmox node {node.get('node')} status: {node_status}")
+                if node_status == 'online':
+                    logger.info(f"{server_name} is ONLINE (via Proxmox API)")
+                    return "on"
+            
+            # If no nodes are online, server is off
+            logger.info(f"{server_name} is OFFLINE (via Proxmox API)")
+            return "off"
+            
+        except ImportError:
+            logger.error("proxmoxer library not installed. Install with: pip install proxmoxer")
+            return None
+        except Exception as e:
+            logger.error(f"Error getting Proxmox status for {server_name}: {e}")
+            return None
+    
     def get_server_status(self, server_name: str, manager_info: Dict[str, Any]) -> Dict[str, Any]:
         """
         Get current status for a specific server.
@@ -91,33 +145,17 @@ class StatusPublisher:
         }
         
         try:
-            # Get power status
-            # Both IPMIWrapper and ILOWrapper implement get_power_status()
-            power_status = manager.get_power_status()
+            # For Dell T310, use Proxmox API instead of IPMI (which is unreliable)
+            if server_name == "Dell T310" and server_config.get('proxmox'):
+                power_status = self.get_server_status_from_proxmox(server_name, server_config)
+            else:
+                # For other servers, use IPMI/iLO wrapper
+                power_status = manager.get_power_status()
+            
             status["power_status"] = power_status
             
             if power_status == "on":
                 status["server_state"] = "online"
-                
-                # Extended status based on server type
-                if server_config.get('type') == 'ilo':
-                    # iLO specific status
-                    # Assuming ILOWrapper has get_server_health() or similar
-                    # For now just basic status
-                    pass
-                    
-                elif server_config.get('type') == 'ipmi':
-                    # IPMI specific status
-                    # Get chassis status if available
-                    if hasattr(manager, 'get_chassis_status'):
-                        chassis_status = manager.get_chassis_status()
-                        if chassis_status and "System Power" in chassis_status:
-                            status["power_info"] = chassis_status["System Power"]
-                
-                # Try to get system metrics (requires guest agent or similar, usually only possible via Proxmox API or SSH)
-                # Since we don't have proxmox client here for status, we skip deep system metrics
-                # unless we want to instantiate it specifically for T310.
-                # For now, we keep it simple conformant with multi-server architecture.
                 
             elif power_status == "off":
                 status["server_state"] = "offline"

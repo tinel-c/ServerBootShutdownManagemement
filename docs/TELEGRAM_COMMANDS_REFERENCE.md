@@ -386,6 +386,85 @@ The automation system provides:
 - Verify MQTT topics are correct
 - Restart Node-RED if needed: `sudo systemctl restart nodered`
 
+## 💡 Garden Lights Control
+
+### Control Commands
+
+| Command | Description | Action | Targets |
+|---------|-------------|--------|---------|
+| `/lights_on` | Turn all lights ON | Activates all 16 lights | All garden lights |
+| `/lights_off` | Turn all lights OFF | Deactivates all 16 lights | All garden lights |
+
+**Examples:**
+```
+/lights_on
+/lights_off
+```
+
+**Response:**
+```
+💡 All garden lights turned ON
+```
+
+**Hardware:**
+- **Lights 1-12**: GardenAutomationLights (12-relay Tasmota device)
+  - MQTT: `GardenAutomationLights/CMD/Relay[1-12]`
+- **Lights 13-16**: frontHousePower (4-relay Sonoff Power device)
+  - MQTT: `cmnd/frontHousePower/POWER[1-4]`
+
+### Status Commands
+
+| Command | Description | Shows |
+|---------|-------------|-------|
+| `/lights_status` | Get all lights status | Status of all 16 lights |
+
+**Examples:**
+```
+/lights_status
+```
+
+**Response:**
+```
+💡 Garden Lights Status
+
+GardenAutomationLights:
+🟢 Light 1: ON
+⚫ Light 2: OFF
+🟢 Light 3: ON
+... (up to Light 12)
+
+Front House Power:
+🟢 Light 13: ON
+⚫ Light 14: OFF
+🟢 Light 15: ON
+⚫ Light 16: OFF
+
+Summary: 8 ON | 8 OFF | 0 Unknown
+```
+
+**Status Indicators:**
+- 🟢 **ON** - Light is currently ON
+- ⚫ **OFF** - Light is currently OFF
+- ❓ **UNKNOWN** - Status not available
+
+**Interactive Buttons:**
+- 🟢 Turn All ON
+- ⚫ Turn All OFF
+- 🔄 Refresh Status
+
+### Help Commands
+
+| Command | Description |
+|---------|-------------|
+| `/lights_help` | Show garden lights help |
+
+**Examples:**
+```
+/lights_help
+```
+
+**Response:** Comprehensive help for garden lights control with hardware information and interactive buttons.
+
 ## 📚 Additional Documentation
 
 - **Telegram Setup**: `nodered/TELEGRAM_SETUP.md`
@@ -409,13 +488,17 @@ The automation system provides:
 | **Sliding Trigger** | `/sliding_trigger` | Trigger automation (Relay 3) |
 | **Sliding Status** | `/sliding_status` | Get sliding gate status |
 | **Sliding Help** | `/sliding_help` | Sliding gate help |
+| **Lights ON** | `/lights_on` | Turn all 16 lights ON |
+| **Lights OFF** | `/lights_off` | Turn all 16 lights OFF |
+| **Lights Status** | `/lights_status` | Get all lights status |
+| **Lights Help** | `/lights_help` | Garden lights help |
 | **Help** | `/help` | Quick help |
 | **Commands** | `/commands` or `/list` | Complete reference |
 | **Start** | `/start` | Start bot |
 
 ---
 
-**Version**: 1.1.0  
+**Version**: 1.2.0  
 **Last Updated**: January 2026  
-**Domains**: Server Management, Main Gate Automation, Sliding Gate Automation  
-**Total Commands**: 15+
+**Domains**: Server Management, Gate Automation (3 gates), Power Monitoring, Garden Lights  
+**Total Commands**: 20+

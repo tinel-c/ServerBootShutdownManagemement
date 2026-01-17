@@ -1,0 +1,715 @@
+[
+    {
+        "id": "garden_lights_telegram_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ Garden Lights Telegram Integration ═══════════════",
+        "info": "## Garden Lights Telegram Integration\n\n**Flow Number:** 321\n\n### Purpose\nProvides Telegram bot commands for garden lights control.\n\n### Commands\n- `/lights_on` - Turn all lights ON\n- `/lights_off` - Turn all lights OFF\n- `/lights_status` - Get status of all 16 lights\n- `/lights_help` - Show help for lights commands\n\n### Features\n- Master ON/OFF control for all lights\n- Comprehensive status display (16 lights)\n- Interactive inline keyboard\n- Command logging with request IDs\n- Integration with shared telegram_bot_config\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- garden_lights_state (flow context)\n\n### Integration\nCommands are routed from main Telegram interface (50-telegram-interface.json).",
+        "x": 270,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_telegram_in",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Garden Lights Telegram In",
+        "links": [],
+        "x": 95,
+        "y": 120,
+        "wires": [
+            ["garden_lights_telegram_router"]
+        ]
+    },
+    {
+        "id": "garden_lights_telegram_router",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Route Garden Lights Commands",
+        "func": "const command = msg.payload.command;\nconst chatId = msg.payload.chatId;\nconst requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);\n\nmsg.requestId = requestId;\nmsg.chatId = chatId;\n\nnode.warn(`[${requestId}] Garden Lights Command: ${command} from chat ${chatId}`);\n\nswitch(command) {\n    case '/lights_on':\n        return [msg, null, null, null];\n    case '/lights_off':\n        return [null, msg, null, null];\n    case '/lights_status':\n        return [null, null, msg, null];\n    case '/lights_help':\n        return [null, null, null, msg];\n    default:\n        return null;\n}",
+        "outputs": 4,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 120,
+        "wires": [
+            ["garden_lights_cmd_all_on"],
+            ["garden_lights_cmd_all_off"],
+            ["garden_lights_cmd_status"],
+            ["garden_lights_cmd_help"]
+        ]
+    },
+    {
+        "id": "garden_lights_cmd_all_on",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "All Lights ON",
+        "func": "node.warn(`[${msg.requestId}] Turning all garden lights ON`);\n\nreturn [\n    { payload: 'ON' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💡 All garden lights turned *ON*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 100,
+        "wires": [
+            [
+                "garden_lights_mqtt_broadcast"
+            ],
+            [
+                "garden_lights_telegram_out"
+            ]
+        ]
+    },
+    {
+        "id": "garden_lights_cmd_all_off",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "All Lights OFF",
+        "func": "node.warn(`[${msg.requestId}] Turning all garden lights OFF`);\n\nreturn [\n    { payload: 'OFF' },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💡 All garden lights turned *OFF*',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 180,
+        "wires": [
+            [
+                "garden_lights_mqtt_broadcast"
+            ],
+            [
+                "garden_lights_telegram_out"
+            ]
+        ]
+    },
+    {
+        "id": "garden_lights_mqtt_broadcast",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Broadcast to All Lights",
+        "func": "// Send the same command to all 16 lights\nconst command = msg.payload;\nconst messages = [];\n\n// GardenAutomationLights (Relays 1-12)\nfor (let i = 1; i <= 12; i++) {\n    messages.push({\n        topic: `GardenAutomationLights/CMD/Relay${i}`,\n        payload: command\n    });\n}\n\n// frontHousePower (POWER1-4)\nfor (let i = 1; i <= 4; i++) {\n    messages.push({\n        topic: `cmnd/frontHousePower/POWER${i}`,\n        payload: command\n    });\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 140,
+        "wires": [
+            ["garden_lights_mqtt_out"]
+        ]
+    },
+    {
+        "id": "garden_lights_mqtt_out",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Lights Command",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1100,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_cmd_status",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Get Lights Status",
+        "func": "node.warn(`[${msg.requestId}] Getting garden lights status`);\n\n// Get state from flow context\nconst state = flow.get('garden_lights_state') || {};\n\n// Build status message\nlet statusText = '💡 *Garden Lights Status*\\n\\n';\n\n// Lights 1-12 (GardenAutomationLights)\nstatusText += '*GardenAutomationLights:*\\n';\nfor (let i = 1; i <= 12; i++) {\n    const status = state[`light_${i}`] || 'UNKNOWN';\n    const icon = status === 'ON' ? '🟢' : status === 'OFF' ? '⚫' : '❓';\n    statusText += `${icon} Light ${i}: ${status}\\n`;\n}\n\n// Lights 13-16 (frontHousePower)\nstatusText += '\\n*Front House Power:*\\n';\nfor (let i = 13; i <= 16; i++) {\n    const status = state[`light_${i}`] || 'UNKNOWN';\n    const icon = status === 'ON' ? '🟢' : status === 'OFF' ? '⚫' : '❓';\n    statusText += `${icon} Light ${i}: ${status}\\n`;\n}\n\n// Count lights\nconst lights = Object.values(state);\nconst onCount = lights.filter(s => s === 'ON').length;\nconst offCount = lights.filter(s => s === 'OFF').length;\nconst unknownCount = 16 - onCount - offCount;\n\nstatusText += `\\n*Summary:* ${onCount} ON | ${offCount} OFF | ${unknownCount} Unknown`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '🟢 Turn All ON', callback_data: '/lights_on' }, { text: '⚫ Turn All OFF', callback_data: '/lights_off' }],\n        [{ text: '🔄 Refresh Status', callback_data: '/lights_status' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: statusText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 260,
+        "wires": [
+            ["garden_lights_telegram_out"]
+        ]
+    },
+    {
+        "id": "garden_lights_cmd_help",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Lights Help",
+        "func": "node.warn(`[${msg.requestId}] Garden lights help requested`);\n\nconst helpText = `💡 *Garden Lights Control*\\n\\n` +\n    `*Available Commands:*\\n` +\n    `🟢 \\`/lights_on\\` - Turn all 16 lights ON\\n` +\n    `⚫ \\`/lights_off\\` - Turn all 16 lights OFF\\n` +\n    `📊 \\`/lights_status\\` - Get status of all lights\\n` +\n    `❓ \\`/lights_help\\` - Show this help\\n\\n` +\n    `*Hardware:*\\n` +\n    `• Lights 1-12: GardenAutomationLights (12-relay)\\n` +\n    `• Lights 13-16: frontHousePower (4-relay)\\n\\n` +\n    `*Quick Actions* ⬇️`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [{ text: '🟢 All ON', callback_data: '/lights_on' }, { text: '⚫ All OFF', callback_data: '/lights_off' }],\n        [{ text: '📊 Status', callback_data: '/lights_status' }],\n        [{ text: '🏠 Main Menu', callback_data: '/help' }]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: helpText,\n    options: {\n        parse_mode: 'Markdown',\n        reply_markup: inlineKeyboard\n    }\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 340,
+        "wires": [
+            ["garden_lights_telegram_out"]
+        ]
+    },
+    {
+        "id": "garden_lights_telegram_out",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Send to Telegram",
+        "bot": "telegram_bot_config",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 840,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "garden_lights_status_tracker_1",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 1",
+        "topic": "GardenAutomationLights/STAT/Relay1",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 440,
+        "wires": [
+            ["garden_lights_update_state_1"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_1",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 1 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_1 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_2",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 2",
+        "topic": "GardenAutomationLights/STAT/Relay2",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 480,
+        "wires": [
+            ["garden_lights_update_state_2"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_2",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 2 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_2 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_3",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 3",
+        "topic": "GardenAutomationLights/STAT/Relay3",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 520,
+        "wires": [
+            ["garden_lights_update_state_3"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_3",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 3 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_3 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_4",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 4",
+        "topic": "GardenAutomationLights/STAT/Relay4",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 560,
+        "wires": [
+            ["garden_lights_update_state_4"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_4",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 4 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_4 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_5",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 5",
+        "topic": "GardenAutomationLights/STAT/Relay5",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 600,
+        "wires": [
+            ["garden_lights_update_state_5"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_5",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 5 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_5 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_6",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 6",
+        "topic": "GardenAutomationLights/STAT/Relay6",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 640,
+        "wires": [
+            ["garden_lights_update_state_6"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_6",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 6 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_6 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_7",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 7",
+        "topic": "GardenAutomationLights/STAT/Relay7",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 680,
+        "wires": [
+            ["garden_lights_update_state_7"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_7",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 7 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_7 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_8",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 8",
+        "topic": "GardenAutomationLights/STAT/Relay8",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 720,
+        "wires": [
+            ["garden_lights_update_state_8"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_8",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 8 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_8 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_9",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 9",
+        "topic": "GardenAutomationLights/STAT/Relay9",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 760,
+        "wires": [
+            ["garden_lights_update_state_9"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_9",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 9 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_9 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_10",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 10",
+        "topic": "GardenAutomationLights/STAT/Relay10",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 800,
+        "wires": [
+            ["garden_lights_update_state_10"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_10",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 10 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_10 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_11",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 11",
+        "topic": "GardenAutomationLights/STAT/Relay11",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 840,
+        "wires": [
+            ["garden_lights_update_state_11"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_11",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 11 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_11 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_12",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 12",
+        "topic": "GardenAutomationLights/STAT/Relay12",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 880,
+        "wires": [
+            ["garden_lights_update_state_12"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_12",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 12 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_12 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_13",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 13",
+        "topic": "stat/frontHousePower/POWER1",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 940,
+        "wires": [
+            ["garden_lights_update_state_13"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_13",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 13 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_13 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_14",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 14",
+        "topic": "stat/frontHousePower/POWER2",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 980,
+        "wires": [
+            ["garden_lights_update_state_14"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_14",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 14 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_14 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_15",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 15",
+        "topic": "stat/frontHousePower/POWER3",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 1020,
+        "wires": [
+            ["garden_lights_update_state_15"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_15",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 15 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_15 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "garden_lights_status_tracker_16",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Track Light 16",
+        "topic": "stat/frontHousePower/POWER4",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 1060,
+        "wires": [
+            ["garden_lights_update_state_16"]
+        ]
+    },
+    {
+        "id": "garden_lights_update_state_16",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Update Light 16 State",
+        "func": "const state = flow.get('garden_lights_state') || {};\nstate.light_16 = msg.payload;\nflow.set('garden_lights_state', state);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 1060,
+        "wires": []
+    }
+]

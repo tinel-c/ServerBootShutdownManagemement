@@ -64,9 +64,25 @@
         "y": 560,
         "wires": [
             [
-                "sliding_relay1_switch"
+                "sliding_relay1_switch",
+                "sliding_relay1_store"
             ]
         ]
+    },
+    {
+        "id": "sliding_relay1_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 1 State",
+        "func": "// Get or initialize sliding gate state\nlet slidingState = flow.get('sliding_gate_state') || {};\n\n// Update relay 1 state\nslidingState.relay1 = msg.payload ? 'ON' : 'OFF';\nslidingState.lastUpdate = new Date().toISOString();\n\n// Store back to flow context\nflow.set('sliding_gate_state', slidingState);\n\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 520,
+        "wires": []
     },
     {
         "id": "sliding_relay1_switch",
@@ -198,9 +214,25 @@
         "y": 620,
         "wires": [
             [
-                "sliding_relay2_switch"
+                "sliding_relay2_switch",
+                "sliding_relay2_store"
             ]
         ]
+    },
+    {
+        "id": "sliding_relay2_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 2 State",
+        "func": "// Get or initialize sliding gate state\nlet slidingState = flow.get('sliding_gate_state') || {};\n\n// Update relay 2 state\nslidingState.relay2 = msg.payload ? 'ON' : 'OFF';\nslidingState.lastUpdate = new Date().toISOString();\n\n// Store back to flow context\nflow.set('sliding_gate_state', slidingState);\n\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 660,
+        "wires": []
     },
     {
         "id": "sliding_relay2_switch",
@@ -332,9 +364,25 @@
         "y": 680,
         "wires": [
             [
-                "sliding_relay3_switch"
+                "sliding_relay3_switch",
+                "sliding_relay3_store"
             ]
         ]
+    },
+    {
+        "id": "sliding_relay3_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 3 State",
+        "func": "// Get or initialize sliding gate state\nlet slidingState = flow.get('sliding_gate_state') || {};\n\n// Update relay 3 state\nslidingState.relay3 = msg.payload ? 'ON' : 'OFF';\nslidingState.lastUpdate = new Date().toISOString();\n\n// Store back to flow context\nflow.set('sliding_gate_state', slidingState);\n\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 800,
+        "wires": []
     },
     {
         "id": "sliding_relay3_switch",
@@ -466,9 +514,25 @@
         "y": 740,
         "wires": [
             [
-                "sliding_relay4_switch"
+                "sliding_relay4_switch",
+                "sliding_relay4_store"
             ]
         ]
+    },
+    {
+        "id": "sliding_relay4_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 4 State",
+        "func": "// Get or initialize sliding gate state\nlet slidingState = flow.get('sliding_gate_state') || {};\n\n// Update relay 4 state\nslidingState.relay4 = msg.payload ? 'ON' : 'OFF';\nslidingState.lastUpdate = new Date().toISOString();\n\n// Store back to flow context\nflow.set('sliding_gate_state', slidingState);\n\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 940,
+        "wires": []
     },
     {
         "id": "sliding_relay4_switch",

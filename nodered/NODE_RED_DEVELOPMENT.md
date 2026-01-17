@@ -26,8 +26,6 @@ This modular approach provides:
 
 ```
 nodered/
-├── docker-compose.yml          # Docker container configuration
-├── Dockerfile                  # Node-RED image with Dashboard 2.0
 ├── flows.json                  # Legacy monolithic flows (deprecated)
 ├── flows/                      # Modular feature-based flows
 │   ├── 00-base-config.json     # Base UI, page, and MQTT broker
@@ -55,16 +53,17 @@ Flow files follow a numbered prefix system:
 
 ### Prerequisites
 
-1. **Docker and Docker Compose** installed
+1. **Node-RED** installed on Ubuntu
 2. **MQTT Broker** running (localhost:1883)
-3. **Node-RED Dashboard 2.0** (@flowfuse/node-red-dashboard)
+3. **Node-RED Dashboard 2.0** (@flowfuse/node-red-dashboard) installed in Node-RED
 
 ### Initial Setup
 
-1. **Start Node-RED Container**:
+1. **Ensure Node-RED is Running**:
    ```bash
-   cd nodered
-   docker-compose up -d
+   sudo systemctl status nodered
+   # If not running:
+   sudo systemctl start nodered
    ```
 
 2. **Access Node-RED Editor**:
@@ -579,7 +578,7 @@ adminAuth: {
 ### HTTPS/TLS
 
 1. Generate certificates
-2. Mount in docker-compose.yml
+2. Place certificates in Node-RED directory
 3. Configure in settings.js:
 
 ```javascript
@@ -612,12 +611,12 @@ For large deployments:
 3. Choose "Import to new flow" to avoid conflicts
 4. Deploy
 
-### Docker Volume Backup
+### Node-RED Data Backup
 
 ```bash
-docker-compose down
-tar -czvf nodered-backup.tar.gz ./data
-docker-compose up -d
+sudo systemctl stop nodered
+tar -czvf nodered-backup.tar.gz ~/.node-red
+sudo systemctl start nodered
 ```
 
 ## Migration from Monolithic
@@ -648,7 +647,7 @@ If migrating from the old `flows.json`:
 
 For issues or questions:
 1. Check TROUBLESHOOTING.md
-2. Review Node-RED logs: `docker logs node-red-dashboard`
+2. Review Node-RED logs: `journalctl -u nodered -f`
 3. Check MQTT traffic with MQTT Explorer
 4. Create issue in project repository
 

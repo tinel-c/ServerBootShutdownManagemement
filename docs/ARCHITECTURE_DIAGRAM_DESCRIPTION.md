@@ -27,7 +27,7 @@ A comprehensive server management system with smart client-aware automation, fea
 ├──────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────┐  ┌──────────────────────────────┐  │
 │  │  Node-RED Dashboard │  │   Mosquitto MQTT Broker      │  │
-│  │  :1880 (Docker)     │  │   :1883                      │  │
+│  │  :1880 (Native)     │  │   :1883                      │  │
 │  │                     │  │                              │  │
 │  │  • Server Controls  │  │   📡 Central Message Bus     │  │
 │  │  • Status Display   │  │                              │  │
@@ -194,7 +194,7 @@ Dashboard Updates
 
 - **Protocols**: HTTP, MQTT, Wake-on-LAN, IPMI, iLO, Proxmox API
 - **Ports**: 1880 (Node-RED), 1883 (MQTT), 8006 (Proxmox), 623 (IPMI)
-- **Technologies**: Docker, Python 3.8+, Node-RED, Mosquitto, Systemd
+- **Technologies**: Python 3.8+, Node-RED, Mosquitto, Systemd
 - **Platform**: Ubuntu VM (automation), Windows (clients), Proxmox VE (servers)
 
 ---

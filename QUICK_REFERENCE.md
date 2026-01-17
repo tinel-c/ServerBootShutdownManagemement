@@ -201,8 +201,10 @@ sudo ./manage.sh restart
 ### Telegram Notifications Not Working
 ```bash
 # Check Node-RED
-docker ps | grep nodered
-cd /path/to/nodered && docker compose logs -f
+sudo systemctl status nodered
+
+# Check Node-RED logs
+journalctl -u nodered -f
 
 # Check if bot token is set
 sudo grep TELEGRAM /opt/dell_server_management/config/.env

@@ -164,7 +164,7 @@ The dashboard includes confirmation dialogs for all shutdown operations:
 **Symptoms**: Client doesn't respond to shutdown command
 
 **Solutions**:
-1. Check MQTT broker is running: `docker ps | grep mosquitto`
+1. Check MQTT broker is running: `sudo systemctl status mosquitto`
 2. Verify client is connected: Check Node-RED "Client PCs" panel
 3. Check client logs: `client/logs/client_monitor.log`
 4. Test MQTT connectivity:

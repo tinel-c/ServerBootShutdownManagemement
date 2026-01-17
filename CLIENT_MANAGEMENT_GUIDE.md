@@ -393,10 +393,10 @@ All operations logged:
 tail -f client/logs/client_monitor.log
 
 # Node-RED logs
-docker logs -f nodered
+journalctl -u nodered -f
 
 # MQTT broker logs
-docker logs -f mosquitto
+journalctl -u mosquitto -f
 ```
 
 ## Troubleshooting
@@ -409,7 +409,7 @@ docker logs -f mosquitto
 
 **Solutions:**
 1. Verify client is connected (check "Client PCs" panel)
-2. Check MQTT broker: `docker ps | grep mosquitto`
+2. Check MQTT broker: `sudo systemctl status mosquitto`
 3. Review client logs for errors
 4. Test MQTT connectivity: `mosquitto_sub -h localhost -t "clients/+/response"`
 

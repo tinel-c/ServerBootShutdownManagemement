@@ -36,7 +36,33 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 ![System Architecture](docs/architecture_diagram_v3.svg)
 
-The system uses a **centralized automation server** running Node-RED dashboard, Mosquitto MQTT broker, and Python management scripts with **smart client-aware automation**.
+The system uses a **centralized automation server** running Node-RED dashboard (native installation), Mosquitto MQTT broker, and Python management scripts with **smart client-aware automation**.
+
+### Multi-Domain Automation System
+
+The platform supports **multiple automation domains** through a scalable, modular architecture:
+
+**Available Domains:**
+- 🖥️ **Server Management** (100-199) - Boot/shutdown control for Dell T310, HP DL360p, client PCs
+- 🚪 **Gate Automation** (200-299) - Perimeter gates, garage doors, access control
+- 💡 **Lighting Control** (300-399) - Indoor/outdoor lights, scenes, scheduling
+- 💧 **Irrigation System** (400-499) - Multi-zone watering with weather integration
+- 📱 **SMS/Notifications** (500-599) - Alerts, notifications, messaging
+- 📹 **Security/Cameras** (600-699) - Camera feeds, motion detection, recordings
+- 🌡️ **HVAC/Climate** (700-799) - Heating, cooling, ventilation control
+- ⚡ **Energy Management** (800-899) - Power monitoring, solar, batteries
+
+**Key Features:**
+- **Modular Design** - Each domain is independent and self-contained
+- **Consistent Structure** - All domains follow the same organizational pattern
+- **Easy Integration** - Add new automation types without restructuring
+- **Scalable** - Supports unlimited devices and automation rules
+- **Template-Based** - Quick setup using pre-built templates
+
+**Documentation:**
+- [Automation Architecture](docs/AUTOMATION_ARCHITECTURE.md) - Complete system design
+- [Integration Guide](docs/AUTOMATION_INTEGRATION_GUIDE.md) - Step-by-step migration
+- [Flow Templates](nodered/templates/README.md) - Ready-to-use templates
 
 ### Architecture Highlights:
 - **Client Monitoring**: Windows PCs send presence/heartbeat → Automation detects client needs
@@ -361,14 +387,14 @@ Modern, feature-rich dashboard with modular flows for easy maintenance and scala
 
 ### Quick Setup
 
-1. **Navigate to the nodered directory:**
+1. **Ensure Node-RED is installed and running on Ubuntu:**
    ```bash
-   cd nodered
+   sudo systemctl status nodered
    ```
 
-2. **Start Node-RED using Docker:**
+2. **If not running, start Node-RED:**
    ```bash
-   docker-compose up -d
+   sudo systemctl start nodered
    ```
 
 3. **Access Node-RED Editor:** http://localhost:1880
@@ -639,8 +665,6 @@ ServerBootShutdownMangement/
 │   │   ├── 50-telegram-interface.json # NEW: Telegram bot interface
 │   │   ├── 90-log-console.json
 │   │   └── README.md
-│   ├── docker-compose.yml
-│   ├── Dockerfile
 │   ├── NODE_RED_DEVELOPMENT.md
 │   ├── HEALTH_DASHBOARD_GUIDE.md
 │   ├── TELEGRAM_SETUP.md      # Telegram bot setup guide
@@ -668,6 +692,12 @@ ServerBootShutdownMangement/
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Message specifications
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
+
+### Multi-Domain Automation System (NEW v3.0)
+- [Automation Architecture](docs/AUTOMATION_ARCHITECTURE.md) - Complete system design
+- [Integration Guide](docs/AUTOMATION_INTEGRATION_GUIDE.md) - Migration walkthrough
+- [Flow Templates](nodered/templates/README.md) - Ready-to-use templates
+- [MQTT Topic Structure](docs/AUTOMATION_ARCHITECTURE.md#mqtt-topic-structure) - Topic hierarchy
 
 ### Node-RED Dashboard
 - [Node-RED Development](nodered/NODE_RED_DEVELOPMENT.md) - Complete reference
@@ -730,8 +760,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 2.5.0  
-**Last Updated:** 2026-01-11
+**Version:** 3.0.0 (Multi-Domain Automation System)  
+**Last Updated:** 2026-01-17
 
 ## Recent Releases
 

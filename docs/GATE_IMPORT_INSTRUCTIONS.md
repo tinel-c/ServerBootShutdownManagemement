@@ -356,15 +356,24 @@ To add new gate features to the same tab:
 
 **Ready to Import!** 🚀
 
-Start with Step 1 above and import all 3 files in sequence.
+Start with Step 1 above and import all files in sequence:
+1. Base config (200)
+2. Main gate controls (210)
+3. Main gate status (211)
+4. Main gate Telegram (212)
+5. Sliding gate controls (220)
+6. Sliding gate Telegram (221)
 
 **Need Help?** Check:
 - [Gate Automation Guide](GATE_AUTOMATION.md)
+- [Sliding Gate Integration](SLIDING_GATE_INTEGRATION.md)
 - [Tasmota Integration](TASMOTA_GATE_INTEGRATION.md)
+- [Telegram Commands Reference](TELEGRAM_COMMANDS_REFERENCE.md)
 - [Migration Notes](../MIGRATION_NOTES_GATES.md)
 
 ---
 
-**Version**: 1.0.0  
+**Version**: 1.1.0  
 **Last Updated**: 2026-01-17  
-**Files**: 200, 210, 211
+**Files**: 200, 210, 211, 212, 220, 221  
+**Features**: Main Gate + Sliding Gate + Telegram Integration

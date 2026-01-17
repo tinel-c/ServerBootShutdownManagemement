@@ -92,7 +92,7 @@ This document provides a comprehensive reference for all available Telegram bot 
 - 🔴 **OFFLINE** - Server is powered off
 - 🟡 **UNKNOWN** - No status data available
 
-## 🚪 Gate Automation
+## 🚪 Main Gate Automation
 
 ### Control Commands
 
@@ -158,11 +158,82 @@ Relays:
 
 | Command | Description |
 |---------|-------------|
-| `/gate_help` | Show gate-specific help with buttons |
+| `/gate_help` | Show main gate-specific help with buttons |
 
 **Examples:**
 ```
 /gate_help
+```
+
+## 🚪 Sliding Gate Automation
+
+### Control Commands
+
+| Command | Description | Action | Duration |
+|---------|-------------|--------|----------|
+| `/sliding_open` | Open sliding gate | Relay 1 ON | 1 second pulse |
+| `/sliding_close` | Close sliding gate | Relay 2 ON | 1 second pulse |
+| `/sliding_trigger` | Trigger gate automation | Relay 3 ON | 1 second pulse |
+
+**Examples:**
+```
+/sliding_open
+/sliding_close
+/sliding_trigger
+```
+
+**Response:**
+```
+🔓 Opening Sliding Gate...
+
+Relay 1 activated (1 second pulse)
+Request ID: telegram-sliding-open-1234567890
+```
+
+**Note:** 
+- Relay 1: Opens the gate
+- Relay 2: Closes the gate
+- Relay 3: Triggers automated operation
+- Relay 4: Alternative open (available for future use)
+
+### Status Commands
+
+| Command | Description | Shows |
+|---------|-------------|-------|
+| `/sliding_status` | Get sliding gate status | Relays 1-4 status |
+
+**Examples:**
+```
+/sliding_status
+```
+
+**Response:**
+```
+🚪 Sliding Gate Status
+
+Relays:
+Relay 1 (Open): OFF
+Relay 2 (Close): OFF
+Relay 3 (Trigger): OFF
+Relay 4 (Open Alt): OFF
+
+🕐 Last update: 17.01.2026, 14:30:00
+```
+
+**Status Indicators:**
+- 🟢 **ON** - Relay is active
+- ⚫ **OFF** - Relay is inactive
+- **UNKNOWN** - No status data available
+
+### Help Commands
+
+| Command | Description |
+|---------|-------------|
+| `/sliding_help` | Show sliding gate-specific help with buttons |
+
+**Examples:**
+```
+/sliding_help
 ```
 
 ## ℹ️ General Commands
@@ -269,10 +340,11 @@ The automation system provides:
 - iLO API for HP DL360p
 - Force and graceful shutdown options
 
-✅ **Gate automation control**
-- Remote gate opening
-- Power status monitoring
-- Relay control
+✅ **Gate automation control (2 gates)**
+- Main gate: Remote opening, power monitoring
+- Sliding gate: Open, close, trigger operations
+- Power status monitoring (main gate)
+- Multi-relay control (both gates)
 
 ✅ **Real-time status monitoring**
 - Server online/offline status
@@ -329,15 +401,21 @@ The automation system provides:
 | **Server Shutdown** | `/shutdown [server]` | Graceful shutdown |
 | **Server Force** | `/force [server]` | Immediate power off |
 | **Server Status** | `/status` | Get all server status |
-| **Gate Open** | `/gate_open` | Open main gate |
-| **Gate Status** | `/gate_status` | Get gate status |
-| **Gate Help** | `/gate_help` | Gate-specific help |
+| **Main Gate Open** | `/gate_open` or `/gate` | Open main gate (Relay 2) |
+| **Main Gate Status** | `/gate_status` | Get main gate status |
+| **Main Gate Help** | `/gate_help` | Main gate help |
+| **Sliding Open** | `/sliding_open` | Open sliding gate (Relay 1) |
+| **Sliding Close** | `/sliding_close` | Close sliding gate (Relay 2) |
+| **Sliding Trigger** | `/sliding_trigger` | Trigger automation (Relay 3) |
+| **Sliding Status** | `/sliding_status` | Get sliding gate status |
+| **Sliding Help** | `/sliding_help` | Sliding gate help |
 | **Help** | `/help` | Quick help |
-| **Commands** | `/commands` | Complete reference |
+| **Commands** | `/commands` or `/list` | Complete reference |
 | **Start** | `/start` | Start bot |
 
 ---
 
-**Version**: 1.0.0  
+**Version**: 1.1.0  
 **Last Updated**: January 2026  
-**Domains**: Server Management, Gate Automation
+**Domains**: Server Management, Main Gate Automation, Sliding Gate Automation  
+**Total Commands**: 15+

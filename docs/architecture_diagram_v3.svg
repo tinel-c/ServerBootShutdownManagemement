@@ -151,7 +151,7 @@
       Node-RED Dashboard
     </text>
     <text x="250" y="485" font-family="Arial, sans-serif" font-size="11" fill="#e0e7ff" text-anchor="middle">
-      :1880 (Docker Container)
+      :1880 (Native Service)
     </text>
     <rect x="115" y="500" width="270" height="105" fill="rgba(255,255,255,0.1)" rx="5"/>
     <text x="250" y="520" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">

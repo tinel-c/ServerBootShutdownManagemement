@@ -13,8 +13,8 @@ The Telegram interface allows you to control your servers and receive status not
 ## Prerequisites
 
 1. **Telegram Account**: You need a Telegram account
-2. **Node-RED Running**: The Node-RED dashboard must be running
-3. **Docker Container Rebuilt**: The Dockerfile includes the telegrambot library, so rebuild the container
+2. **Node-RED Running**: The Node-RED dashboard must be running on Ubuntu
+3. **Telegram Bot Library**: Install `node-red-contrib-telegrambot` in Node-RED
 
 ## Step 1: Create a Telegram Bot
 
@@ -35,22 +35,22 @@ If you want to restrict bot access to specific users:
 2. Start a conversation - it will reply with your user ID
 3. Save your user ID (a numeric value like `123456789`)
 
-## Step 3: Rebuild Docker Container
+## Step 3: Install Telegram Bot Library
 
-Since the Dockerfile now includes the `node-red-contrib-telegrambot` package, you need to rebuild the container:
+Install the `node-red-contrib-telegrambot` package in Node-RED:
 
+**Option 1 - Via Node-RED Palette Manager:**
+1. Open Node-RED: http://localhost:1880
+2. Click menu (≡) → Manage palette
+3. Click "Install" tab
+4. Search for `node-red-contrib-telegrambot`
+5. Click "Install"
+
+**Option 2 - Via npm (in Node-RED directory):**
 ```bash
-cd nodered
-docker-compose down
-docker-compose build
-docker-compose up -d
-```
-
-Or if you want to rebuild without cache:
-
-```bash
-docker-compose build --no-cache
-docker-compose up -d
+cd ~/.node-red  # or your Node-RED directory
+npm install node-red-contrib-telegrambot
+sudo systemctl restart nodered
 ```
 
 ## Step 4: Import the Telegram Flow
@@ -121,14 +121,15 @@ You can restrict bot access in two ways:
 
 ### Option A: Environment Variable
 
-Set `TELEGRAM_ALLOWED_USERS` environment variable in `docker-compose.yml`:
+Set `TELEGRAM_ALLOWED_USERS` environment variable for Node-RED service.
 
-```yaml
-services:
-  node-red:
-    environment:
-      - TZ=Europe/Bucharest
-      - TELEGRAM_ALLOWED_USERS=123456789,987654321  # Comma-separated user IDs
+Add to Node-RED systemd service file or set in Node-RED settings.js:
+
+```javascript
+// In settings.js
+functionGlobalContext: {
+    TELEGRAM_ALLOWED_USERS: "123456789,987654321"  // Comma-separated user IDs
+}
 ```
 
 ### Option B: Config Node
@@ -187,9 +188,9 @@ The bot tracks server status and provides:
 ### Bot Doesn't Respond
 
 1. **Check Bot Token**: Verify the token is correctly entered in the telegrambot-config node
-2. **Check Node-RED Logs**: Look for errors in Node-RED debug panel or Docker logs:
+2. **Check Node-RED Logs**: Look for errors in Node-RED debug panel or system logs:
    ```bash
-   docker logs node-red-dashboard
+   journalctl -u nodered -f
    ```
 3. **Check Authorization**: If `TELEGRAM_ALLOWED_USERS` is set, verify your user ID is included
 4. **Verify Bot is Running**: Check that the telegrambot-config node shows as "connected" (green dot)
@@ -227,15 +228,17 @@ The bot tracks server status and provides:
 
 If you see errors about `node-red-contrib-telegrambot` not being found:
 
-1. **Rebuild Container**: Make sure you rebuilt the Docker container after updating the Dockerfile
+1. **Install the Library**: Make sure the package is installed in Node-RED
 2. **Check Installation**: Verify the package is installed:
    ```bash
-   docker exec node-red-dashboard npm list node-red-contrib-telegrambot
+   cd ~/.node-red  # or your Node-RED directory
+   npm list node-red-contrib-telegrambot
    ```
 3. **Manual Install** (if needed):
    ```bash
-   docker exec node-red-dashboard npm install node-red-contrib-telegrambot
-   docker-compose restart
+   cd ~/.node-red  # or your Node-RED directory
+   npm install node-red-contrib-telegrambot
+   sudo systemctl restart nodered
    ```
 
 ## Security Considerations
@@ -266,13 +269,15 @@ Modify the status notification functions to filter notifications (e.g., only not
 
 You can also set the bot token via environment variable and reference it in the config node:
 
-1. Set `TELEGRAM_BOT_TOKEN` in `docker-compose.yml`:
-   ```yaml
-   environment:
-     - TELEGRAM_BOT_TOKEN=your_bot_token_here
+1. Set `TELEGRAM_BOT_TOKEN` in Node-RED settings or environment:
+   ```javascript
+   // In settings.js
+   functionGlobalContext: {
+       TELEGRAM_BOT_TOKEN: "your_bot_token_here"
+   }
    ```
 
-2. In the telegrambot-config node, you can use `$env.TELEGRAM_BOT_TOKEN` in the token field (if supported) or set it programmatically in a function node.
+2. In the telegrambot-config node, you can reference it in a function node using `global.get('TELEGRAM_BOT_TOKEN')`.
 
 ## Differences from HTTP-based Implementation
 

@@ -1,0 +1,298 @@
+[
+    {
+        "id": "sliding_telegram_comment",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "═══════════════ SLIDING GATE TELEGRAM INTERFACE ═══════════════",
+        "info": "## Sliding Gate Telegram Interface\n\nProvides Telegram bot commands for sliding gate control.\n\n### Commands:\n- /sliding_open - Open sliding gate (Relay 1)\n- /sliding_close - Close sliding gate (Relay 2)\n- /sliding_trigger - Trigger gate automation (Relay 3)\n- /sliding_status - Get sliding gate status\n- /sliding_help - Show sliding gate commands\n\n### Dependencies:\n- Requires: telegram_bot_config (from 50-telegram-interface.json)\n- Uses: Same Telegram bot as server management and main gate",
+        "x": 340,
+        "y": 2040,
+        "wires": []
+    },
+    {
+        "id": "sliding_telegram_receiver",
+        "type": "telegram receiver",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Commands Receiver",
+        "bot": "telegram_bot_config",
+        "x": 200,
+        "y": 2100,
+        "wires": [
+            [
+                "sliding_telegram_parse"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_event",
+        "type": "telegram event",
+        "z": "gate_main_tab",
+        "name": "Sliding Gate Callback Events",
+        "bot": "telegram_bot_config",
+        "event": "callback_query",
+        "x": 200,
+        "y": 2160,
+        "wires": [
+            [
+                "sliding_telegram_parse"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_parse",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Parse Sliding Gate Commands",
+        "func": "// Extract message data\nconst payload = msg.payload || {};\nlet chatId = payload.chatId;\nconst messageType = payload.type;\nlet text = (payload.content || '').trim();\n\n// Get user info\nconst originalMsg = msg.originalMessage || {};\nlet userId = originalMsg.from ? originalMsg.from.id : null;\nconst messageId = originalMsg.message_id;\n\n// Handle callback queries\nlet answerCallback = null;\nif (messageType === 'callback_query') {\n    text = payload.data || payload.callback_data || payload.content || \n           (originalMsg.data ? originalMsg.data : '') || '';\n    \n    if (!chatId) {\n        if (originalMsg.message && originalMsg.message.chat) {\n            chatId = originalMsg.message.chat.id;\n        } else if (originalMsg.chat) {\n            chatId = originalMsg.chat.id;\n        }\n    }\n    \n    if (originalMsg.from) {\n        userId = originalMsg.from.id;\n    }\n    \n    const callbackQueryId = payload.callback_query_id || payload.id || \n                            (originalMsg.id ? originalMsg.id.toString() : null) ||\n                            (originalMsg.query_id ? originalMsg.query_id.toString() : null);\n    \n    if (callbackQueryId) {\n        answerCallback = {\n            payload: {\n                callback_query_id: callbackQueryId,\n                text: '',\n                show_alert: false\n            },\n            topic: 'answerCallbackQuery'\n        };\n    }\n}\n\n// Check if it's a sliding gate command\nif ((messageType !== 'message' && messageType !== 'callback_query') || !text || !chatId) {\n    return [null, answerCallback].filter(m => m !== null);\n}\n\n// Store chat ID for notifications\nif (!flow.get('sliding_telegram_chat_ids')) {\n    flow.set('sliding_telegram_chat_ids', []);\n}\nconst chatIds = flow.get('sliding_telegram_chat_ids');\nif (!chatIds.includes(chatId)) {\n    chatIds.push(chatId);\n    flow.set('sliding_telegram_chat_ids', chatIds);\n}\n\n// Parse command\nconst command = text.split(' ')[0].toLowerCase();\nconst args = text.split(' ').slice(1);\n\n// Only handle sliding gate commands\nif (!command.startsWith('/sliding')) {\n    return [null, answerCallback].filter(m => m !== null);\n}\n\n// Store telegram data\nmsg.telegram = {\n    chatId: chatId,\n    userId: userId,\n    messageId: messageId,\n    command: command,\n    args: args,\n    originalText: text\n};\n\n// Route to appropriate handler\nif (command === '/sliding_open') {\n    msg.topic = 'sliding_open';\n} else if (command === '/sliding_close') {\n    msg.topic = 'sliding_close';\n} else if (command === '/sliding_trigger') {\n    msg.topic = 'sliding_trigger';\n} else if (command === '/sliding_status') {\n    msg.topic = 'sliding_status';\n} else if (command === '/sliding_help') {\n    msg.topic = 'sliding_help';\n} else {\n    msg.topic = 'sliding_unknown';\n}\n\nreturn [msg, answerCallback].filter(m => m !== null);",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 2130,
+        "wires": [
+            [
+                "sliding_telegram_switch"
+            ],
+            [
+                "sliding_telegram_answer_callback"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_answer_callback",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Answer Sliding Callback",
+        "func": "if (msg.payload && msg.payload.callback_query_id) {\n    msg.payload = {\n        callback_query_id: msg.payload.callback_query_id,\n        text: msg.payload.text || '',\n        show_alert: msg.payload.show_alert || false\n    };\n    msg.topic = 'answerCallbackQuery';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 2080,
+        "wires": [
+            [
+                "sliding_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_switch",
+        "type": "switch",
+        "z": "gate_main_tab",
+        "name": "Route Sliding Gate Commands",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "sliding_open",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "sliding_close",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "sliding_trigger",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "sliding_status",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "sliding_help",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "sliding_unknown",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 6,
+        "x": 730,
+        "y": 2180,
+        "wires": [
+            [
+                "sliding_telegram_handle_open"
+            ],
+            [
+                "sliding_telegram_handle_close"
+            ],
+            [
+                "sliding_telegram_handle_trigger"
+            ],
+            [
+                "sliding_telegram_handle_status"
+            ],
+            [
+                "sliding_telegram_handle_help"
+            ],
+            [
+                "sliding_telegram_handle_unknown"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_handle_open",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Handle Sliding Open",
+        "func": "// Create MQTT command\nconst timestamp = new Date().toISOString();\nconst requestId = `telegram-sliding-open-${Date.now()}`;\n\nconst telegramData = msg.telegram;\n\n// Create MQTT message to trigger Relay 1 (Open)\nmsg.payload = true;\nmsg.topic = 'cmnd/automatizare_poarta/Power1';\nmsg.telegram = telegramData;\nmsg.telegram.requestId = requestId;\n\n// Create confirmation message\nconst confirmationMsg = {\n    ...msg,\n    payload: {\n        chatId: telegramData.chatId,\n        type: 'message',\n        content: `🔓 Opening Sliding Gate...\\n\\nRelay 1 activated (1 second pulse)\\nRequest ID: ${requestId}`,\n        parse_mode: 'Markdown'\n    },\n    topic: 'send'\n};\n\n// Send both MQTT command and Telegram confirmation\nreturn [msg, confirmationMsg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 990,
+        "y": 2100,
+        "wires": [
+            [
+                "sliding_telegram_mqtt_out"
+            ],
+            [
+                "sliding_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_handle_close",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Handle Sliding Close",
+        "func": "// Create MQTT command\nconst timestamp = new Date().toISOString();\nconst requestId = `telegram-sliding-close-${Date.now()}`;\n\nconst telegramData = msg.telegram;\n\n// Create MQTT message to trigger Relay 2 (Close)\nmsg.payload = true;\nmsg.topic = 'cmnd/automatizare_poarta/Power2';\nmsg.telegram = telegramData;\nmsg.telegram.requestId = requestId;\n\n// Create confirmation message\nconst confirmationMsg = {\n    ...msg,\n    payload: {\n        chatId: telegramData.chatId,\n        type: 'message',\n        content: `🔒 Closing Sliding Gate...\\n\\nRelay 2 activated (1 second pulse)\\nRequest ID: ${requestId}`,\n        parse_mode: 'Markdown'\n    },\n    topic: 'send'\n};\n\n// Send both MQTT command and Telegram confirmation\nreturn [msg, confirmationMsg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 2160,
+        "wires": [
+            [
+                "sliding_telegram_mqtt_out"
+            ],
+            [
+                "sliding_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_handle_trigger",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Handle Sliding Trigger",
+        "func": "// Create MQTT command\nconst timestamp = new Date().toISOString();\nconst requestId = `telegram-sliding-trigger-${Date.now()}`;\n\nconst telegramData = msg.telegram;\n\n// Create MQTT message to trigger Relay 3 (Trigger)\nmsg.payload = true;\nmsg.topic = 'cmnd/automatizare_poarta/Power3';\nmsg.telegram = telegramData;\nmsg.telegram.requestId = requestId;\n\n// Create confirmation message\nconst confirmationMsg = {\n    ...msg,\n    payload: {\n        chatId: telegramData.chatId,\n        type: 'message',\n        content: `🔄 Triggering Sliding Gate...\\n\\nRelay 3 activated (1 second pulse)\\nRequest ID: ${requestId}`,\n        parse_mode: 'Markdown'\n    },\n    topic: 'send'\n};\n\n// Send both MQTT command and Telegram confirmation\nreturn [msg, confirmationMsg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 2220,
+        "wires": [
+            [
+                "sliding_telegram_mqtt_out"
+            ],
+            [
+                "sliding_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_handle_status",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Handle Sliding Status",
+        "func": "// Get sliding gate state from flow context\nconst slidingState = flow.get('sliding_gate_state') || {};\n\nlet statusText = `🚪 *Sliding Gate Status*\\n\\n`;\n\n// Relay states\nstatusText += '*Relays:*\\n';\nstatusText += `Relay 1 (Open): ${slidingState.relay1 || 'UNKNOWN'}\\n`;\nstatusText += `Relay 2 (Close): ${slidingState.relay2 || 'UNKNOWN'}\\n`;\nstatusText += `Relay 3 (Trigger): ${slidingState.relay3 || 'UNKNOWN'}\\n`;\nstatusText += `Relay 4 (Open Alt): ${slidingState.relay4 || 'UNKNOWN'}\\n`;\n\n// Last update\nif (slidingState.lastUpdate) {\n    const lastUpdate = new Date(slidingState.lastUpdate).toLocaleString('ro-RO');\n    statusText += `\\n🕐 Last update: ${lastUpdate}`;\n}\n\nmsg.payload = {\n    chatId: msg.telegram.chatId,\n    type: 'message',\n    content: statusText,\n    parse_mode: 'Markdown'\n};\nmsg.topic = 'send';\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 2280,
+        "wires": [
+            [
+                "sliding_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_handle_help",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Handle Sliding Help",
+        "func": "const helpText = `🚪 *Sliding Gate Control Bot*\\n\\n` +\n    `*Available Commands:*\\n\\n` +\n    `🔓 \\`/sliding_open\\`\\n` +\n    `   Open the sliding gate (Relay 1)\\n\\n` +\n    `🔒 \\`/sliding_close\\`\\n` +\n    `   Close the sliding gate (Relay 2)\\n\\n` +\n    `🔄 \\`/sliding_trigger\\`\\n` +\n    `   Trigger gate automation (Relay 3)\\n\\n` +\n    `📊 \\`/sliding_status\\`\\n` +\n    `   Get sliding gate status\\n\\n` +\n    `❓ \\`/sliding_help\\`\\n` +\n    `   Show this help message\\n\\n` +\n    `*Features:*\\n` +\n    `• 1-second pulse control\\n` +\n    `• Command history logging\\n` +\n    `• Request ID tracking\\n\\n` +\n    `*Quick Actions:*\\n` +\n    `Use the buttons below:`;\n\nconst inlineKeyboard = {\n    inline_keyboard: [\n        [\n            { text: '🔓 Open Sliding Gate', callback_data: '/sliding_open' }\n        ],\n        [\n            { text: '🔒 Close Sliding Gate', callback_data: '/sliding_close' }\n        ],\n        [\n            { text: '🔄 Trigger', callback_data: '/sliding_trigger' },\n            { text: '📊 Status', callback_data: '/sliding_status' }\n        ],\n        [\n            { text: '❓ Help', callback_data: '/sliding_help' }\n        ]\n    ]\n};\n\nmsg.payload = {\n    chatId: msg.telegram.chatId,\n    type: 'message',\n    content: helpText,\n    parse_mode: 'Markdown',\n    options: {\n        reply_markup: JSON.stringify(inlineKeyboard)\n    }\n};\nmsg.topic = 'send';\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 2340,
+        "wires": [
+            [
+                "sliding_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_handle_unknown",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Handle Unknown Sliding Command",
+        "func": "msg.payload = {\n    chatId: msg.telegram.chatId,\n    type: 'message',\n    content: `❓ Unknown sliding gate command: ${msg.telegram.originalText}\\n\\nType /sliding_help for available commands.`\n};\nmsg.topic = 'send';\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 2400,
+        "wires": [
+            [
+                "sliding_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "sliding_telegram_sender",
+        "type": "telegram sender",
+        "z": "gate_main_tab",
+        "name": "Sliding Telegram Sender",
+        "bot": "telegram_bot_config",
+        "x": 1280,
+        "y": 2240,
+        "wires": []
+    },
+    {
+        "id": "sliding_telegram_mqtt_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Sliding Telegram Commands",
+        "topic": "",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1290,
+        "y": 2180,
+        "wires": []
+    }
+]

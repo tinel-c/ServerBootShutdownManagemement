@@ -51,9 +51,9 @@ Complete Telegram bot integration for server management via mobile or desktop Te
 - **MQTT Integration**: Seamlessly integrates with existing MQTT command system
 - **Status Notifications**: Subscribes to server status topics for real-time updates
 
-### Docker Configuration
+### Node-RED Configuration
 
-- **Updated Dockerfile**: Includes `node-red-contrib-telegrambot` package installation
+- **Library Installation**: `node-red-contrib-telegrambot` package (installed via npm or Palette Manager)
 - **Environment Variables**: Support for `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALLOWED_USERS`
 
 ### Documentation
@@ -66,11 +66,7 @@ Complete Telegram bot integration for server management via mobile or desktop Te
 
 ### New Dependencies
 
-- `node-red-contrib-telegrambot` (v17.0.5+) - Telegram bot integration library
-
-### Updated Dependencies
-
-- Node-RED Docker image includes Telegram bot library
+- `node-red-contrib-telegrambot` (v17.0.5+) - Telegram bot integration library (installed in Node-RED)
 
 ## 🚀 Installation
 
@@ -78,15 +74,15 @@ Complete Telegram bot integration for server management via mobile or desktop Te
 
 1. Telegram account
 2. Bot token from [@BotFather](https://t.me/botfather)
-3. Node-RED running (Docker container)
+3. Node-RED running on Ubuntu
 
 ### Setup Steps
 
-1. **Rebuild Docker Container:**
+1. **Install Telegram Bot Library:**
    ```bash
-   cd nodered
-   docker-compose build
-   docker-compose up -d
+   cd ~/.node-red  # or your Node-RED directory
+   npm install node-red-contrib-telegrambot
+   sudo systemctl restart nodered
    ```
 
 2. **Create Telegram Bot:**
@@ -101,7 +97,7 @@ Complete Telegram bot integration for server management via mobile or desktop Te
    - Deploy
 
 4. **Configure Authorization (Optional):**
-   - Set `TELEGRAM_ALLOWED_USERS` environment variable with comma-separated user IDs
+   - Set `TELEGRAM_ALLOWED_USERS` in Node-RED settings.js with comma-separated user IDs
    - Or configure in the telegrambot-config node
 
 5. **Test:**
@@ -122,7 +118,6 @@ No migration required. This is a new feature that doesn't affect existing functi
 - `RELEASE_NOTES_v2.5.0.md` - This file
 
 ### Modified Files
-- `nodered/Dockerfile` - Added telegrambot library installation
 - `nodered/flows/README.md` - Added Telegram interface documentation
 - `README.md` - Added Telegram interface to main documentation
 

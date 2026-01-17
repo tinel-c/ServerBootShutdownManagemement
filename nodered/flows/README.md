@@ -257,7 +257,7 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 **Dependencies**: 
 - `mqtt_broker_local`
-- `node-red-contrib-telegrambot` (installed via Dockerfile)
+- `node-red-contrib-telegrambot` (install via npm in Node-RED)
 
 **MQTT Topics**:
 - Publishes: `dell/t310/command/boot`, `dell/t310/command/shutdown`
@@ -274,7 +274,7 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
    - Choose polling (default) or webhook mode
 
 **Setup Instructions**:
-1. Rebuild Docker container (includes telegrambot library)
+1. Install the telegrambot library in Node-RED (Palette Manager or npm)
 2. Import the flow
 3. Configure the `telegrambot-config` node with your bot token
 4. Deploy the flow

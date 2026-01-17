@@ -1,177 +1,199 @@
 # Changelog
 
-All notable changes to the Server Management System will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.6.0] - 2026-01-17
+## [3.0.0] - 2026-01-17
 
-### 🎉 Major Features
+### Added - Multi-Domain Automation System
 
-#### Dell T310 Proxmox API Integration
-- **Replaced unreliable IPMI with Proxmox API** for Dell T310 status monitoring
-- Provides stable, consistent server status without IPMI connection timeouts
-- Automatically detects Proxmox node status (online/offline)
-- 5-second timeout for fast, responsive status checks
+#### Architecture
+- **Modular automation system** supporting multiple domains (gates, lights, irrigation, HVAC, etc.)
+- **Numbered flow system** (000-999) for organizing automation domains
+- **Domain isolation** with independent, self-contained modules
+- **Scalable design** supporting unlimited automation types
 
-#### Management Scripts Suite
-- **`status.sh`** - Interactive status checker with color-coded output
-  - Shows all service states with visual indicators
-  - Optional log viewing with customizable line count
-  - System health overview
-- **`manage.sh`** - One-command service management
-  - Start/stop/restart all services at once
-  - Enable/disable auto-start on boot
-  - Live log viewing
-- **`update.sh`** - Safe system updates with automatic config preservation
-  - Backs up all configuration files
-  - Updates scripts and dependencies
-  - Restores configuration automatically
-  - Graceful service restarts
+#### Templates
+- `domain-base-template.json` - Base configuration template for new domains
+- `control-panel-template.json` - Control interface template with buttons
+- `status-display-template.json` - Status monitoring template
+- `sensor-monitoring-template.json` - Sensor data collection template
+- `automation-logic-template.json` - Automation rules and scheduling template
 
-#### Environment Configuration Tools
-- **`check_env.sh`** - Validates environment variable configuration
-  - Checks all required variables are set
-  - Masks sensitive passwords in output
-  - Color-coded validation results
-- **`generate_env_template.sh`** - Creates comprehensive `.env` template
-- **`config_loader.py`** - Centralized configuration loading with validation
+#### Documentation
+- `docs/AUTOMATION_ARCHITECTURE.md` - Complete multi-domain system architecture
+- `docs/AUTOMATION_INTEGRATION_GUIDE.md` - Step-by-step migration guide
+- `docs/QUICK_START_NEW_AUTOMATION.md` - 5-minute setup guide for new domains
+- `nodered/templates/README.md` - Template usage documentation
 
-### 🐛 Bug Fixes
+#### Domain Support
+- Reserved number ranges for 9 automation domains:
+  - 100-199: Server Management (existing)
+  - 200-299: Gate Automation
+  - 300-399: Lighting Control
+  - 400-499: Irrigation System
+  - 500-599: SMS/Notifications
+  - 600-699: Security/Cameras
+  - 700-799: HVAC/Climate Control
+  - 800-899: Energy Management
+  - 900-999: Shared Utilities
 
-#### Fixed: Repeated "UNKNOWN" Status Notifications
-- **Root Cause**: Multiple conflicting systems updating server state
-  - Health monitor using 'up'/'down' states
-  - Status publisher using 'online'/'offline' states
-  - IPMI timeouts causing state flip-flops
-- **Solution**: 
-  - Removed conflicting health monitor state updates from Node-RED
-  - Made MQTT status publisher the single source of truth
-  - Standardized all state values across the system
+#### MQTT Structure
+- Hierarchical MQTT topic organization: `domain/location/device/type/action`
+- Consistent topic patterns across all domains
+- Command, status, and sensor topic specifications
+- Topic migration patterns for existing systems
 
-#### Fixed: IPMI Connection Reliability
-- **Added automatic retry logic** (3 attempts with 1s delay)
-- Handles transient "Unable to establish IPMI v2 / RMCP+ session" errors
-- Continues to work for HP DL360p iLO connections
+### Changed
 
-#### Fixed: Environment Variable Placeholders Not Replaced
-- **Root Cause**: `replace_env_vars()` only matched exact `${VAR}` strings
-- **Solution**: Implemented regex-based replacement for embedded placeholders
-- Now correctly replaces `https://${HOST}:8006` → `https://192.168.2.9:8006`
+#### Node-RED Infrastructure
+- Removed Docker deployment (Node-RED now runs natively on Ubuntu)
+- Updated all Docker commands to systemd service commands
+- Changed Node-RED management from `docker-compose` to `systemctl`
+- Updated logging from `docker logs` to `journalctl`
 
-#### Fixed: Configuration Loss on Reinstall
-- **Root Cause**: `install.sh` backed up directory before preserving `.env`
-- **Solution**: 
-  - Check for `.env` file BEFORE directory backup
-  - Create timestamped backups in `/tmp/`
-  - Restore configuration after copying new files
+#### Documentation Updates
+- Updated `README.md` with multi-domain automation overview
+- Added automation system documentation section
+- Updated version to 3.0.0
+- Enhanced project scope description
 
-### 📚 Documentation
+### Removed
+- `nodered/docker-compose.yml` - Docker Compose configuration
+- `nodered/Dockerfile` - Docker image definition
+- All Docker-specific commands and references from documentation
 
-#### New Guides
-- **`ENV_SETUP_GUIDE.md`** - Comprehensive environment configuration guide
-- **`QUICK_REFERENCE.md`** - Command cheat sheet for daily operations
-- **`UPDATE_GUIDE.md`** - Detailed update instructions and best practices
-- **`DEVELOPMENT_WORKFLOW.md`** - Contribution and development workflow
-- **`CHANGELOG.md`** - This file
+### Fixed
+- Corrected Docker references in all documentation files
+- Updated deployment instructions for native Ubuntu installation
+- Fixed MQTT broker status checks to use systemctl
 
-#### Updated Documentation
-- **`README.md`** - Updated with new features and management scripts
-- **`COMMIT_MESSAGE.md`** - Template for consistent commit messages
+## [2.5.0] - 2026-01-11
 
-### 🔧 Technical Improvements
+### Added - Telegram Bot Interface
+- Complete Telegram bot integration for server management
+- Command interface: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
+- Inline keyboard buttons matching Node-RED dashboard
+- Real-time notifications for server state changes
+- User authorization support via `TELEGRAM_ALLOWED_USERS`
+- Polling and webhook modes
+- New flow: `50-telegram-interface.json`
 
-#### Code Quality
-- Removed all debug instrumentation after verification
-- Added comprehensive error handling in Proxmox API calls
-- Improved logging with context-specific messages
-- Standardized state values across all components
+### Documentation
+- `nodered/TELEGRAM_SETUP.md` - Complete Telegram bot setup guide
+- Updated `README.md` with Telegram interface documentation
 
-#### Configuration Management
-- Environment variables now properly loaded before YAML processing
-- Regex-based placeholder replacement supports complex patterns
-- Validation ensures critical config is present
-- Clear error messages for missing variables
+### Dependencies
+- Added `node-red-contrib-telegrambot` library
 
-#### Service Reliability
-- Services restart gracefully during updates
-- Configuration preserved across updates
-- Proper systemd service definitions
-- Health checks and monitoring improved
+## [2.4.0] - 2026-01-09
 
-### 🔄 Modified Files
+### Added - Client Management & Auto-Update
+- Remote client shutdown (graceful/force) from Node-RED dashboard
+- Application save logic before shutdown (Ctrl+S to all windows)
+- Bulk client shutdown operations
+- Auto-update system with GitHub release integration
+- Semantic version comparison for updates
+- Manual update check via system tray
+- Automatic rollback on failed updates
+- Version display in system tray tooltip
+- New flow: `42-client-shutdown.json`
 
-**Core Functionality:**
-- `scripts/status/status_publisher.py` - Added Proxmox API support
-- `scripts/utils/ipmi_wrapper.py` - Added retry logic
-- `scripts/utils/config_loader.py` - NEW: Centralized config loading
-- `nodered/flows/41-client-automation.json` - Fixed state conflicts
-- `nodered/flows/50-telegram-interface.json` - Cleaned up notifications
-- `install.sh` - Fixed configuration preservation
+### Documentation
+- `client/README_CLIENT_SHUTDOWN.md` - Remote shutdown guide
+- `client/README_AUTO_UPDATE.md` - Auto-update system guide
+- Updated `CLIENT_MANAGEMENT_GUIDE.md`
 
-**New Scripts:**
-- `status.sh` - Service status checker
-- `manage.sh` - Service management tool
-- `update.sh` - Safe update script
-- `check_env.sh` - Environment validation
-- `generate_env_template.sh` - Template generator
+## [2.3.0] - 2026-01-07
 
-### ⚠️ Breaking Changes
+### Added - Smart Client-Aware Automation
+- Automatic server boot when clients connect
+- Automatic server shutdown with 5-minute grace period
+- Command cooldown protection (5 minutes)
+- Comprehensive activity logging
+- Smart retry logic for transient failures
+- State machine for automation management
+- New flow: `41-client-automation.json`
 
-None. All changes are backward compatible.
+### Documentation
+- `nodered/SMART_WAKEUP_GUIDE.md` - Smart automation guide
+- Updated `docs/ARCHITECTURE.md` with v2.3 features
 
-### 📦 Dependencies
+## [2.2.0] - 2025-12-29
 
-No new dependencies added. Uses existing:
-- `proxmoxer` - Already in requirements.txt
-- `python-dotenv` - Already in requirements.txt
-- `pyyaml` - Already in requirements.txt
+### Added - Advanced Health Monitoring
+- Comprehensive health dashboard with 16+ data points per check
+- Real-time countdown timers to next ping
+- Statistics grid (pings, grace period, timeout, manual resume)
+- Status badges and color-coded indicators
+- Tags display with pill styling
+- Badge URL links
+- Modern gradient UI design
+- Updated flows: `12-dell-health.json`, `22-hp-health.json`
 
-### 🚀 Migration Guide
+### Documentation
+- `nodered/HEALTH_DASHBOARD_GUIDE.md` - Health monitoring guide
 
-For existing installations:
+## [2.1.0] - 2025-12-28
 
-```bash
-# 1. Pull latest changes
-cd /path/to/ServerBootShutdownMangement
-git pull
+### Added - Client PC Monitoring
+- Windows client monitoring application
+- Presence and heartbeat tracking
+- Automatic server power management
+- System tray integration
+- New flows: `40-client-tracking.json`
 
-# 2. Run update script (preserves configuration)
-sudo ./update.sh
+### Documentation
+- `client/README_CLIENT.md` - Client setup guide
+- Updated `README.md` with client monitoring features
 
-# 3. Verify environment variables
-./check_env.sh
+## [2.0.0] - 2025-12-27
 
-# 4. Restart services
-sudo ./manage.sh restart
+### Changed - Modular Architecture
+- Refactored from monolithic `flows.json` to modular flow files
+- Feature-based organization (00-base, 10-dell, 20-hp, 90-logs)
+- Independent feature modules for easier maintenance
+- Version control friendly structure
 
-# 5. Verify everything works
-./status.sh -l
-```
+### Added
+- Modular flow files in `nodered/flows/`
+- Flow-specific documentation
+- Base configuration module
+- Per-server feature modules
 
-### 🎯 What's Next (v2.7.0)
+### Documentation
+- `nodered/NODE_RED_DEVELOPMENT.md` - Complete development guide
+- `nodered/flows/README.md` - Flow import instructions
 
-- [ ] Web dashboard for system monitoring
-- [ ] Email notifications in addition to Telegram
-- [ ] Advanced power scheduling
-- [ ] VM-level monitoring integration
-- [ ] Enhanced health check dashboard
+### Deprecated
+- `flows.json` (monolithic, renamed to flows.json.legacy)
+
+## [1.x] - 2025-12 and earlier
+
+See `RELEASE_HISTORY.md` for older version history.
+
+### Initial Features
+- Dell T310 boot/shutdown control
+- HP DL360p support
+- MQTT protocol implementation
+- Basic Node-RED dashboard
+- Python systemd services
+- Status monitoring
+- Health checks integration
 
 ---
 
-## [2.5.1] - Previous Release
+## Version Numbering
 
-See `RELEASE_HISTORY.md` for older versions.
+- **Major** (X.0.0): Significant architectural changes, breaking changes
+- **Minor** (x.X.0): New features, non-breaking enhancements
+- **Patch** (x.x.X): Bug fixes, documentation updates
 
----
+## Links
 
-## Versioning Scheme
-
-- **Major (X.0.0)**: Breaking changes or major feature overhauls
-- **Minor (2.X.0)**: New features, non-breaking changes
-- **Patch (2.5.X)**: Bug fixes, documentation updates
-
----
-
-**Full Changelog**: https://github.com/tinel-c/ServerBootShutdownManagemement/compare/v2.5.1...v2.6.0
+- [Release Notes v2.5.0](RELEASE_NOTES_v2.5.0.md)
+- [Release Notes v2.4.0](RELEASE_NOTES_v2.4.0.md)
+- [Release Notes v2.3.0](RELEASE_NOTES_v2.3.0.md)
+- [Release History](RELEASE_HISTORY.md) - Versions 1.x - 2.2.0

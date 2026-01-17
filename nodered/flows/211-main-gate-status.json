@@ -1,0 +1,574 @@
+[
+    {
+        "id": "gate_status_comment",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "═══════════════ POWER STATUS & SMS ALERTS ═══════════════",
+        "info": "## Main Gate Status\n\nMonitors and displays all gate controller status:\n- Power status (battery/mains)\n- Relay 1-4 states\n- Mains power availability\n- Keypad connectivity\n- Timestamp of last update\n\n### MQTT Topics:\n- MainGate/STAT/eventPower\n- MainGate/STAT/reccurentStatusRelay1-4\n- MainGate/STAT/reccurentStatusMains\n- MainGate/STAT/reccurentStatusKeypad\n\n### SMS Alerts:\nSends SMS notification on power status changes.",
+        "x": 370,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "gate_status_power_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Power Status",
+        "topic": "MainGate/STAT/eventPower",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 510,
+        "y": 1220,
+        "wires": [
+            [
+                "gate_status_power_display",
+                "gate_status_power_rbe",
+                "gate_status_update_context"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_power_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_status",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "name": "Power Status Display",
+        "label": "Power",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "className": "",
+        "x": 900,
+        "y": 1200,
+        "wires": []
+    },
+    {
+        "id": "gate_status_power_rbe",
+        "type": "rbe",
+        "z": "gate_main_tab",
+        "name": "Report by Exception",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": false,
+        "property": "payload",
+        "topi": "topic",
+        "x": 800,
+        "y": 780,
+        "wires": [
+            [
+                "gate_status_sms_msg"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_sms_msg",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Format SMS Message",
+        "func": "msg.payload = \"Poarta principala - Status alimentare: \" + msg.payload;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 800,
+        "wires": [
+            [
+                "gate_status_sms_delay"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_sms_delay",
+        "type": "delay",
+        "z": "gate_main_tab",
+        "name": "Delay 1s",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1280,
+        "y": 800,
+        "wires": [
+            [
+                "gate_status_sms_text_out"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_sms_number",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Get SMS Number",
+        "func": "// Get number from global context or use default\nvar smsNumber = global.get(\"number\") || \"0740244845\";\nmsg.payload = smsNumber;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 440,
+        "wires": [
+            [
+                "gate_status_sms_to_out"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_sms_to_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "SMS To Number",
+        "topic": "esp32SMS/smsSend/to",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 660,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "gate_status_sms_text_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "SMS Text",
+        "topic": "esp32SMS/smsSend/text",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1480,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "gate_status_link_sms",
+        "type": "link call",
+        "z": "gate_main_tab",
+        "name": "Trigger SMS Send",
+        "links": [
+            "15e69a900ef908cc"
+        ],
+        "linkType": "static",
+        "timeout": "30",
+        "x": 170,
+        "y": 440,
+        "wires": [
+            [
+                "gate_status_sms_number"
+            ]
+        ]
+    },
+    {
+        "id": "gate_section_relays",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "═══════════════ RELAY STATUS MONITORING ═══════════════",
+        "info": "Monitor all 4 relays, mains power, and keypad",
+        "x": 360,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "gate_status_relay1_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "",
+        "topic": "MainGate/STAT/reccurentStatusRelay1",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 350,
+        "y": 1000,
+        "wires": [
+            [
+                "gate_status_relay1_display",
+                "gate_status_timestamp"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_relay1_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_relays",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "name": "",
+        "label": "Relay 1",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "className": "",
+        "x": 850,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "gate_status_relay2_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "",
+        "topic": "MainGate/STAT/reccurentStatusRelay2",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 290,
+        "y": 1060,
+        "wires": [
+            [
+                "gate_status_relay2_display",
+                "gate_status_timestamp"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_relay2_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_relays",
+        "order": 2,
+        "width": "0",
+        "height": "0",
+        "name": "",
+        "label": "Relay 2",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "className": "",
+        "x": 850,
+        "y": 1060,
+        "wires": []
+    },
+    {
+        "id": "gate_status_relay3_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "",
+        "topic": "MainGate/STAT/reccurentStatusRelay3",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 310,
+        "y": 1180,
+        "wires": [
+            [
+                "gate_status_relay3_display",
+                "gate_status_timestamp"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_relay3_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_relays",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "name": "",
+        "label": "Relay 3",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "className": "",
+        "x": 860,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "gate_status_relay4_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "",
+        "topic": "MainGate/STAT/reccurentStatusRelay4",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 410,
+        "y": 760,
+        "wires": [
+            [
+                "gate_status_relay4_display",
+                "gate_status_timestamp"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_relay4_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_relays",
+        "order": 4,
+        "width": "0",
+        "height": "0",
+        "name": "",
+        "label": "Relay 4",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 760,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "gate_status_mains_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "",
+        "topic": "MainGate/STAT/reccurentStatusMains",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 370,
+        "y": 860,
+        "wires": [
+            [
+                "gate_status_mains_display",
+                "gate_status_timestamp"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_mains_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_relays",
+        "order": 5,
+        "width": "0",
+        "height": "0",
+        "name": "",
+        "label": "Mains Power",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "className": "",
+        "x": 790,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "gate_status_keypad_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "",
+        "topic": "MainGate/STAT/reccurentStatusKeypad",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 370,
+        "y": 900,
+        "wires": [
+            [
+                "gate_status_keypad_display",
+                "gate_status_timestamp"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_keypad_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_relays",
+        "order": 6,
+        "width": "0",
+        "height": "0",
+        "name": "",
+        "label": "Keypad",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "className": "",
+        "x": 780,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "gate_section_debug",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "═══════════════ DEBUG & TIMESTAMP ═══════════════",
+        "info": "Debug messages and last update timestamp",
+        "x": 960,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "gate_status_message_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "",
+        "topic": "MainGate/STAT/message",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 350,
+        "y": 960,
+        "wires": [
+            [
+                "gate_status_debug_display",
+                "gate_status_timestamp"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_debug_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_debug",
+        "order": 1,
+        "width": "6",
+        "height": "6",
+        "name": "",
+        "label": "Debug Messages",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 14,
+        "color": "#000000",
+        "className": "",
+        "x": 810,
+        "y": 960,
+        "wires": []
+    },
+    {
+        "id": "gate_status_timestamp",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Format Timestamp",
+        "func": "// Add formatted timestamp\nconst now = new Date();\nmsg.myrawdate = now.toLocaleString('ro-RO', {\n    year: 'numeric',\n    month: '2-digit',\n    day: '2-digit',\n    hour: '2-digit',\n    minute: '2-digit',\n    second: '2-digit'\n});\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 700,
+        "wires": [
+            [
+                "gate_status_timestamp_display"
+            ]
+        ]
+    },
+    {
+        "id": "gate_status_timestamp_display",
+        "type": "ui-text",
+        "z": "gate_main_tab",
+        "group": "ui_group_gate_debug",
+        "order": 2,
+        "width": "0",
+        "height": "0",
+        "name": "",
+        "label": "Last Update",
+        "format": "{{msg.myrawdate}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 14,
+        "color": "#666666",
+        "className": "",
+        "x": 1050,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "gate_status_update_context",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Update Context",
+        "func": "// Update gate state in context\nlet state = flow.get('gate_state') || {};\nif (!state.mainGate) state.mainGate = {};\n\nstate.mainGate.power = msg.payload;\nstate.mainGate.lastUpdate = new Date().toISOString();\n\nflow.set('gate_state', state);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 1240,
+        "wires": [
+            []
+        ]
+    }
+]

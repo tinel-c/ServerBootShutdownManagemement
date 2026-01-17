@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Server Boot/Shutdown Management System uses a centralized automation server architecture where all control, monitoring, and management logic resides on a single Ubuntu VM running Docker containers and Python services.
+The Server Boot/Shutdown Management System uses a centralized automation server architecture where all control, monitoring, and management logic resides on a single Ubuntu VM running Node-RED (native installation) and Python services.
 
 ![System Architecture](architecture_diagram_v3.svg)
 
@@ -51,10 +51,10 @@ The Server Boot/Shutdown Management System uses a centralized automation server 
 
 The automation server is an Ubuntu VM that hosts all management components:
 
-#### A. Node-RED Dashboard (Docker Container)
+#### A. Node-RED Dashboard (Native Installation)
 - **Technology**: Node-RED with Dashboard 2.0 (@flowfuse/node-red-dashboard)
 - **Port**: 1880 (HTTP)
-- **Deployment**: Docker container (`node-red-dashboard`)
+- **Deployment**: Native installation on Ubuntu (systemd service)
 - **Features**:
   - **Control Panels**: Boot and shutdown buttons for each server
     - Dell T310: WoL/IPMI boot, graceful/force shutdown
@@ -373,12 +373,12 @@ The architecture supports easy addition of new servers:
 ┌─────────────────────────────────────────────┐
 │          Automation Server (VM)             │
 │  ┌────────────────────────────────────────┐ │
-│  │  Docker Compose Stack                  │ │
+│  │  Native Services                       │ │
 │  │  - Node-RED (port 1880)                │ │
 │  │  - Mosquitto MQTT (port 1883)          │ │
 │  └────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────┐ │
-│  │  Systemd Services                      │ │
+│  │  Python Systemd Services               │ │
 │  │  - mqtt-boot-listener.service          │ │
 │  │  - mqtt-shutdown-listener.service      │ │
 │  │  - status-publisher.service            │ │
@@ -466,7 +466,7 @@ For critical environments:
 
 ### Resource Usage (Automation Server)
 
-- **Node-RED Container**: ~200MB RAM, minimal CPU
+- **Node-RED Service**: ~200MB RAM, minimal CPU
 - **Mosquitto MQTT**: ~10MB RAM, minimal CPU
 - **Python Services**: ~50MB RAM each, minimal CPU
 - **Total**: ~500MB RAM recommended minimum

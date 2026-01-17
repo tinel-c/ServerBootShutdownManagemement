@@ -1,0 +1,652 @@
+[
+    {
+        "id": "secondary_gate_comment",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "═══════════════ SECONDARY GATE CONTROLS - 6 Relays ═══════════════",
+        "info": "## Secondary Sliding Gate Control\n\nProvides controls for the secondary sliding gate with 6 relays.\n\n### Gate Control Relays (1-4):\n- **Relay 1**: Close gate (1 sec pulse)\n- **Relay 2**: Open gate (1 sec pulse)\n- **Relay 3**: Trigger automation (1 sec pulse)\n- **Relay 4**: Stop (1 sec pulse)\n\n### Light Control Relays (5-6):\n- **Relay 5**: Left light (120 sec pulse)\n- **Relay 6**: Right light (120 sec pulse)\n\n### How it works:\n1. Subscribe to SecondGate/STAT/RelayX for status\n2. Display switch in dashboard\n3. When toggled, send pulse (1s for gate, 120s for lights)\n4. Publish to SecondGate/CMD/RelayX\n\n### MQTT Topics:\n- Status: SecondGate/STAT/Relay[1-6]\n- Command: SecondGate/CMD/Relay[1-6]\n\n### Dependencies:\n- Requires: ui_group_secondary_gate (from base config)\n- Requires: mqtt_broker_local",
+        "x": 330,
+        "y": 1120,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay1_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 1 Status",
+        "topic": "SecondGate/STAT/Relay1",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 1200,
+        "wires": [
+            [
+                "secondary_relay1_switch",
+                "secondary_relay1_store"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay1_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 1 State",
+        "func": "let secondaryState = flow.get('secondary_gate_state') || {};\nsecondaryState.relay1 = msg.payload;\nsecondaryState.lastUpdate = new Date().toISOString();\nflow.set('secondary_gate_state', secondaryState);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay1_switch",
+        "type": "ui_switch",
+        "z": "gate_main_tab",
+        "name": "",
+        "label": "Inchide",
+        "group": "ui_group_secondary_gate",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "onvalue": "ON",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "OFF",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "x": 720,
+        "y": 1200,
+        "wires": [
+            [
+                "secondary_relay1_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay1_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse (1 second)",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 980,
+        "y": 1200,
+        "wires": [
+            [
+                "secondary_relay1_out"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay1_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 1 Command",
+        "topic": "SecondGate/CMD/Relay1",
+        "qos": "2",
+        "retain": "false",
+        "broker": "mqtt_broker_local",
+        "x": 1310,
+        "y": 1200,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay2_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 2 Status",
+        "topic": "SecondGate/STAT/Relay2",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 1280,
+        "wires": [
+            [
+                "secondary_relay2_switch",
+                "secondary_relay2_store"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay2_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 2 State",
+        "func": "let secondaryState = flow.get('secondary_gate_state') || {};\nsecondaryState.relay2 = msg.payload;\nsecondaryState.lastUpdate = new Date().toISOString();\nflow.set('secondary_gate_state', secondaryState);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 1240,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay2_switch",
+        "type": "ui_switch",
+        "z": "gate_main_tab",
+        "name": "",
+        "label": "Deschide",
+        "group": "ui_group_secondary_gate",
+        "order": 2,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "onvalue": "ON",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "OFF",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "x": 720,
+        "y": 1280,
+        "wires": [
+            [
+                "secondary_relay2_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay2_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse (1 second)",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 980,
+        "y": 1280,
+        "wires": [
+            [
+                "secondary_relay2_out"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay2_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 2 Command",
+        "topic": "SecondGate/CMD/Relay2",
+        "qos": "2",
+        "retain": "false",
+        "broker": "mqtt_broker_local",
+        "x": 1310,
+        "y": 1280,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay3_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 3 Status",
+        "topic": "SecondGate/STAT/Relay3",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 1360,
+        "wires": [
+            [
+                "secondary_relay3_switch",
+                "secondary_relay3_store"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay3_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 3 State",
+        "func": "let secondaryState = flow.get('secondary_gate_state') || {};\nsecondaryState.relay3 = msg.payload;\nsecondaryState.lastUpdate = new Date().toISOString();\nflow.set('secondary_gate_state', secondaryState);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 1320,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay3_switch",
+        "type": "ui_switch",
+        "z": "gate_main_tab",
+        "name": "",
+        "label": "Trigger",
+        "group": "ui_group_secondary_gate",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "onvalue": "ON",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "OFF",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "x": 720,
+        "y": 1360,
+        "wires": [
+            [
+                "secondary_relay3_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay3_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse (1 second)",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 980,
+        "y": 1360,
+        "wires": [
+            [
+                "secondary_relay3_out"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay3_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 3 Command",
+        "topic": "SecondGate/CMD/Relay3",
+        "qos": "2",
+        "retain": "false",
+        "broker": "mqtt_broker_local",
+        "x": 1310,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay4_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 4 Status",
+        "topic": "SecondGate/STAT/Relay4",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 1440,
+        "wires": [
+            [
+                "secondary_relay4_switch",
+                "secondary_relay4_store"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay4_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 4 State",
+        "func": "let secondaryState = flow.get('secondary_gate_state') || {};\nsecondaryState.relay4 = msg.payload;\nsecondaryState.lastUpdate = new Date().toISOString();\nflow.set('secondary_gate_state', secondaryState);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 1400,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay4_switch",
+        "type": "ui_switch",
+        "z": "gate_main_tab",
+        "name": "",
+        "label": "Stop",
+        "group": "ui_group_secondary_gate",
+        "order": 4,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "onvalue": "ON",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "OFF",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "x": 710,
+        "y": 1440,
+        "wires": [
+            [
+                "secondary_relay4_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay4_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse (1 second)",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "1",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 980,
+        "y": 1440,
+        "wires": [
+            [
+                "secondary_relay4_out"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay4_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 4 Command",
+        "topic": "SecondGate/CMD/Relay4",
+        "qos": "2",
+        "retain": "false",
+        "broker": "mqtt_broker_local",
+        "x": 1310,
+        "y": 1440,
+        "wires": []
+    },
+    {
+        "id": "secondary_lights_comment",
+        "type": "comment",
+        "z": "gate_main_tab",
+        "name": "─────────── LIGHT CONTROLS - 120 Second Pulse ───────────",
+        "info": "Light controls use 120-second pulse for automatic shutoff",
+        "x": 310,
+        "y": 1520,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay5_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 5 Status",
+        "topic": "SecondGate/STAT/Relay5",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 1580,
+        "wires": [
+            [
+                "secondary_relay5_switch",
+                "secondary_relay5_store"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay5_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 5 State",
+        "func": "let secondaryState = flow.get('secondary_gate_state') || {};\nsecondaryState.relay5 = msg.payload;\nsecondaryState.lastUpdate = new Date().toISOString();\nflow.set('secondary_gate_state', secondaryState);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 1540,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay5_switch",
+        "type": "ui_switch",
+        "z": "gate_main_tab",
+        "name": "",
+        "label": "Left light",
+        "group": "ui_group_secondary_gate",
+        "order": 5,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "onvalue": "ON",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "OFF",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "x": 720,
+        "y": 1580,
+        "wires": [
+            [
+                "secondary_relay5_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay5_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse (120 seconds)",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "120",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 980,
+        "y": 1580,
+        "wires": [
+            [
+                "secondary_relay5_out"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay5_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 5 Command",
+        "topic": "SecondGate/CMD/Relay5",
+        "qos": "2",
+        "retain": "false",
+        "broker": "mqtt_broker_local",
+        "x": 1310,
+        "y": 1580,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay6_in",
+        "type": "mqtt in",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 6 Status",
+        "topic": "SecondGate/STAT/Relay6",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 1660,
+        "wires": [
+            [
+                "secondary_relay6_switch",
+                "secondary_relay6_store"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay6_store",
+        "type": "function",
+        "z": "gate_main_tab",
+        "name": "Store Relay 6 State",
+        "func": "let secondaryState = flow.get('secondary_gate_state') || {};\nsecondaryState.relay6 = msg.payload;\nsecondaryState.lastUpdate = new Date().toISOString();\nflow.set('secondary_gate_state', secondaryState);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 1620,
+        "wires": []
+    },
+    {
+        "id": "secondary_relay6_switch",
+        "type": "ui_switch",
+        "z": "gate_main_tab",
+        "name": "",
+        "label": "Right light",
+        "group": "ui_group_secondary_gate",
+        "order": 6,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "decouple": "true",
+        "topic": "topic",
+        "topicType": "msg",
+        "onvalue": "ON",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "OFF",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "x": 720,
+        "y": 1660,
+        "wires": [
+            [
+                "secondary_relay6_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay6_trigger",
+        "type": "trigger",
+        "z": "gate_main_tab",
+        "name": "Pulse (120 seconds)",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "120",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 980,
+        "y": 1660,
+        "wires": [
+            [
+                "secondary_relay6_out"
+            ]
+        ]
+    },
+    {
+        "id": "secondary_relay6_out",
+        "type": "mqtt out",
+        "z": "gate_main_tab",
+        "name": "Secondary Gate Relay 6 Command",
+        "topic": "SecondGate/CMD/Relay6",
+        "qos": "2",
+        "retain": "false",
+        "broker": "mqtt_broker_local",
+        "x": 1310,
+        "y": 1660,
+        "wires": []
+    }
+]

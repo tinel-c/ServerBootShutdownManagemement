@@ -57,13 +57,30 @@
     },
     {
         "id": "garden_lights_answer_callback",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Answer Lights Callback",
+        "func": "if (msg.payload && msg.payload.callback_query_id) {\n    msg.payload = {\n        callback_query_id: msg.payload.callback_query_id,\n        text: msg.payload.text || '',\n        show_alert: msg.payload.show_alert || false\n    };\n    msg.topic = 'answerCallbackQuery';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 60,
+        "wires": [
+            ["garden_lights_callback_sender"]
+        ]
+    },
+    {
+        "id": "garden_lights_callback_sender",
         "type": "telegram sender",
         "z": "tab_dashboard",
-        "name": "Answer Callback",
+        "name": "Send Callback Answer",
         "bot": "telegram_bot_config",
         "haserroroutput": false,
         "outputs": 1,
-        "x": 640,
+        "x": 880,
         "y": 60,
         "wires": [[]]
     },

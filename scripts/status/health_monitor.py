@@ -12,6 +12,7 @@ import time
 import requests
 from pathlib import Path
 from datetime import datetime
+import signal
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 
@@ -93,6 +94,14 @@ class HealthMonitor:
         
         self.base_url = "https://healthchecks.io/api/v3/checks/"
         self.headers = {"X-Api-Key": self.api_key} if self.api_key else {}
+        self.running = False
+
+    def stop(self):
+        """Stop the monitor gracefully."""
+        logger.info("Stopping Health Monitor...")
+        self.running = False
+        if self.mqtt_client:
+            self.mqtt_client.disconnect()
 
     def fetch_checks(self) -> List[Dict[str, Any]]:
         """Fetch all checks from HealthChecks.io."""
@@ -177,24 +186,34 @@ class HealthMonitor:
         if not self.mqtt_client.connect():
             logger.error("Failed to connect to MQTT broker")
         
+        self.running = True
         with Live(self.generate_table([]), refresh_per_second=1, console=console) as live:
-            while True:
+            while self.running:
                 checks = self.fetch_checks()
                 live.update(self.generate_table(checks))
                 
                 if checks:
                     self.publish_to_mqtt(checks)
                 
-                # Wait 1 minute
-                time.sleep(60)
+                # Wait 1 minute in small increments to respond to stop signal faster
+                for _ in range(60):
+                    if not self.running:
+                        break
+                    time.sleep(1)
 
 if __name__ == "__main__":
     try:
         config = load_config()
         monitor = HealthMonitor(config)
+        
+        # Signal handling
+        def handle_signal(sig, frame):
+            monitor.stop()
+            
+        signal.signal(signal.SIGINT, handle_signal)
+        signal.signal(signal.SIGTERM, handle_signal)
+        
         monitor.run()
-    except KeyboardInterrupt:
-        console.print("\n[yellow]Stopping Health Monitor...[/yellow]")
     except Exception as e:
         logger.exception(f"Fatal error: {e}")
         sys.exit(1)

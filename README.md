@@ -760,10 +760,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.1.0 (Enhanced Stability Release)  
+**Version:** 3.1.1 (Reliability Patch)  
 **Last Updated:** 2026-01-18
 
 ## Recent Releases
+
+### v3.1.1 (2026-01-18) - Update Script Reliability
+- ⚡ Parallel service stop in `update.sh`
+- 🛑 Proper `SIGTERM` handler in `health_monitor.py`
+- 🛡️ `TimeoutStopSec=15` fallback for all services
 
 ### v3.1.0 (2026-01-18) - Enhanced Stability & Status Fallback
 - 🏥 Fix "UNKNOWN" status reboot loop via Ping Fallback

@@ -60,10 +60,11 @@ read
 
 # Step 1: Stop services
 print_step "Step 1: Stopping services..."
-systemctl stop mqtt-boot-listener.service || true
-systemctl stop mqtt-shutdown-listener.service || true
-systemctl stop status-publisher.service || true
-systemctl stop health-monitor.service || true
+systemctl stop mqtt-boot-listener.service \
+               mqtt-shutdown-listener.service \
+               status-publisher.service \
+               health-monitor.service || true
+sleep 1
 print_info "Services stopped."
 
 # Step 2: Backup configuration files

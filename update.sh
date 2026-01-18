@@ -145,6 +145,7 @@ print_step "Step 7: Setting permissions..."
 chmod +x "$INSTALL_DIR/scripts/boot/"*.py
 chmod +x "$INSTALL_DIR/scripts/shutdown/"*.py
 chmod +x "$INSTALL_DIR/scripts/status/"*.py
+chmod +x "$INSTALL_DIR/"*.sh
 chmod 600 "$INSTALL_DIR/config/.env"
 print_info "✓ Permissions set"
 

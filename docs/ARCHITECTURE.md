@@ -473,14 +473,37 @@ For critical environments:
 
 ## Version Information
 
-- **Architecture Version**: 2.4
-- **Last Updated**: January 9, 2026
-- **Node-RED Dashboard**: v2.4.0 (client management with shutdown control)
+- **Architecture Version**: 3.2
+- **Last Updated**: January 18, 2026
+- **Node-RED Dashboard**: v3.2.0 (Enhanced Stability & Smart Guard)
 - **Client Monitor**: v2.4.0 (auto-update and remote shutdown)
 - **MQTT Protocol**: v3.1.1 / v5.0
 - **Proxmox API**: v2/json
 
 ## Recent Enhancements
+
+### v3.2.0 (January 18, 2026) - Enhanced Stability & Reliability
+
+This major release focuses on system reliability, resolving edge-case reboot loops and improving the update lifecycle.
+
+#### 🏥 Robust Status Monitoring
+Implemented a dual-layer status check for hardware that may become unresponsive during transitions:
+- **Ping Fallback**: If the Proxmox API fails, the system attempts an ICMP ping.
+  - API Reachable → `online`
+  - API Fails + Ping Success → `online` (API temporary down, host up)
+  - API Fails + Ping Fails → `offline` (Host truly powered off)
+- **Increased Timeouts**: API connection timeout increased to 15s to handle transition delays.
+
+#### 🛡️ Intelligent Watchdog Guard
+Refined the Node-RED automation logic to avoid unintended "Recovery Boots":
+- **Shutdown Guard**: 10-minute cooldown period after any shutdown command. The watchdog is suspended during this window.
+- **Client-Requirement Boot**: Recovery events now only trigger if active clients are waiting for the server.
+
+#### ⚡ Reliability & Lifecycle Improvements
+- **Parallel Service Management**: `update.sh` and `manage.sh` now stop/start services in parallel for significantly faster operations.
+- **Graceful Shutdown Integration**: Proper `SIGTERM` handlers added to all Python services (e.g., `health_monitor.py`) for clean exit and MQTT state cleanup.
+- **Systemd Watchdogs**: Integrated `TimeoutStopSec=15` into all service definitions to prevent hangs during updates.
+- **Automated Permissions**: Update script now manages executable permissions for all shell scripts.
 
 ### v2.4.0 (January 9, 2026) - Client Management
 

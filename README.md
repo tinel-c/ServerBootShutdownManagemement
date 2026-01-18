@@ -760,21 +760,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.1.1 (Reliability Patch)  
+**Version:** 3.2.0 (Stability & Reliability Release)  
 **Last Updated:** 2026-01-18
 
 ## Recent Releases
 
-### v3.1.1 (2026-01-18) - Update Script Reliability
-- ⚡ Parallel service stop in `update.sh`
-- 🛑 Proper `SIGTERM` handler in `health_monitor.py`
-- 🛡️ `TimeoutStopSec=15` fallback for all services
-
-### v3.1.0 (2026-01-18) - Enhanced Stability & Status Fallback
-- 🏥 Fix "UNKNOWN" status reboot loop via Ping Fallback
-- 🛡️ Shutdown Guard (10-min) prevents recovery boot during shutdown
-- 👥 Client-Only Recovery (only boots if clients need server)
-- See `RELEASE_NOTES_v3.1.0.md` for details
+### v3.2.0 (2026-01-18) - Enhanced Stability & Reliability
+- 🏥 **Robust Monitoring**: Added Ping Fallback for status reporting (Dell T310)
+- 🛡️ **Smart Guard**: 10-minute Shutdown Guard prevents unintended reboot loops
+- 👥 **Client-Aware**: Recovery boots now only trigger if clients need server
+- ⚡ **Update Performance**: Parallel service stop/start in `update.sh`
+- 🛑 **Graceful Exit**: Proper signal handling (SIGTERM) in Python services
+- See `RELEASE_NOTES_v3.2.0.md` for details
 
 ### v3.0.0 (2026-01-17) - Multi-Domain Automation System
 - 🚀 Modular architecture for Gate, Lights, HVAC, etc.

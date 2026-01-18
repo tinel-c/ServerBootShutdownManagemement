@@ -64,6 +64,7 @@ A comprehensive server management system with smart client-aware automation, fea
 │  • Virtual Machines        │  │  • Virtual Machines        │
 │                            │  │                            │
 │  Status: UP/DOWN/UNKNOWN   │  │  Status: UP/DOWN/UNKNOWN   │
+│  (with Ping Fallback)      │  │                            │
 └────────────────────────────┘  └────────────────────────────┘
 ```
 
@@ -83,6 +84,7 @@ A comprehensive server management system with smart client-aware automation, fea
 │  Idle Shutdown:                                         │
 │  • Monitors server + client state                       │
 │  • 5-minute grace period countdown                      │
+│  • 10-minute Shutdown Guard (prevents reboot loop)      │
 │  • Executes graceful shutdown                           │
 │                                                          │
 │  Activity Logging:                                      │

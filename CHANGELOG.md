@@ -5,27 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.1.1] - 2026-01-18
+## [3.2.0] - 2026-01-18
 
-### Fixed - Update Script Reliability
-- **Parallel Service Stop**: `update.sh` now stops all services in parallel to reduce wait times and prevent hangs.
-- **Graceful Health Monitor Exit**: Added `SIGTERM` handler to `health_monitor.py` for cleaner shutdowns.
-- **Service Timeouts**: Added `TimeoutStopSec=15` to all systemd service files as a safety fallback.
-
-## [3.1.0] - 2026-01-18
-
-### Added - Enhanced Stability & Status Fallback
+### Added - Enhanced Stability & Reliability
 - **Ping Fallback (Dell T310)**: Implemented ICMP ping fallback in `status_publisher.py` to correctly identify `offline` state when Proxmox API is unreachable.
 - **Watchdog Shutdown Guard**: Added a 10-minute cooldown in Node-RED (`41-client-automation.json`) after a shutdown command to prevent recovery boots during host shutdown.
 - **Client-Only Recovery**: Recovery boots now only trigger if active clients are waiting for the server.
 
 ### Changed
+- **Update Reliability**: `update.sh` now stops services in parallel to reduce wait times and prevent hangs.
+- **Graceful Termination**: Added `SIGTERM` handler to `health_monitor.py` and `TimeoutStopSec=15` to all services.
 - **Increased Timeout**: Proxmox API timeout increased from 5s to 15s to handle transition delays.
 - **Activity Logging**: Improved recovery boot triggers descriptions in activity log.
 
 ### Fixed
 - Resolved the "UNKNOWN" status reboot loop on Dell T310 servers.
 - Prevented unintended "Recovery Boots" when no clients are connected.
+- Automated executable permissions for shell scripts in `update.sh`.
 
 ## [3.0.0] - 2026-01-17
 

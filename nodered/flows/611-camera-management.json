@@ -107,7 +107,8 @@
         "y": 140,
         "wires": [
             [
-                "telegram_link_out"
+                "telegram_link_out",
+                "func_rolling_log_logic"
             ]
         ]
     },
@@ -126,7 +127,8 @@
         "y": 180,
         "wires": [
             [
-                "telegram_link_out"
+                "telegram_link_out",
+                "func_rolling_log_logic"
             ]
         ]
     },
@@ -180,5 +182,65 @@
         "x": 800,
         "y": 210,
         "wires": []
+    },
+    {
+        "id": "func_rolling_log_logic",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Rolling Log Logic",
+        "func": "const payload = msg.payload;\nlet logEntry = null;\n\n// Determine if it's an event notification or health change\nif (msg.topic && msg.topic.includes('event')) {\n    // From func_process_camera_event\n    const cameraMatch = payload.content.match(/📷 Camera: (.+)/);\n    const typeMatch = payload.content.match(/Alert: (.+) DETECTED/);\n    \n    logEntry = {\n        camera: cameraMatch ? cameraMatch[1] : 'Unknown',\n        type: typeMatch ? typeMatch[1].toLowerCase() : 'event',\n        message: typeMatch ? `${typeMatch[1]} detected` : 'Motion',\n        time: new Date().toISOString(),\n        status: 'active'\n    };\n} else if (msg.topic && msg.topic.includes('health')) {\n    // From func_process_camera_health\n    const cameraMatch = payload.content.match(/📷 Camera: (.+)/);\n    const statusMatch = payload.content.match(/📊 Status: (.+)/);\n    \n    logEntry = {\n        camera: cameraMatch ? cameraMatch[1] : 'Unknown',\n        type: 'health',\n        message: statusMatch ? `Camera is ${statusMatch[1]}` : 'Status changed',\n        time: new Date().toISOString(),\n        status: statusMatch ? statusMatch[1].toLowerCase() : 'unknown'\n    };\n}\n\nif (!logEntry) return null;\n\n// Update Log in flow context\nlet eventLog = flow.get('camera_event_log') || [];\neventLog.unshift(logEntry);\n\n// Limit to 50 entries\nif (eventLog.length > 50) {\n    eventLog = eventLog.slice(0, 50);\n}\nflow.set('camera_event_log', eventLog);\n\nmsg.payload = eventLog;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 140,
+        "wires": [
+            [
+                "ui_camera_event_log"
+            ]
+        ]
+    },
+    {
+        "id": "ui_camera_event_log",
+        "type": "ui_template",
+        "z": "tab_dashboard",
+        "group": "ui_group_camera_log",
+        "name": "Rolling Event Log UI",
+        "order": 1,
+        "width": "12",
+        "height": "10",
+        "format": "<div class=\"camera-log-container\">\n    <div class=\"log-header\">\n        <span class=\"title\">📹 Camera Event Log</span>\n        <span class=\"subtitle\">Last 50 activities</span>\n    </div>\n    <div class=\"log-scroll\">\n        <div ng-repeat=\"item in msg.payload\" class=\"log-entry\" ng-class=\"'type-' + item.type\">\n            <div class=\"entry-icon\">\n                <span ng-if=\"item.type === 'person'\">👤</span>\n                <span ng-if=\"item.type === 'motion'\">🏃</span>\n                <span ng-if=\"item.type === 'health' && item.status === 'online'\">🟢</span>\n                <span ng-if=\"item.type === 'health' && item.status === 'offline'\">🔴</span>\n                <span ng-if=\"item.type !== 'person' && item.type !== 'motion' && item.type !== 'health'\">🔔</span>\n            </div>\n            <div class=\"entry-content\">\n                <div class=\"camera-name\">{{item.camera}}</div>\n                <div class=\"entry-message\">{{item.message}}</div>\n            </div>\n            <div class=\"entry-time\">\n                {{item.time | date:'HH:mm:ss'}}\n            </div>\n        </div>\n    </div>\n</div>\n\n<style>\n.camera-log-container {\n    background: rgba(255, 255, 255, 0.05);\n    backdrop-filter: blur(10px);\n    -webkit-backdrop-filter: blur(10px);\n    border-radius: 12px;\n    border: 1px solid rgba(255, 255, 255, 0.1);\n    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);\n    padding: 15px;\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;\n    color: #e0e0e0;\n}\n\n.log-header {\n    margin-bottom: 20px;\n    border-bottom: 1px solid rgba(255, 255, 255, 0.1);\n    padding-bottom: 10px;\n}\n\n.log-header .title {\n    display: block;\n    font-weight: 600;\n    font-size: 1.1rem;\n    color: #fff;\n}\n\n.log-header .subtitle {\n    font-size: 0.8rem;\n    opacity: 0.6;\n}\n\n.log-scroll {\n    flex: 1;\n    overflow-y: auto;\n    padding-right: 5px;\n}\n\n/* Custom scrollbar */\n.log-scroll::-webkit-scrollbar {\n    width: 6px;\n}\n.log-scroll::-webkit-scrollbar-track {\n    background: rgba(255, 255, 255, 0.02);\n}\n.log-scroll::-webkit-scrollbar-thumb {\n    background: rgba(255, 255, 255, 0.15);\n    border-radius: 10px;\n}\n\n.log-entry {\n    display: flex;\n    align-items: center;\n    padding: 10px 12px;\n    margin-bottom: 8px;\n    background: rgba(255, 255, 255, 0.03);\n    border-radius: 8px;\n    border-left: 3px solid rgba(255, 255, 255, 0.1);\n    transition: transform 0.2s;\n}\n\n.log-entry:hover {\n    background: rgba(255, 255, 255, 0.06);\n    transform: translateX(3px);\n}\n\n.log-entry.type-person { border-left-color: #bb86fc; }\n.log-entry.type-motion { border-left-color: #03dac6; }\n.log-entry.type-health { border-left-color: #ffb74d; }\n\n.entry-icon {\n    font-size: 1.4rem;\n    margin-right: 15px;\n    min-width: 24px;\n    display: flex;\n    justify-content: center;\n}\n\n.entry-content {\n    flex: 1;\n}\n\n.camera-name {\n    font-size: 0.85rem;\n    font-weight: 600;\n    text-transform: uppercase;\n    letter-spacing: 0.5px;\n    color: #03dac6;\n    margin-bottom: 2px;\n}\n\n.entry-message {\n    font-size: 0.95rem;\n    opacity: 0.9;\n}\n\n.entry-time {\n    font-size: 0.8rem;\n    opacity: 0.5;\n    font-variant-numeric: tabular-nums;\n}\n</style>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 980,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ui_group_camera_log",
+        "type": "ui_group",
+        "z": "tab_dashboard",
+        "name": "Camera Activity Log",
+        "tab": "ui_tab_cameras",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false
+    },
+    {
+        "id": "ui_tab_cameras",
+        "type": "ui_tab",
+        "z": "tab_dashboard",
+        "name": "Cameras",
+        "icon": "videocam",
+        "order": 6,
+        "disabled": false,
+        "hidden": false
     }
 ]

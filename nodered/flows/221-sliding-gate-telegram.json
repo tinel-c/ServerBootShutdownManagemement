@@ -10,35 +10,6 @@
         "wires": []
     },
     {
-        "id": "sliding_telegram_receiver",
-        "type": "telegram receiver",
-        "z": "gate_main_tab",
-        "name": "Sliding Gate Commands Receiver",
-        "bot": "telegram_bot_config",
-        "x": 200,
-        "y": 2100,
-        "wires": [
-            [
-                "sliding_telegram_parse"
-            ]
-        ]
-    },
-    {
-        "id": "sliding_telegram_event",
-        "type": "telegram event",
-        "z": "gate_main_tab",
-        "name": "Sliding Gate Callback Events",
-        "bot": "telegram_bot_config",
-        "event": "callback_query",
-        "x": 200,
-        "y": 2160,
-        "wires": [
-            [
-                "sliding_telegram_parse"
-            ]
-        ]
-    },
-    {
         "id": "sliding_telegram_parse",
         "type": "function",
         "z": "gate_main_tab",
@@ -272,7 +243,7 @@
         "type": "telegram sender",
         "z": "gate_main_tab",
         "name": "Sliding Telegram Sender",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "x": 1280,
         "y": 2240,
         "wires": []
@@ -294,5 +265,21 @@
         "x": 1290,
         "y": 2180,
         "wires": []
+    },
+    {
+        "id": "link_in_221_sliding_gate_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": [
+            "link_out_authorized_telegram"
+        ],
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "sliding_telegram_parse"
+            ]
+        ]
     }
 ]

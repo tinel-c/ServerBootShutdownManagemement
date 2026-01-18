@@ -10,31 +10,6 @@
         "wires": []
     },
     {
-        "id": "water_pump_telegram_receiver",
-        "type": "telegram receiver",
-        "z": "tab_dashboard",
-        "name": "Pump Commands Receiver",
-        "bot": "telegram_bot_config",
-        "x": 140,
-        "y": 100,
-        "wires": [
-            ["water_pump_telegram_router"]
-        ]
-    },
-    {
-        "id": "water_pump_telegram_event",
-        "type": "telegram event",
-        "z": "tab_dashboard",
-        "name": "Pump Callback Events",
-        "bot": "telegram_bot_config",
-        "event": "callback_query",
-        "x": 140,
-        "y": 140,
-        "wires": [
-            ["water_pump_telegram_router"]
-        ]
-    },
-    {
         "id": "water_pump_telegram_router",
         "type": "function",
         "z": "tab_dashboard",
@@ -48,17 +23,37 @@
         "x": 380,
         "y": 120,
         "wires": [
-            ["water_pump_cmd_start"],
-            ["water_pump_cmd_stop"],
-            ["water_pump_cmd_drain"],
-            ["water_pump_cmd_trench1_on"],
-            ["water_pump_cmd_trench1_off"],
-            ["water_pump_cmd_trench2_on"],
-            ["water_pump_cmd_trench2_off"],
-            ["water_pump_cmd_status"],
-            ["water_pump_cmd_help"],
+            [
+                "water_pump_cmd_start"
+            ],
+            [
+                "water_pump_cmd_stop"
+            ],
+            [
+                "water_pump_cmd_drain"
+            ],
+            [
+                "water_pump_cmd_trench1_on"
+            ],
+            [
+                "water_pump_cmd_trench1_off"
+            ],
+            [
+                "water_pump_cmd_trench2_on"
+            ],
+            [
+                "water_pump_cmd_trench2_off"
+            ],
+            [
+                "water_pump_cmd_status"
+            ],
+            [
+                "water_pump_cmd_help"
+            ],
             [],
-            ["water_pump_answer_callback"]
+            [
+                "water_pump_answer_callback"
+            ]
         ]
     },
     {
@@ -75,7 +70,9 @@
         "x": 660,
         "y": 60,
         "wires": [
-            ["water_pump_callback_sender"]
+            [
+                "water_pump_callback_sender"
+            ]
         ]
     },
     {
@@ -83,12 +80,14 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Send Callback Answer",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "haserroroutput": false,
         "outputs": 1,
         "x": 900,
         "y": 60,
-        "wires": [[]]
+        "wires": [
+            []
+        ]
     },
     {
         "id": "water_pump_cmd_start",
@@ -104,8 +103,12 @@
         "x": 630,
         "y": 120,
         "wires": [
-            ["water_pump_mqtt_out"],
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_mqtt_out"
+            ],
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -122,8 +125,12 @@
         "x": 630,
         "y": 180,
         "wires": [
-            ["water_pump_mqtt_out"],
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_mqtt_out"
+            ],
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -140,8 +147,12 @@
         "x": 630,
         "y": 240,
         "wires": [
-            ["water_pump_mqtt_out"],
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_mqtt_out"
+            ],
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -158,8 +169,12 @@
         "x": 640,
         "y": 300,
         "wires": [
-            ["water_pump_mqtt_out"],
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_mqtt_out"
+            ],
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -176,8 +191,12 @@
         "x": 640,
         "y": 360,
         "wires": [
-            ["water_pump_mqtt_out"],
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_mqtt_out"
+            ],
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -194,8 +213,12 @@
         "x": 640,
         "y": 420,
         "wires": [
-            ["water_pump_mqtt_out"],
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_mqtt_out"
+            ],
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -212,8 +235,12 @@
         "x": 640,
         "y": 480,
         "wires": [
-            ["water_pump_mqtt_out"],
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_mqtt_out"
+            ],
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -248,7 +275,9 @@
         "x": 650,
         "y": 560,
         "wires": [
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -265,7 +294,9 @@
         "x": 640,
         "y": 640,
         "wires": [
-            ["water_pump_telegram_out"]
+            [
+                "water_pump_telegram_out"
+            ]
         ]
     },
     {
@@ -273,13 +304,29 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Send to Telegram",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "haserroroutput": false,
         "outputs": 1,
         "x": 900,
         "y": 480,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "link_in_411_water_pump_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": [
+            "link_out_authorized_telegram"
+        ],
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "water_pump_telegram_router"
+            ]
         ]
     }
 ]

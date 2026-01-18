@@ -10,35 +10,6 @@
         "wires": []
     },
     {
-        "id": "garden_telegram_receiver",
-        "type": "telegram receiver",
-        "z": "tab_dashboard",
-        "name": "Garden Power Commands Receiver",
-        "bot": "telegram_bot_config",
-        "x": 200,
-        "y": 1100,
-        "wires": [
-            [
-                "garden_telegram_parse"
-            ]
-        ]
-    },
-    {
-        "id": "garden_telegram_event",
-        "type": "telegram event",
-        "z": "tab_dashboard",
-        "name": "Garden Power Callback Events",
-        "bot": "telegram_bot_config",
-        "event": "callback_query",
-        "x": 200,
-        "y": 1160,
-        "wires": [
-            [
-                "garden_telegram_parse"
-            ]
-        ]
-    },
-    {
         "id": "garden_telegram_parse",
         "type": "function",
         "z": "tab_dashboard",
@@ -87,12 +58,36 @@
         "property": "topic",
         "propertyType": "msg",
         "rules": [
-            {"t": "eq", "v": "garden_on", "vt": "str"},
-            {"t": "eq", "v": "garden_off", "vt": "str"},
-            {"t": "eq", "v": "garden_toggle", "vt": "str"},
-            {"t": "eq", "v": "garden_status", "vt": "str"},
-            {"t": "eq", "v": "garden_help", "vt": "str"},
-            {"t": "eq", "v": "garden_unknown", "vt": "str"}
+            {
+                "t": "eq",
+                "v": "garden_on",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "garden_off",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "garden_toggle",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "garden_status",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "garden_help",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "garden_unknown",
+                "vt": "str"
+            }
         ],
         "checkall": "true",
         "repair": false,
@@ -100,12 +95,24 @@
         "x": 750,
         "y": 1180,
         "wires": [
-            ["garden_telegram_handle_on"],
-            ["garden_telegram_handle_off"],
-            ["garden_telegram_handle_toggle"],
-            ["garden_telegram_handle_status"],
-            ["garden_telegram_handle_help"],
-            ["garden_telegram_handle_unknown"]
+            [
+                "garden_telegram_handle_on"
+            ],
+            [
+                "garden_telegram_handle_off"
+            ],
+            [
+                "garden_telegram_handle_toggle"
+            ],
+            [
+                "garden_telegram_handle_status"
+            ],
+            [
+                "garden_telegram_handle_help"
+            ],
+            [
+                "garden_telegram_handle_unknown"
+            ]
         ]
     },
     {
@@ -122,8 +129,12 @@
         "x": 1020,
         "y": 1100,
         "wires": [
-            ["garden_telegram_mqtt_out"],
-            ["garden_telegram_sender"]
+            [
+                "garden_telegram_mqtt_out"
+            ],
+            [
+                "garden_telegram_sender"
+            ]
         ]
     },
     {
@@ -140,8 +151,12 @@
         "x": 1020,
         "y": 1160,
         "wires": [
-            ["garden_telegram_mqtt_out"],
-            ["garden_telegram_sender"]
+            [
+                "garden_telegram_mqtt_out"
+            ],
+            [
+                "garden_telegram_sender"
+            ]
         ]
     },
     {
@@ -158,8 +173,12 @@
         "x": 1030,
         "y": 1220,
         "wires": [
-            ["garden_telegram_mqtt_out"],
-            ["garden_telegram_sender"]
+            [
+                "garden_telegram_mqtt_out"
+            ],
+            [
+                "garden_telegram_sender"
+            ]
         ]
     },
     {
@@ -176,7 +195,9 @@
         "x": 1030,
         "y": 1280,
         "wires": [
-            ["garden_telegram_sender"]
+            [
+                "garden_telegram_sender"
+            ]
         ]
     },
     {
@@ -193,7 +214,9 @@
         "x": 1020,
         "y": 1340,
         "wires": [
-            ["garden_telegram_sender"]
+            [
+                "garden_telegram_sender"
+            ]
         ]
     },
     {
@@ -210,7 +233,9 @@
         "x": 1050,
         "y": 1400,
         "wires": [
-            ["garden_telegram_sender"]
+            [
+                "garden_telegram_sender"
+            ]
         ]
     },
     {
@@ -218,7 +243,7 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Garden Telegram Sender",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "x": 1300,
         "y": 1240,
         "wires": []
@@ -240,5 +265,21 @@
         "x": 1310,
         "y": 1180,
         "wires": []
+    },
+    {
+        "id": "link_in_311_garden_power_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": [
+            "link_out_authorized_telegram"
+        ],
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "garden_telegram_parse"
+            ]
+        ]
     }
 ]

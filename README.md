@@ -1,6 +1,6 @@
-# Dell & HP Server Remote Management System
+# Comprehensive Home & Server Automation Platform
 
-Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iLO) servers, controlled via MQTT protocol.
+A unified automation ecosystem for managing servers (Dell T310, HP DL360p), courtyard devices, and house-wide automation through Node-RED, MQTT, and intelligent workflows.
 
 ## Features
 
@@ -22,7 +22,8 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 ### User Interface & Management
 - 🖥️ **Premium Dashboard** - Modern glassmorphism-style Node-RED interface with live countdowns
-- 🎛️ **Client Control Panel** - Individual and bulk client shutdown operations
+- 🎛️ **Unified Control Panel** - Manage servers, gates, lights, and sensors from a single interface
+- 📊 **Workflow Optimization** - Processes and measures inputs (sensors, heartbeats) to execute complex automation workflows
 - 🛠️ **Management Scripts** - Easy-to-use CLI tools for system management
   - `status.sh` - Check service status with color-coded output
   - `manage.sh` - Start/stop/restart services with one command
@@ -34,9 +35,9 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 
 ## System Architecture
 
-![System Architecture](docs/architecture_diagram_v4.png)
+![Platform Architecture](docs/automation_flow_v1.png)
 
-The system uses a **centralized automation server** running Node-RED dashboard (native installation), Mosquitto MQTT broker, and Python management scripts with **smart client-aware automation**.
+The system serves as a **centralized automation hub** running Node-RED (native installation), Mosquitto MQTT broker, and Python management scripts. It coordinates interactions between servers, courtyard hardware, and residential automation devices.
 
 ### Multi-Domain Automation System
 
@@ -670,27 +671,35 @@ ServerBootShutdownMangement/
 │   ├── TELEGRAM_SETUP.md      # Telegram bot setup guide
 │   └── flows.json             # Legacy (deprecated)
 ├── docs/                      # Documentation
+│   ├── archive/               # Historical notes and summaries
+│   ├── developer/             # Agent and developer-specific guides
 │   ├── SETUP.md
 │   ├── MQTT_PROTOCOL.md
 │   ├── ARCHITECTURE.md
+│   ├── TELEGRAM_INTERFACE.md
+│   ├── CLIENT_MANAGEMENT.md
+│   ├── DEVELOPMENT.md
+│   ├── REFERENCE.md
+│   ├── UPDATE.md
 │   └── TROUBLESHOOTING.md
 ├── requirements.txt           # Python dependencies
 ├── install.sh                 # Installation script
 ├── uninstall.sh               # Uninstallation script
-└── DEVELOPMENT_GUIDE.md       # Development documentation
+└── status.sh, manage.sh, ...  # Management scripts
 ```
 
 ## Documentation
 
-### Getting Started
+### Documentation
 - [README.md](README.md) - This file (overview and quick start)
 - [Setup Guide](docs/SETUP.md) - Installation and configuration
-- [Client Management Guide](CLIENT_MANAGEMENT_GUIDE.md) - Complete client management
+- [Client Management](docs/CLIENT_MANAGEMENT.md) - Complete client management
 
 ### Core Documentation
-- [Development Guide](DEVELOPMENT_GUIDE.md) - Development and contribution
+- [Development Guide](docs/DEVELOPMENT.md) - Development and contribution
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Message specifications
+- [Telegram Interface](docs/TELEGRAM_INTERFACE.md) - Bot command reference & gateway
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
 
 ### Multi-Domain Automation System (NEW v3.0)
@@ -704,13 +713,17 @@ ServerBootShutdownMangement/
 - [Flows Quick Reference](nodered/flows/README.md) - Import instructions
 - [Health Dashboard Guide](nodered/HEALTH_DASHBOARD_GUIDE.md) - Health monitoring
 - [Smart Wakeup Guide](nodered/SMART_WAKEUP_GUIDE.md) - Automation guide
-- [Telegram Setup](nodered/TELEGRAM_SETUP.md) - Telegram bot configuration
+
+### Developer & Agent Guides
+- [Workflow](docs/developer/WORKFLOW.md) - Standard development loop
+- [Commit Conventions](docs/developer/COMMIT_MESSAGE_CONVENTIONS.md) - Git message standards
+- [Commit Checklist](docs/developer/COMMIT_CHECKLIST.md) - Pre-flight checks
+- [Documentation Policy](docs/developer/DOCUMENTATION_POLICY.md) - Standards for docs
 
 ### Release Information
-- [Release Notes v2.5.0](RELEASE_NOTES_v2.5.0.md) - Latest release
-- [Release Notes v2.4.0](RELEASE_NOTES_v2.4.0.md) - Client management
-- [Release Notes v2.3.0](RELEASE_NOTES_v2.3.0.md) - Smart automation
-- [Release History](RELEASE_HISTORY.md) - Older versions (v1.x - v2.2.0)
+- [Changelog](CHANGELOG.md) - Complete version history
+- [Release Archive](docs/archive/releases/) - Historical release notes (v2.3.0+)
+- [Release History](RELEASE_HISTORY.md) - Legacy versions (v1.x - v2.2.0)
 
 ## Requirements
 

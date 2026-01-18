@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-01-18
+
+### Security - Centralized Telegram Authorization
+- **Telegram Gateway**: Implemented a centralized authorization gateway in Flow 50. All domain-specific flows (servers, gates, automation) now route through this gateway, ensuring unified security enforcement.
+- **Hard-coded Authorization**: Switched to a secure hard-coded Telegram ID check (`991635368`) to ensure authorization works correctly even when `.env` is inaccessible to Node-RED.
+- **Bot Rebranding**: Updated the Telegram bot configuration name to `LuncaCetatuiiAutomationBot_bot` across the platform.
+
+### Documentation Overhaul
+- **Consolidated Docs Directory**: Reorganized all root-level guides and technical documents into the `docs/` folder for better discoverability.
+- **Compressed Release History**: Integrated historic release notes (v2.6.0, v2.7.0) into the main `CHANGELOG.md` and archived legacy files.
+- **New Developer Onboarding**: Created a specialized documentation structure for new developers and AI agents (`.agent/onboarding.md`).
+- **Unified Telegram Guide**: Merged setup, commands, and gate integration into a single `docs/TELEGRAM_INTERFACE.md`.
+- **Enhanced Architecture Docs**: Updated `docs/ARCHITECTURE.md` with comprehensive visuals and platform-wide data flow descriptions.
+
 ## [3.2.0] - 2026-01-18
 
 ### Added - Enhanced Stability & Reliability
@@ -87,6 +101,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected Docker references in all documentation files
 - Updated deployment instructions for native Ubuntu installation
 - Fixed MQTT broker status checks to use systemctl
+
+## [2.7.0] - 2026-01-17
+
+### Added - Aquarium Light Automation
+- **Aquarium Light Control**: New domain (500) for manual/automatic control of Tasmota-based aquarium lights.
+- **Telegram Interface**: Dedicated aquarium control commands (`/aquarium_on`, `/aquarium_off`, `/aquarium_status`).
+- **Scheduling**: Automatic daily timer (06:00 - 22:00) using `node-red-contrib-timerswitch`.
+- **Health Monitoring**: Integrated `sursaAcvariu` into the device watchdog system.
+
+### Changed
+- Integrated aquarium commands into main Telegram help and command lists.
+
+## [2.6.0] - 2026-01-17
+
+### Added - Stability & Management Suite
+- **Proxmox API Integration**: Replaced unreliable Dell T310 IPMI monitoring with stable Proxmox API calls.
+- **Management Scripts**: Introduced suite of CLI tools (`status.sh`, `manage.sh`, `update.sh`).
+- **Config Validation**: Added `check_env.sh` and `generate_env_template.sh` for environment management.
+- **Regex Config Replacement**: Proper environment variable substitution in YAML files using regex.
+
+### Fixed
+- Resolved "UNKNOWN" status notification loop by replacing IPMI.
+- Fixed environment variable placeholder replacement in complex strings.
+- Prevented configuration loss during reinstallation by improving `install.sh` backup logic.
+- Improved IPMI connection reliability for HP DL360p with automatic retries.
+
+### Documentation
+- Created `UPDATE_GUIDE.md`, `ENV_SETUP_GUIDE.md`, `DEVELOPMENT_WORKFLOW.md`, and `QUICK_REFERENCE.md`.
 
 ## [2.5.0] - 2026-01-11
 

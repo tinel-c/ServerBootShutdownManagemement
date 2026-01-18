@@ -10,35 +10,6 @@
         "wires": []
     },
     {
-        "id": "secondary_telegram_receiver",
-        "type": "telegram receiver",
-        "z": "gate_main_tab",
-        "name": "Secondary Gate Commands Receiver",
-        "bot": "telegram_bot_config",
-        "x": 210,
-        "y": 2540,
-        "wires": [
-            [
-                "secondary_telegram_parse"
-            ]
-        ]
-    },
-    {
-        "id": "secondary_telegram_event",
-        "type": "telegram event",
-        "z": "gate_main_tab",
-        "name": "Secondary Gate Callback Events",
-        "bot": "telegram_bot_config",
-        "event": "callback_query",
-        "x": 210,
-        "y": 2600,
-        "wires": [
-            [
-                "secondary_telegram_parse"
-            ]
-        ]
-    },
-    {
         "id": "secondary_telegram_parse",
         "type": "function",
         "z": "gate_main_tab",
@@ -87,15 +58,51 @@
         "property": "topic",
         "propertyType": "msg",
         "rules": [
-            {"t": "eq", "v": "secondary_open", "vt": "str"},
-            {"t": "eq", "v": "secondary_close", "vt": "str"},
-            {"t": "eq", "v": "secondary_trigger", "vt": "str"},
-            {"t": "eq", "v": "secondary_stop", "vt": "str"},
-            {"t": "eq", "v": "secondary_light_left", "vt": "str"},
-            {"t": "eq", "v": "secondary_light_right", "vt": "str"},
-            {"t": "eq", "v": "secondary_status", "vt": "str"},
-            {"t": "eq", "v": "secondary_help", "vt": "str"},
-            {"t": "eq", "v": "secondary_unknown", "vt": "str"}
+            {
+                "t": "eq",
+                "v": "secondary_open",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_close",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_trigger",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_stop",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_light_left",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_light_right",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_status",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_help",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "secondary_unknown",
+                "vt": "str"
+            }
         ],
         "checkall": "true",
         "repair": false,
@@ -103,15 +110,33 @@
         "x": 760,
         "y": 2620,
         "wires": [
-            ["secondary_telegram_handle_open"],
-            ["secondary_telegram_handle_close"],
-            ["secondary_telegram_handle_trigger"],
-            ["secondary_telegram_handle_stop"],
-            ["secondary_telegram_handle_light_left"],
-            ["secondary_telegram_handle_light_right"],
-            ["secondary_telegram_handle_status"],
-            ["secondary_telegram_handle_help"],
-            ["secondary_telegram_handle_unknown"]
+            [
+                "secondary_telegram_handle_open"
+            ],
+            [
+                "secondary_telegram_handle_close"
+            ],
+            [
+                "secondary_telegram_handle_trigger"
+            ],
+            [
+                "secondary_telegram_handle_stop"
+            ],
+            [
+                "secondary_telegram_handle_light_left"
+            ],
+            [
+                "secondary_telegram_handle_light_right"
+            ],
+            [
+                "secondary_telegram_handle_status"
+            ],
+            [
+                "secondary_telegram_handle_help"
+            ],
+            [
+                "secondary_telegram_handle_unknown"
+            ]
         ]
     },
     {
@@ -128,8 +153,12 @@
         "x": 1030,
         "y": 2520,
         "wires": [
-            ["secondary_telegram_mqtt_out"],
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_mqtt_out"
+            ],
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -146,8 +175,12 @@
         "x": 1030,
         "y": 2580,
         "wires": [
-            ["secondary_telegram_mqtt_out"],
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_mqtt_out"
+            ],
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -164,8 +197,12 @@
         "x": 1030,
         "y": 2640,
         "wires": [
-            ["secondary_telegram_mqtt_out"],
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_mqtt_out"
+            ],
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -182,8 +219,12 @@
         "x": 1030,
         "y": 2700,
         "wires": [
-            ["secondary_telegram_mqtt_out"],
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_mqtt_out"
+            ],
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -200,8 +241,12 @@
         "x": 1020,
         "y": 2760,
         "wires": [
-            ["secondary_telegram_mqtt_out"],
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_mqtt_out"
+            ],
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -218,8 +263,12 @@
         "x": 1020,
         "y": 2820,
         "wires": [
-            ["secondary_telegram_mqtt_out"],
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_mqtt_out"
+            ],
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -236,7 +285,9 @@
         "x": 1030,
         "y": 2880,
         "wires": [
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -253,7 +304,9 @@
         "x": 1030,
         "y": 2940,
         "wires": [
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -270,7 +323,9 @@
         "x": 1050,
         "y": 3000,
         "wires": [
-            ["secondary_telegram_sender"]
+            [
+                "secondary_telegram_sender"
+            ]
         ]
     },
     {
@@ -278,7 +333,7 @@
         "type": "telegram sender",
         "z": "gate_main_tab",
         "name": "Secondary Telegram Sender",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "x": 1320,
         "y": 2740,
         "wires": []
@@ -300,5 +355,21 @@
         "x": 1330,
         "y": 2680,
         "wires": []
+    },
+    {
+        "id": "link_in_231_secondary_gate_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": [
+            "link_out_authorized_telegram"
+        ],
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "secondary_telegram_parse"
+            ]
+        ]
     }
 ]

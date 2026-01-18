@@ -10,31 +10,6 @@
         "wires": []
     },
     {
-        "id": "server_telegram_receiver",
-        "type": "telegram receiver",
-        "z": "tab_dashboard",
-        "name": "Server Commands Receiver",
-        "bot": "telegram_bot_config",
-        "x": 140,
-        "y": 120,
-        "wires": [
-            ["server_telegram_router"]
-        ]
-    },
-    {
-        "id": "server_telegram_event",
-        "type": "telegram event",
-        "z": "tab_dashboard",
-        "name": "Server Callback Events",
-        "bot": "telegram_bot_config",
-        "event": "callback_query",
-        "x": 140,
-        "y": 160,
-        "wires": [
-            ["server_telegram_router"]
-        ]
-    },
-    {
         "id": "server_telegram_router",
         "type": "function",
         "z": "tab_dashboard",
@@ -48,12 +23,22 @@
         "x": 370,
         "y": 140,
         "wires": [
-            ["func_handle_boot"],
-            ["func_handle_shutdown"],
-            ["func_handle_force"],
-            ["func_handle_status"],
+            [
+                "func_handle_boot"
+            ],
+            [
+                "func_handle_shutdown"
+            ],
+            [
+                "func_handle_force"
+            ],
+            [
+                "func_handle_status"
+            ],
             [],
-            ["server_answer_callback"]
+            [
+                "server_answer_callback"
+            ]
         ]
     },
     {
@@ -70,7 +55,9 @@
         "x": 650,
         "y": 80,
         "wires": [
-            ["telegram_bot_sender"]
+            [
+                "telegram_bot_sender"
+            ]
         ]
     },
     {
@@ -87,8 +74,12 @@
         "x": 620,
         "y": 140,
         "wires": [
-            ["mqtt_out_telegram_commands"],
-            ["telegram_bot_sender"]
+            [
+                "mqtt_out_telegram_commands"
+            ],
+            [
+                "telegram_bot_sender"
+            ]
         ]
     },
     {
@@ -105,8 +96,12 @@
         "x": 640,
         "y": 200,
         "wires": [
-            ["mqtt_out_telegram_commands"],
-            ["telegram_bot_sender"]
+            [
+                "mqtt_out_telegram_commands"
+            ],
+            [
+                "telegram_bot_sender"
+            ]
         ]
     },
     {
@@ -123,8 +118,12 @@
         "x": 640,
         "y": 260,
         "wires": [
-            ["mqtt_out_telegram_commands"],
-            ["telegram_bot_sender"]
+            [
+                "mqtt_out_telegram_commands"
+            ],
+            [
+                "telegram_bot_sender"
+            ]
         ]
     },
     {
@@ -141,7 +140,9 @@
         "x": 640,
         "y": 320,
         "wires": [
-            ["telegram_bot_sender"]
+            [
+                "telegram_bot_sender"
+            ]
         ]
     },
     {
@@ -149,12 +150,14 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Send to Telegram",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "haserroroutput": false,
         "outputs": 1,
         "x": 900,
         "y": 220,
-        "wires": [[]]
+        "wires": [
+            []
+        ]
     },
     {
         "id": "mqtt_out_telegram_commands",
@@ -190,7 +193,9 @@
         "x": 140,
         "y": 420,
         "wires": [
-            ["func_store_status_dell"]
+            [
+                "func_store_status_dell"
+            ]
         ]
     },
     {
@@ -207,7 +212,9 @@
         "x": 400,
         "y": 420,
         "wires": [
-            ["telegram_bot_sender"]
+            [
+                "telegram_bot_sender"
+            ]
         ]
     },
     {
@@ -226,7 +233,9 @@
         "x": 140,
         "y": 480,
         "wires": [
-            ["func_store_status_hp"]
+            [
+                "func_store_status_hp"
+            ]
         ]
     },
     {
@@ -243,7 +252,9 @@
         "x": 390,
         "y": 480,
         "wires": [
-            ["telegram_bot_sender"]
+            [
+                "telegram_bot_sender"
+            ]
         ]
     },
     {
@@ -262,7 +273,9 @@
         "x": 160,
         "y": 540,
         "wires": [
-            ["func_format_response_telegram"]
+            [
+                "func_format_response_telegram"
+            ]
         ]
     },
     {
@@ -279,7 +292,25 @@
         "x": 420,
         "y": 540,
         "wires": [
-            ["telegram_bot_sender"]
+            [
+                "telegram_bot_sender"
+            ]
+        ]
+    },
+    {
+        "id": "link_in_12_server_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": [
+            "link_out_authorized_telegram"
+        ],
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "server_telegram_router"
+            ]
         ]
     }
 ]

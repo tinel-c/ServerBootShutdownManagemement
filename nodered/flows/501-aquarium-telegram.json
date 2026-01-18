@@ -10,31 +10,6 @@
         "wires": []
     },
     {
-        "id": "aquarium_telegram_receiver",
-        "type": "telegram receiver",
-        "z": "tab_dashboard",
-        "name": "Aquarium Commands Receiver",
-        "bot": "telegram_bot_config",
-        "x": 150,
-        "y": 120,
-        "wires": [
-            ["aquarium_telegram_router"]
-        ]
-    },
-    {
-        "id": "aquarium_telegram_event",
-        "type": "telegram event",
-        "z": "tab_dashboard",
-        "name": "Aquarium Callback Events",
-        "bot": "telegram_bot_config",
-        "event": "callback_query",
-        "x": 150,
-        "y": 160,
-        "wires": [
-            ["aquarium_telegram_router"]
-        ]
-    },
-    {
         "id": "aquarium_telegram_router",
         "type": "function",
         "z": "tab_dashboard",
@@ -48,13 +23,25 @@
         "x": 380,
         "y": 140,
         "wires": [
-            ["aquarium_cmd_on"],
-            ["aquarium_cmd_off"],
-            ["aquarium_cmd_toggle"],
-            ["aquarium_cmd_status"],
-            ["aquarium_cmd_help"],
+            [
+                "aquarium_cmd_on"
+            ],
+            [
+                "aquarium_cmd_off"
+            ],
+            [
+                "aquarium_cmd_toggle"
+            ],
+            [
+                "aquarium_cmd_status"
+            ],
+            [
+                "aquarium_cmd_help"
+            ],
             [],
-            ["aquarium_answer_callback"]
+            [
+                "aquarium_answer_callback"
+            ]
         ]
     },
     {
@@ -71,7 +58,9 @@
         "x": 670,
         "y": 80,
         "wires": [
-            ["aquarium_callback_sender"]
+            [
+                "aquarium_callback_sender"
+            ]
         ]
     },
     {
@@ -79,12 +68,14 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Send Callback Answer",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "haserroroutput": false,
         "outputs": 1,
         "x": 920,
         "y": 80,
-        "wires": [[]]
+        "wires": [
+            []
+        ]
     },
     {
         "id": "aquarium_cmd_on",
@@ -100,8 +91,12 @@
         "x": 640,
         "y": 180,
         "wires": [
-            ["aquarium_mqtt_out"],
-            ["aquarium_telegram_out"]
+            [
+                "aquarium_mqtt_out"
+            ],
+            [
+                "aquarium_telegram_out"
+            ]
         ]
     },
     {
@@ -118,8 +113,12 @@
         "x": 640,
         "y": 240,
         "wires": [
-            ["aquarium_mqtt_out"],
-            ["aquarium_telegram_out"]
+            [
+                "aquarium_mqtt_out"
+            ],
+            [
+                "aquarium_telegram_out"
+            ]
         ]
     },
     {
@@ -136,8 +135,12 @@
         "x": 640,
         "y": 300,
         "wires": [
-            ["aquarium_mqtt_out"],
-            ["aquarium_telegram_out"]
+            [
+                "aquarium_mqtt_out"
+            ],
+            [
+                "aquarium_telegram_out"
+            ]
         ]
     },
     {
@@ -172,7 +175,9 @@
         "x": 650,
         "y": 360,
         "wires": [
-            ["aquarium_telegram_out"]
+            [
+                "aquarium_telegram_out"
+            ]
         ]
     },
     {
@@ -189,7 +194,9 @@
         "x": 650,
         "y": 420,
         "wires": [
-            ["aquarium_telegram_out"]
+            [
+                "aquarium_telegram_out"
+            ]
         ]
     },
     {
@@ -197,11 +204,29 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Send to Telegram",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "haserroroutput": false,
         "outputs": 1,
         "x": 900,
         "y": 360,
-        "wires": [[]]
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "link_in_501_aquarium_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": [
+            "link_out_authorized_telegram"
+        ],
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "aquarium_telegram_router"
+            ]
+        ]
     }
 ]

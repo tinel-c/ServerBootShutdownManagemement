@@ -2,9 +2,9 @@
 
 ## Overview
 
-The Server Boot/Shutdown Management System uses a centralized automation server architecture where all control, monitoring, and management logic resides on a single Ubuntu VM running Node-RED (native installation) and Python services.
+The Comprehensive Automation Platform uses a centralized architecture where all control, monitoring, and management logic resides on a single Ubuntu VM. It acts as a unified brain for servers, courtyard hardware, and house-wide automation, orchestrating complex workflows based on various inputs and sensor data.
 
-![System Architecture](architecture_diagram_v4.png)
+![Platform Architecture](automation_flow_v1.png)
 
 ## Components
 
@@ -181,6 +181,26 @@ Running as background services on the automation server:
   - `hp/dl360p/status`: Power state updates
   - `hp/dl360p/health`: Health check data from monitoring
 - **Subscribes**: Scripts on automation server listen to command topics
+
+#### B. Courtyard & House Automation Layer (NEW v3.0+)
+
+The system integrates various hardware devices and sensors distributed across the property:
+
+- **Perimeter Control**: Main gate (Relay 2), secondary gates, and garage access.
+- **Lighting Ecosystem**: 16+ garden and house lights managed via Tasmota and Sonoff devices.
+- **Irrigation & Water**: Multi-zone watering systems and pump management.
+- **Aquarium Control**: Dedicated daily schedules and Telegram remote control.
+- **Sensor Integration**: 
+  - Presence detection (infrared, MQTT heartbeats)
+  - Power monitoring (mains vs. battery)
+  - Environmental sensors (future expansion)
+
+- **Workflow Execution**: 
+  Node-RED processes these inputs to execute automated workflows:
+  - **Auto-Boot**: Client heartbeat → WOL/IPMI Command.
+  - **Idle Shutdown**: Client absence → Grace period → Shutdown script.
+  - **Security Alerts**: Gate status change → Telegram notification.
+  - **Environmental Control**: Timer/Sensor data → Relay Toggle.
 
 ## Communication Flow
 
@@ -587,8 +607,42 @@ Complete visibility into automation decisions:
 ---
 
 **For Implementation Details**: See README.md, SETUP.md, and MQTT_PROTOCOL.md  
-**For Development**: See DEVELOPMENT_GUIDE.md and nodered/NODE_RED_DEVELOPMENT.md  
+**For Development**: See DEVELOPMENT.md and nodered/NODE_RED_DEVELOPMENT.md  
 **For Smart Automation**: See nodered/SMART_WAKEUP_GUIDE.md and nodered/AUTOMATION_UPDATE.md  
 **For Troubleshooting**: See TROUBLESHOOTING.md  
 **For Client Setup**: See client/README_CLIENT.md
+
+---
+
+## Appendix: Architecture Diagram Details
+
+### Visual Layout (Top to Bottom)
+
+#### Layer 1: User & Client Layer
+- **Web Browser**: Dashboard UI (localhost:1880)
+- **Client PCs (Windows)**:
+  - Client Monitor App
+  - Auto-start on login
+  - System tray icon
+
+#### Layer 2: Automation Server (Central Hub)
+- **Node-RED Dashboard**: Native installation, port 1880
+- **Mosquitto MQTT Broker**: port 1883
+- **Python Systemd Services**:
+  - `mqtt-boot-listener`
+  - `mqtt-shutdown-listener`
+  - `status-publisher`
+  - `health-monitor`
+
+#### Layer 3: Managed Servers
+- **Dell T310 Server**: IPMI, WoL, Proxmox VE, API :8006
+- **HP DL360p Server**: iLO, Proxmox VE, API :8006
+
+### Color Scheme
+- **Background**: Dark blue gradient (#0f172a → #1e293b)
+- **Automation Server**: Blue/Purple (#3b82f6)
+- **Dell Server**: Green (#10b981)
+- **HP Server**: Orange (#f59e0b)
+- **Client PCs**: Light blue (#60a5fa)
+- **MQTT Broker**: Yellow/Gold (#fbbf24)
 

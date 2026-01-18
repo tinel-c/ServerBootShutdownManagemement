@@ -10,31 +10,6 @@
         "wires": []
     },
     {
-        "id": "garden_lights_telegram_receiver",
-        "type": "telegram receiver",
-        "z": "tab_dashboard",
-        "name": "Lights Commands Receiver",
-        "bot": "telegram_bot_config",
-        "x": 140,
-        "y": 100,
-        "wires": [
-            ["garden_lights_telegram_router"]
-        ]
-    },
-    {
-        "id": "garden_lights_telegram_event",
-        "type": "telegram event",
-        "z": "tab_dashboard",
-        "name": "Lights Callback Events",
-        "bot": "telegram_bot_config",
-        "event": "callback_query",
-        "x": 140,
-        "y": 140,
-        "wires": [
-            ["garden_lights_telegram_router"]
-        ]
-    },
-    {
         "id": "garden_lights_telegram_router",
         "type": "function",
         "z": "tab_dashboard",
@@ -48,11 +23,21 @@
         "x": 360,
         "y": 120,
         "wires": [
-            ["garden_lights_cmd_all_on"],
-            ["garden_lights_cmd_all_off"],
-            ["garden_lights_cmd_status"],
-            ["garden_lights_cmd_help"],
-            ["garden_lights_answer_callback"]
+            [
+                "garden_lights_cmd_all_on"
+            ],
+            [
+                "garden_lights_cmd_all_off"
+            ],
+            [
+                "garden_lights_cmd_status"
+            ],
+            [
+                "garden_lights_cmd_help"
+            ],
+            [
+                "garden_lights_answer_callback"
+            ]
         ]
     },
     {
@@ -69,7 +54,9 @@
         "x": 640,
         "y": 60,
         "wires": [
-            ["garden_lights_callback_sender"]
+            [
+                "garden_lights_callback_sender"
+            ]
         ]
     },
     {
@@ -77,12 +64,14 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Send Callback Answer",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "haserroroutput": false,
         "outputs": 1,
         "x": 880,
         "y": 60,
-        "wires": [[]]
+        "wires": [
+            []
+        ]
     },
     {
         "id": "garden_lights_cmd_all_on",
@@ -142,7 +131,9 @@
         "x": 850,
         "y": 140,
         "wires": [
-            ["garden_lights_rate_limit"]
+            [
+                "garden_lights_rate_limit"
+            ]
         ]
     },
     {
@@ -165,7 +156,9 @@
         "x": 1080,
         "y": 140,
         "wires": [
-            ["garden_lights_mqtt_out"]
+            [
+                "garden_lights_mqtt_out"
+            ]
         ]
     },
     {
@@ -200,7 +193,9 @@
         "x": 590,
         "y": 260,
         "wires": [
-            ["garden_lights_telegram_out"]
+            [
+                "garden_lights_telegram_out"
+            ]
         ]
     },
     {
@@ -217,7 +212,9 @@
         "x": 580,
         "y": 340,
         "wires": [
-            ["garden_lights_telegram_out"]
+            [
+                "garden_lights_telegram_out"
+            ]
         ]
     },
     {
@@ -225,7 +222,7 @@
         "type": "telegram sender",
         "z": "tab_dashboard",
         "name": "Send to Telegram",
-        "bot": "telegram_bot_config",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
         "haserroroutput": false,
         "outputs": 1,
         "x": 840,
@@ -250,7 +247,9 @@
         "x": 140,
         "y": 440,
         "wires": [
-            ["garden_lights_update_state_1"]
+            [
+                "garden_lights_update_state_1"
+            ]
         ]
     },
     {
@@ -284,7 +283,9 @@
         "x": 140,
         "y": 480,
         "wires": [
-            ["garden_lights_update_state_2"]
+            [
+                "garden_lights_update_state_2"
+            ]
         ]
     },
     {
@@ -318,7 +319,9 @@
         "x": 140,
         "y": 520,
         "wires": [
-            ["garden_lights_update_state_3"]
+            [
+                "garden_lights_update_state_3"
+            ]
         ]
     },
     {
@@ -352,7 +355,9 @@
         "x": 140,
         "y": 560,
         "wires": [
-            ["garden_lights_update_state_4"]
+            [
+                "garden_lights_update_state_4"
+            ]
         ]
     },
     {
@@ -386,7 +391,9 @@
         "x": 140,
         "y": 600,
         "wires": [
-            ["garden_lights_update_state_5"]
+            [
+                "garden_lights_update_state_5"
+            ]
         ]
     },
     {
@@ -420,7 +427,9 @@
         "x": 140,
         "y": 640,
         "wires": [
-            ["garden_lights_update_state_6"]
+            [
+                "garden_lights_update_state_6"
+            ]
         ]
     },
     {
@@ -454,7 +463,9 @@
         "x": 140,
         "y": 680,
         "wires": [
-            ["garden_lights_update_state_7"]
+            [
+                "garden_lights_update_state_7"
+            ]
         ]
     },
     {
@@ -488,7 +499,9 @@
         "x": 140,
         "y": 720,
         "wires": [
-            ["garden_lights_update_state_8"]
+            [
+                "garden_lights_update_state_8"
+            ]
         ]
     },
     {
@@ -522,7 +535,9 @@
         "x": 140,
         "y": 760,
         "wires": [
-            ["garden_lights_update_state_9"]
+            [
+                "garden_lights_update_state_9"
+            ]
         ]
     },
     {
@@ -556,7 +571,9 @@
         "x": 140,
         "y": 800,
         "wires": [
-            ["garden_lights_update_state_10"]
+            [
+                "garden_lights_update_state_10"
+            ]
         ]
     },
     {
@@ -590,7 +607,9 @@
         "x": 140,
         "y": 840,
         "wires": [
-            ["garden_lights_update_state_11"]
+            [
+                "garden_lights_update_state_11"
+            ]
         ]
     },
     {
@@ -624,7 +643,9 @@
         "x": 140,
         "y": 880,
         "wires": [
-            ["garden_lights_update_state_12"]
+            [
+                "garden_lights_update_state_12"
+            ]
         ]
     },
     {
@@ -658,7 +679,9 @@
         "x": 140,
         "y": 940,
         "wires": [
-            ["garden_lights_update_state_13"]
+            [
+                "garden_lights_update_state_13"
+            ]
         ]
     },
     {
@@ -692,7 +715,9 @@
         "x": 140,
         "y": 980,
         "wires": [
-            ["garden_lights_update_state_14"]
+            [
+                "garden_lights_update_state_14"
+            ]
         ]
     },
     {
@@ -726,7 +751,9 @@
         "x": 140,
         "y": 1020,
         "wires": [
-            ["garden_lights_update_state_15"]
+            [
+                "garden_lights_update_state_15"
+            ]
         ]
     },
     {
@@ -760,7 +787,9 @@
         "x": 140,
         "y": 1060,
         "wires": [
-            ["garden_lights_update_state_16"]
+            [
+                "garden_lights_update_state_16"
+            ]
         ]
     },
     {
@@ -777,5 +806,21 @@
         "x": 380,
         "y": 1060,
         "wires": []
+    },
+    {
+        "id": "link_in_321_garden_lights_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": [
+            "link_out_authorized_telegram"
+        ],
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "garden_lights_telegram_router"
+            ]
+        ]
     }
 ]

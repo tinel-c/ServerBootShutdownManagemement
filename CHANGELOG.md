@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-01-18
+
+### Added - Enhanced Stability & Status Fallback
+- **Ping Fallback (Dell T310)**: Implemented ICMP ping fallback in `status_publisher.py` to correctly identify `offline` state when Proxmox API is unreachable.
+- **Watchdog Shutdown Guard**: Added a 10-minute cooldown in Node-RED (`41-client-automation.json`) after a shutdown command to prevent recovery boots during host shutdown.
+- **Client-Only Recovery**: Recovery boots now only trigger if active clients are waiting for the server.
+
+### Changed
+- **Increased Timeout**: Proxmox API timeout increased from 5s to 15s to handle transition delays.
+- **Activity Logging**: Improved recovery boot triggers descriptions in activity log.
+
+### Fixed
+- Resolved the "UNKNOWN" status reboot loop on Dell T310 servers.
+- Prevented unintended "Recovery Boots" when no clients are connected.
+
 ## [3.0.0] - 2026-01-17
 
 ### Added - Multi-Domain Automation System

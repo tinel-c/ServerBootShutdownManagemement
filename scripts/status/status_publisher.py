@@ -10,6 +10,7 @@ import os
 import json
 import signal
 import time
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -82,19 +83,19 @@ class StatusPublisher:
             logger.warning(f"No Proxmox configuration found for {server_name}")
             return None
         
+        # Parse API URL to get host
+        api_url = proxmox_config.get('api_url', '')
+        proxmox_host = api_url.replace('/api2/json', '').replace('https://', '').replace('http://', '').replace(':8006', '')
+        
         try:
             from proxmoxer import ProxmoxAPI
-            
-            # Parse API URL to get host
-            api_url = proxmox_config.get('api_url', '')
-            proxmox_host = api_url.replace('/api2/json', '').replace('https://', '').replace('http://', '').replace(':8006', '')
             
             proxmox = ProxmoxAPI(
                 proxmox_host,
                 user=proxmox_config.get('username'),
                 password=proxmox_config.get('password'),
                 verify_ssl=proxmox_config.get('verify_ssl', False),
-                timeout=5
+                timeout=15  # Increased timeout from 5 to 15
             )
             
             # Get nodes status
@@ -117,8 +118,41 @@ class StatusPublisher:
             logger.error("proxmoxer library not installed. Install with: pip install proxmoxer")
             return None
         except Exception as e:
-            logger.error(f"Error getting Proxmox status for {server_name}: {e}")
-            return None
+            logger.warning(f"Error getting Proxmox API status for {server_name}: {e}. Falling back to Ping.")
+            
+            # Fallback to Ping if Proxmox API fails
+            if self.ping_host(proxmox_host):
+                logger.info(f"{server_name} is reachable via PING (Server is ON, but API failed)")
+                return "on"
+            else:
+                logger.info(f"{server_name} is unreachable via PING (Server is OFF)")
+                return "off"
+
+    def ping_host(self, host: str, count: int = 2, timeout: int = 2) -> bool:
+        """
+        Ping a host to see if it's alive.
+        
+        Args:
+            host: Hostname or IP address
+            count: Number of pings to send
+            timeout: Timeout per ping in seconds
+            
+        Returns:
+            True if host responds, False otherwise
+        """
+        # Determine command based on OS
+        import platform
+        param = '-n' if platform.system().lower() == 'windows' else '-c'
+        timeout_param = '-w' if platform.system().lower() == 'windows' else '-W'
+        
+        # Build command
+        command = ['ping', param, str(count), timeout_param, str(timeout * 1000 if platform.system().lower() == 'windows' else timeout), host]
+        
+        try:
+            subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+            return True
+        except (subprocess.CalledProcessError, Exception):
+            return False
     
     def get_server_status(self, server_name: str, manager_info: Dict[str, Any]) -> Dict[str, Any]:
         """

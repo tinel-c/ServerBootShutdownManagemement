@@ -7,9 +7,9 @@ Automated remote boot and shutdown system for Dell T310 (IPMI) and HP DL360p (iL
 ### Server Management
 - 🚀 **Remote Boot** - Wake-on-LAN (Dell T310) and iLO (HP DL360p) based boot
 - 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
-- 📊 **Status Monitoring** - Real-time server status via Proxmox API (Dell T310) and iLO (HP DL360p)
+- 📊 **Status Monitoring** - Real-time server status via Proxmox API with **Ping Fallback** (Dell T310) and iLO (HP DL360p)
 - 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
-- 🤖 **Smart Automation** - Client-aware boot, 5-minute grace periods, command cooldown protection
+- 🤖 **Smart Automation** - Client-aware boot, 5-minute grace periods, **10-minute shutdown guard**, command cooldown protection
 - 📋 **Activity Logging** - Complete audit trail with triggers, commands, and status changes
 - 🔄 **Auto-Retry** - Automatic retry logic for transient connection failures
 
@@ -74,8 +74,8 @@ The platform supports **multiple automation domains** through a scalable, modula
 ### Server Control Methods:
 - **Dell T310**: 
   - **Boot**: Wake-on-LAN (magic packet)
-  - **Status**: Proxmox API (reliable, no IPMI needed)
-  - **Shutdown**: Proxmox API for graceful VM shutdown
+  - **Status**: Proxmox API with 15s timeout and **Ping Fallback** (reports offline if host unreachable)
+  - **Shutdown**: Proxmox API for graceful VM shutdown with 10-min watchdog guard
 - **HP DL360p**: 
   - **Boot**: iLO power-on command
   - **Status**: iLO with automatic retry
@@ -760,27 +760,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.0.0 (Multi-Domain Automation System)  
-**Last Updated:** 2026-01-17
+**Version:** 3.1.0 (Enhanced Stability Release)  
+**Last Updated:** 2026-01-18
 
 ## Recent Releases
 
-### v2.5.0 (2026-01-11) - Telegram Bot Interface
-- 🤖 Control servers via Telegram commands
-- 📊 Real-time status notifications
-- 🔔 Automatic alerts on server state changes
-- See `RELEASE_NOTES_v2.5.0.md` for details
+### v3.1.0 (2026-01-18) - Enhanced Stability & Status Fallback
+- 🏥 Fix "UNKNOWN" status reboot loop via Ping Fallback
+- 🛡️ Shutdown Guard (10-min) prevents recovery boot during shutdown
+- 👥 Client-Only Recovery (only boots if clients need server)
+- See `RELEASE_NOTES_v3.1.0.md` for details
 
-### v2.4.0 (2026-01-09) - Client Management & Auto-Update
-- 🛑 Remote client shutdown (graceful/force)
-- 🔄 Auto-update from GitHub releases
-- 📌 Version display in system tray tooltip
-- See `RELEASE_NOTES_v2.4.0.md` for details
-
-### v2.3.0 (2026-01-07) - Smart Client-Aware Automation
-- ✨ Auto-boot when clients connect
-- 📋 Complete activity logging
-- 🛡️ Command cooldown protection
-- See `RELEASE_NOTES_v2.3.0.md` for details
+### v3.0.0 (2026-01-17) - Multi-Domain Automation System
+- 🚀 Modular architecture for Gate, Lights, HVAC, etc.
+- 📋 Standardized MQTT topic structure
+- See `CHANGELOG.md` for details
 
 **Older Versions:** See `RELEASE_HISTORY.md` for v1.x - v2.2.0

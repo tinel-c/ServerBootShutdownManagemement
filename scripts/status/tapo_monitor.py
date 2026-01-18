@@ -83,6 +83,8 @@ class TapoCameraMonitor:
             
             try:
                 # Try to create PullPoint subscription
+                try:
+                    pullpoint = self.camera.create_pullpoint_service()
                 except Exception as e:
                     err_str = str(e).lower()
                     if "pullpoint" in err_str or "authority failure" in err_str or "not supported" in err_str:

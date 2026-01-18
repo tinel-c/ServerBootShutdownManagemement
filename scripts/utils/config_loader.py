@@ -228,6 +228,12 @@ class ConfigLoader:
                 cam_id = match.group(1)
                 prop_name = match.group(2).lower()
                 
+                # Map synonyms from .env to internal property names
+                if prop_name == 'user':
+                    prop_name = 'username'
+                elif prop_name == 'pass':
+                    prop_name = 'password'
+                
                 if cam_id not in cameras_dict:
                     cameras_dict[cam_id] = {}
                 

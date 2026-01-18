@@ -27,11 +27,14 @@ def inspect_camera(config):
         cam = ONVIFCamera(ip, port, user, pw)
         print("✅ Core Connection: Success")
         
-        # List all services
+        # List all services using Device Management
         print("\nAvailable Services:")
-        services = cam.get_services()
-        for service in services:
-            print(f"  - {service.Namespace}: {service.XAddr}")
+        try:
+            services = cam.devicemgmt.GetServices({'IncludeCapability': True})
+            for service in services:
+                print(f"  - {service.Namespace}: {service.XAddr}")
+        except Exception as e:
+            print(f"❌ GetServices: Failed ({e})")
             
         # Try to create Event service
         try:
@@ -42,13 +45,11 @@ def inspect_camera(config):
             try:
                 props = event_service.GetEventProperties()
                 print("✅ GetEventProperties: Supported")
-                print(f"  Available Topics: {len(props.TopicSet)}")
             except Exception as e:
                 print(f"❌ GetEventProperties: Failed ({e})")
                 
             # Try to create PullPoint service
             try:
-                # This is where the user's error happens
                 pullpoint_service = cam.create_pullpoint_service()
                 print("✅ PullPoint Service: Supported")
             except Exception as e:

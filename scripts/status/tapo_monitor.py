@@ -83,12 +83,13 @@ class TapoCameraMonitor:
             
             try:
                 # Try to create PullPoint subscription
-                try:
-                    pullpoint = self.camera.create_pullpoint_service()
                 except Exception as e:
                     err_str = str(e).lower()
                     if "pullpoint" in err_str or "authority failure" in err_str or "not supported" in err_str:
-                        logger.warning(f"⚠️ Camera '{self.name}' ONVIF events are unsupported or unauthorized (Error: {e}). Falling back to health monitoring only.")
+                        if "authority" in err_str:
+                            logger.error(f"❌ Camera '{self.name}' Authority Failure! IMPORTANT: Check if you are using the 'Camera Account' (created in Tapo App -> Device Settings -> Advanced -> Camera Account) and NOT your Tapo App email/password.")
+                        
+                        logger.warning(f"⚠️ Camera '{self.name}' ONVIF events are unsupported or unauthorized. Falling back to health monitoring only.")
                         # Stay in a simple health loop
                         while self.running and self.connected:
                             time.sleep(60)

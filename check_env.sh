@@ -87,6 +87,37 @@ for var in "${REQUIRED_VARS[@]}"; do
     fi
 done
 
+# Check for dynamic Camera configurations
+echo ""
+echo "Checking dynamic Camera configurations:"
+CAM_IDS=$(env | grep '^CAMERA_[0-9]\+_NAME' | cut -d'_' -f2 | sort -u)
+
+if [ -z "$CAM_IDS" ]; then
+    echo -e "  ${YELLOW}⚠ No cameras configured (CAMERA_N_NAME pattern not found)${NC}"
+else
+    for id in $CAM_IDS; do
+        CAM_NAME_VAR="CAMERA_${id}_NAME"
+        CAM_IP_VAR="CAMERA_${id}_IP"
+        CAM_USER_VAR="CAMERA_${id}_USER"
+        CAM_PASS_VAR="CAMERA_${id}_PASS"
+        
+        CAM_NAME="${!CAM_NAME_VAR}"
+        echo -en "  Camera $id ($CAM_NAME): "
+        
+        MISSING_CAM_PROPS=()
+        [ -z "${!CAM_IP_VAR}" ] && MISSING_CAM_PROPS+=("IP")
+        [ -z "${!CAM_USER_VAR}" ] && MISSING_CAM_PROPS+=("USER")
+        [ -z "${!CAM_PASS_VAR}" ] && MISSING_CAM_PROPS+=("PASS")
+        
+        if [ ${#MISSING_CAM_PROPS[@]} -eq 0 ]; then
+            echo -e "${GREEN}✓ Correctly configured${NC}"
+        else
+            echo -e "${RED}❌ Missing: ${MISSING_CAM_PROPS[*]}${NC}"
+            MISSING_COUNT=$((MISSING_COUNT + 1))
+        fi
+    done
+fi
+
 echo ""
 echo "========================================"
 

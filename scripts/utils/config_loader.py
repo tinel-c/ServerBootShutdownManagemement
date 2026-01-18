@@ -157,6 +157,9 @@ class ConfigLoader:
             config.update(server_config)
         except Exception as e:
             raise ConfigurationError(f"Failed to load server_config.yaml: {e}")
+            
+        # Dynamically load camera configuration from environment
+        config['cameras'] = self._load_camera_config()
         
         # Check for missing variables
         if self.missing_vars:
@@ -202,8 +205,58 @@ class ConfigLoader:
         
         print(f"\n✅ Configuration loaded successfully!")
         print(f"   - Servers: {len(servers)}")
+        print(f"   - Cameras: {len(config.get('cameras', []))}")
         print(f"   - MQTT Broker: {config.get('mqtt', {}).get('broker', {}).get('host')}")
         print()
+
+    def _load_camera_config(self) -> List[Dict[str, Any]]:
+        """
+        Dynamically load camera configurations from environment variables
+        following the pattern CAMERA_{ID}_{PROPERTY}.
+        
+        Returns:
+            List of camera configuration dictionaries
+        """
+        cameras_dict = {}
+        
+        # Regex to match CAMERA_1_NAME, CAMERA_1_IP, etc.
+        pattern = re.compile(r'^CAMERA_(\d+)_([A-Z_]+)$')
+        
+        for env_var, value in os.environ.items():
+            match = pattern.match(env_var)
+            if match:
+                cam_id = match.group(1)
+                prop_name = match.group(2).lower()
+                
+                if cam_id not in cameras_dict:
+                    cameras_dict[cam_id] = {}
+                
+                # Convert port to int if applicable
+                if prop_name == 'port':
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        pass
+                
+                cameras_dict[cam_id][prop_name] = value
+        
+        # Convert dictionary to sorted list based on ID
+        sorted_ids = sorted(cameras_dict.keys(), key=int)
+        cameras_list = [cameras_dict[cid] for cid in sorted_ids]
+        
+        # Validate that each camera has the minimum required properties
+        required_props = ['name', 'ip', 'username', 'password']
+        valid_cameras = []
+        
+        for cam in cameras_list:
+            missing = [p for p in required_props if p not in cam]
+            if not missing:
+                valid_cameras.append(cam)
+            else:
+                cam_name = cam.get('name', f"ID {cam.get('id', '?')}")
+                print(f"⚠ WARNING: Camera '{cam_name}' is missing properties: {', '.join(missing)}. Skipping.")
+        
+        return valid_cameras
 
 
 def get_config(config_dir: Path = None) -> Dict[str, Any]:
@@ -236,6 +289,10 @@ if __name__ == "__main__":
         print(f"\nMQTT Broker: {config.get('mqtt', {}).get('broker', {}).get('host')}")
         print(f"MQTT Port: {config.get('mqtt', {}).get('broker', {}).get('port')}")
         
+        print("\nCameras configured:")
+        for cam in config.get('cameras', []):
+            print(f"  - {cam.get('name')} ({cam.get('ip')}:{cam.get('port', 2020)})")
+            
     except ConfigurationError as e:
         print(f"\n❌ Configuration Error: {e}")
         exit(1)

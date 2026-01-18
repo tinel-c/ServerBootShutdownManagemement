@@ -22,6 +22,7 @@ SERVICES=(
     "mqtt-shutdown-listener.service"
     "status-publisher.service"
     "health-monitor.service"
+    "tapo-monitor.service"
 )
 
 # Print header

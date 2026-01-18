@@ -63,7 +63,8 @@ print_step "Step 1: Stopping services..."
 systemctl stop mqtt-boot-listener.service \
                mqtt-shutdown-listener.service \
                status-publisher.service \
-               health-monitor.service || true
+               health-monitor.service \
+               tapo-monitor.service || true
 sleep 1
 print_info "Services stopped."
 
@@ -154,7 +155,8 @@ print_step "Step 8: Restarting services..."
 systemctl restart mqtt-boot-listener.service
 systemctl restart mqtt-shutdown-listener.service
 systemctl restart status-publisher.service
-systemctl restart health-monitor.service || true  # May not be enabled
+systemctl restart health-monitor.service || true
+systemctl restart tapo-monitor.service || true
 print_info "✓ Services restarted"
 
 # Update complete
@@ -171,6 +173,7 @@ echo "  systemctl status mqtt-boot-listener.service"
 echo "  systemctl status mqtt-shutdown-listener.service"
 echo "  systemctl status status-publisher.service"
 echo "  systemctl status health-monitor.service"
+echo "  systemctl status tapo-monitor.service"
 echo ""
 print_info "View logs with:"
 echo "  journalctl -u status-publisher.service -f"

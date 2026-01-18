@@ -30,6 +30,9 @@ systemctl restart status-publisher.service
 echo "Restarting health-monitor..."
 systemctl restart health-monitor.service
 
+echo "Restarting tapo-monitor..."
+systemctl restart tapo-monitor.service
+
 echo -e "${GREEN}All services restarted successfully!${NC}"
 echo ""
 echo -e "${GREEN}Current Status:${NC}"
@@ -40,3 +43,5 @@ echo "..."
 systemctl status status-publisher.service --no-pager | head -n 3
 echo "..."
 systemctl status health-monitor.service --no-pager | head -n 3
+echo "..."
+systemctl status tapo-monitor.service --no-pager | head -n 3

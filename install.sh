@@ -165,24 +165,31 @@ echo ""
 echo "  3. Enable and start services:"
 echo "     systemctl enable mqtt-boot-listener.service"
 echo "     systemctl enable mqtt-shutdown-listener.service"
-echo "     systemctl enable status-publisher.service"
-echo "     systemctl enable health-monitor.service"
-echo "     systemctl start mqtt-boot-listener.service"
-echo "     systemctl start mqtt-shutdown-listener.service"
-echo "     systemctl start status-publisher.service"
-echo "     systemctl start health-monitor.service"
+echo "     systemctl enable status-publisher.service
+     systemctl enable health-monitor.service
+     systemctl enable tapo-monitor.service
+     systemctl start mqtt-boot-listener.service
+     systemctl start mqtt-shutdown-listener.service
+     systemctl start status-publisher.service
+     systemctl start health-monitor.service
+     systemctl start tapo-monitor.service
+"
 echo ""
 echo "  4. Check service status:"
 echo "     systemctl status mqtt-boot-listener.service"
 echo "     systemctl status mqtt-shutdown-listener.service"
-echo "     systemctl status status-publisher.service"
-echo "     systemctl status health-monitor.service"
+echo "     systemctl status status-publisher.service
+     systemctl status health-monitor.service
+     systemctl status tapo-monitor.service
+"
 echo ""
 echo "  5. View logs:"
 echo "     journalctl -u mqtt-boot-listener.service -f"
 echo "     journalctl -u mqtt-shutdown-listener.service -f"
-echo "     journalctl -u status-publisher.service -f"
-echo "     journalctl -u health-monitor.service -f"
+echo "     journalctl -u status-publisher.service -f
+     journalctl -u health-monitor.service -f
+     journalctl -u tapo-monitor.service -f
+"
 echo ""
 print_info "Installation directory: $INSTALL_DIR"
 print_info "Log file: $LOG_FILE"

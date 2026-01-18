@@ -86,8 +86,9 @@ class TapoCameraMonitor:
                 try:
                     pullpoint = self.camera.create_pullpoint_service()
                 except Exception as e:
-                    if "pullpoint" in str(e).lower():
-                        logger.warning(f"⚠️ Camera '{self.name}' does not support ONVIF PullPoint events. Falling back to health monitoring only.")
+                    err_str = str(e).lower()
+                    if "pullpoint" in err_str or "authority failure" in err_str or "not supported" in err_str:
+                        logger.warning(f"⚠️ Camera '{self.name}' ONVIF events are unsupported or unauthorized (Error: {e}). Falling back to health monitoring only.")
                         # Stay in a simple health loop
                         while self.running and self.connected:
                             time.sleep(60)

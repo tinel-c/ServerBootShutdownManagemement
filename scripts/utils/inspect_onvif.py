@@ -27,6 +27,14 @@ def inspect_camera(config):
         cam = ONVIFCamera(ip, port, user, pw)
         print("✅ Core Connection: Success")
         
+        # Check System Time (Crucial for Auth)
+        try:
+            time_params = cam.devicemgmt.GetSystemDateAndTime()
+            dt = time_params.UTCDateTime
+            print(f"✅ System Time: {dt.Date.Year}-{dt.Date.Month}-{dt.Date.Day} {dt.Time.Hour}:{dt.Time.Minute}:{dt.Time.Second} (UTC)")
+        except Exception as e:
+            print(f"❌ GetSystemDateAndTime: Failed ({e})")
+
         # List all services using Device Management
         print("\nAvailable Services:")
         try:

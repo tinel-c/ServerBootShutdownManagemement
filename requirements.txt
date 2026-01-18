@@ -23,7 +23,7 @@ pytest-cov>=3.0.0
 pytest-mock>=3.10.0
 
 # ONVIF and Camera Integration
-onvif-zeep-python>=0.2.1
+onvif-zeep>=0.2.1
 WSDiscovery>=2.0.0
 
 # Utilities

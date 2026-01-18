@@ -25,7 +25,7 @@ from logger import get_logger
 try:
     from onvif import ONVIFCamera
 except ImportError:
-    print("❌ Error: onvif-zeep-python not installed. Run: pip install onvif-zeep-python")
+    print("❌ Error: onvif-zeep not installed. Run: pip install onvif-zeep")
     sys.exit(1)
 
 logger = get_logger(__name__)

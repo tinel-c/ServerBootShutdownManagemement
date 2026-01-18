@@ -82,8 +82,19 @@ class TapoCameraMonitor:
                     continue
             
             try:
-                # Create PullPoint subscription
-                pullpoint = self.camera.create_pullpoint_service()
+                # Try to create PullPoint subscription
+                try:
+                    pullpoint = self.camera.create_pullpoint_service()
+                except Exception as e:
+                    if "pullpoint" in str(e).lower():
+                        logger.warning(f"⚠️ Camera '{self.name}' does not support ONVIF PullPoint events. Falling back to health monitoring only.")
+                        # Stay in a simple health loop
+                        while self.running and self.connected:
+                            time.sleep(60)
+                            self.mqtt_client.publish(self.health_topic, "online", retain=True)
+                        continue
+                    else:
+                        raise e
                 
                 logger.info(f"Monitoring events for '{self.name}'...")
                 

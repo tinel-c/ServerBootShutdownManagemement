@@ -199,6 +199,22 @@
         "wires": []
     },
     {
+        "id": "link_in_telegram_sender",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Telegram Sender (In)",
+        "links": [
+            "telegram_link_out"
+        ],
+        "x": 1000,
+        "y": 80,
+        "wires": [
+            [
+                "telegram_bot_sender"
+            ]
+        ]
+    },
+    {
         "id": "LuncaCetatuiiAutomationBot_bot",
         "type": "telegrambot-config",
         "name": "LuncaCetatuiiAutomationBot_bot",

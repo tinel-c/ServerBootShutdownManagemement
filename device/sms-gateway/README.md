@@ -228,10 +228,28 @@ The device includes robust self-recovery mechanisms:
 When WiFi or MQTT fails, the device can send SMS alerts:
 - Configure `EMERGENCY_PHONE_NUMBER` in `include/passwords.h`
 - Alerts sent when:
+  - **Device comes online** - SMS notification after successful initialization
   - WiFi connection fails on boot
   - WiFi reconnection attempts exhausted
   - MQTT connection attempts exhausted
   - Device resets (if MQTT unavailable)
+
+**Device Online Notification:**
+After successful initialization, the device automatically sends an SMS with:
+- Boot count
+- WiFi connection status and IP address
+- MQTT connection status
+- GSM module status
+
+Example message:
+```
+SMS Gateway: Device is ONLINE
+Boot #5
+WiFi: Connected
+IP: 192.168.1.50
+MQTT: Connected
+GSM: Ready
+```
 
 ### Watchdog Timer
 - 60-second watchdog timer prevents system hangs

@@ -98,7 +98,6 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "libs": [],
         "x": 380,
         "y": 140,
         "wires": []

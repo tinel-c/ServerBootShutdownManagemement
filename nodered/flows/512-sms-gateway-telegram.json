@@ -230,7 +230,7 @@
         ]
     },
     {
-        "id": "link_in_sms_telegram",
+        "id": "link_in_512_sms_telegram",
         "type": "link in",
         "z": "tab_dashboard",
         "name": "Authorized Telegram Commands (In)",

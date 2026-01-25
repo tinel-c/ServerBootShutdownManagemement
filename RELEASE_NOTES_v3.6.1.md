@@ -9,6 +9,14 @@ This release focuses on fixing compilation errors and improving the SMS Gateway 
 
 ## Changes
 
+### SMS Gateway Device Features
+
+#### New Features
+- ✅ **Device Online SMS Notification** - Automatically sends SMS when device completes initialization
+  - Includes boot count, WiFi status, IP address, MQTT status, and GSM status
+  - Provides immediate feedback that device is operational
+  - Only sends if GSM initialized and emergency phone number configured
+
 ### SMS Gateway Device Fixes
 
 #### Compilation Fixes
@@ -62,7 +70,9 @@ No migration needed. This is a bug fix release that maintains API compatibility.
 ✅ All compilation errors resolved  
 ✅ Project builds successfully for LilyGo T-Call  
 ✅ SMS reading functions implemented and tested  
-✅ Build system configuration validated
+✅ Build system configuration validated  
+✅ Device Online SMS notification tested and working  
+✅ All features verified on hardware
 
 ## Known Issues
 

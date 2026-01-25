@@ -153,6 +153,97 @@ bool GSM_ON(uint32_t time_delay) {
 }
 
 /**
+ * Delete SMS message by index using AT command
+ */
+bool deleteSMS(int index) {
+    if (index <= 0 || !gsmInitialized) return false;
+    
+    SerialAT.print("AT+CMGD=");
+    SerialAT.print(index);
+    SerialAT.print(",0\r");  // Delete without confirmation
+    delay(500);
+    
+    // Wait for OK response
+    String response = "";
+    unsigned long startTime = millis();
+    while (millis() - startTime < 2000) {
+        if (SerialAT.available()) {
+            char c = SerialAT.read();
+            response += c;
+            if (response.indexOf("OK") >= 0) {
+                return true;
+            }
+            if (response.indexOf("ERROR") >= 0) {
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Clear all SMS messages from buffer
+ * Uses AT+CMGDA command to delete all messages at once (if supported)
+ * Falls back to individual deletion if needed
+ */
+void clearSMSBuffer() {
+    if (!gsmInitialized) return;
+    
+    Serial.println("[GSM] Clearing SMS buffer...");
+    
+    // Try to delete all SMS messages at once using AT+CMGDA
+    SerialAT.print("AT+CMGDA=\"DEL ALL\"\r");
+    delay(1000);
+    
+    // Check response
+    String response = "";
+    unsigned long startTime = millis();
+    while (millis() - startTime < 3000) {
+        if (SerialAT.available()) {
+            char c = SerialAT.read();
+            response += c;
+            if (response.indexOf("OK") >= 0) {
+                Serial.println(" All SMS messages deleted");
+                return;
+            }
+            if (response.indexOf("ERROR") >= 0) {
+                // AT+CMGDA not supported, try individual deletion
+                break;
+            }
+        }
+    }
+    
+    // Fallback: Delete messages individually
+    Serial.print(" Using individual deletion");
+    int deletedCount = 0;
+    int maxAttempts = 20; // Limit to prevent infinite loop
+    
+    for (int i = 1; i <= maxAttempts; i++) {
+        // Check if message exists
+        int msgIndex = modem.newMessageIndex(i);
+        if (msgIndex > 0) {
+            if (deleteSMS(msgIndex)) {
+                deletedCount++;
+                Serial.print(".");
+            } else {
+                break; // No more messages or error
+            }
+        } else {
+            break; // No more messages
+        }
+        delay(200); // Small delay between deletions
+    }
+    
+    if (deletedCount > 0) {
+        Serial.print(" Cleared ");
+        Serial.print(deletedCount);
+        Serial.println(" messages");
+    } else {
+        Serial.println(" No messages to clear");
+    }
+}
+
+/**
  * Power off GSM module
  */
 void GSM_OFF() {
@@ -809,16 +900,9 @@ void setup() {
         sendSMS(getEmergencyPhoneNumber(), message);
     }
     
-    // Empty SMS buffer
+    // Clear old SMS messages (optional - helps prevent buffer overflow)
     if (gsmInitialized) {
-        Serial.println("[BOOT] Clearing SMS buffer...");
-        int attempts = 0;
-        while (modem.emptySMSBuffer() == 0 && attempts < 10) {
-            Serial.print(".");
-            delay(SMS_BUFFER_CHECK_DELAY);
-            attempts++;
-        }
-        Serial.println(" Done");
+        clearSMSBuffer();
     }
     
     Serial.println("========================================");
@@ -891,14 +975,12 @@ void loop() {
             
             smsReceived = true;
             
-            // Empty SMS buffer
-            int attempts = 0;
-            while (modem.emptySMSBuffer() == 0 && attempts < 10) {
-                Serial.print(".");
-                delay(SMS_BUFFER_CHECK_DELAY);
-                attempts++;
+            // Delete the SMS after reading (prevents buffer overflow)
+            if (deleteSMS(index)) {
+                Serial.println("[SMS] Message deleted from buffer");
+            } else {
+                Serial.println("[SMS] WARNING: Failed to delete message (may remain in buffer)");
             }
-            Serial.println(" Done");
         }
     }
     

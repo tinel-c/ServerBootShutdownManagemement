@@ -1,0 +1,291 @@
+[
+    {
+        "id": "sms_gateway_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ SMS GATEWAY CONTROLS ═══════════════",
+        "info": "## SMS Gateway Control\n\n**Flow Number:** 510\n**Domain:** SMS/Notifications (500-599)\n\n### Purpose\nProvides control interface for SMS Gateway device to send SMS messages.\n\n### Features\n- Send SMS via Dashboard UI\n- Phone number and message input\n- Real-time status display\n- Send response tracking\n\n### MQTT Topics\n- Command: sms/gateway/command/send\n- Status: sms/gateway/status\n- Response: sms/gateway/send/response\n\n### Dependencies\n- ui_group_sms_gateway (from 00-base-config.json)\n- mqtt_broker_local",
+        "x": 280,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "ui_text_sms_phone",
+        "type": "ui-text-input",
+        "z": "tab_dashboard",
+        "group": "ui_group_sms_gateway",
+        "name": "Phone Number",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "mode": "text",
+        "delay": 300,
+        "topic": "phone",
+        "label": "Phone Number",
+        "tooltip": "Enter phone number with country code (e.g., +1234567890)",
+        "place": "Enter phone number",
+        "format": "{{value}}",
+        "className": "",
+        "x": 180,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ui_text_sms_message",
+        "type": "ui-text-input",
+        "z": "tab_dashboard",
+        "group": "ui_group_sms_gateway",
+        "name": "Message Text",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "mode": "text",
+        "delay": 300,
+        "topic": "message",
+        "label": "Message",
+        "tooltip": "Enter SMS message text (max 160 characters recommended)",
+        "place": "Enter message text",
+        "format": "{{value}}",
+        "className": "",
+        "x": 180,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "btn_sms_send",
+        "type": "ui-button",
+        "z": "tab_dashboard",
+        "group": "ui_group_sms_gateway",
+        "name": "Send SMS",
+        "label": "SEND SMS",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "tooltip": "Send SMS message",
+        "color": "",
+        "bgcolor": "#10b981",
+        "className": "",
+        "icon": "message",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "send",
+        "topicType": "str",
+        "x": 160,
+        "y": 220,
+        "wires": [
+            [
+                "func_prepare_sms_command"
+            ]
+        ]
+    },
+    {
+        "id": "func_prepare_sms_command",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Prepare SMS Command",
+        "func": "// Get phone and message from flow context (set by text inputs)\nconst phone = flow.get('sms_phone') || '';\nconst message = flow.get('sms_message') || '';\n\nif (!phone || !message) {\n    node.warn('Phone number or message missing');\n    return null;\n}\n\n// Create SMS command payload\nmsg.payload = {\n    to: phone,\n    text: message\n};\n\nmsg.topic = 'sms/gateway/command/send';\n\n// Store timestamp for tracking\nmsg.timestamp = new Date().toISOString();\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 220,
+        "wires": [
+            [
+                "mqtt_out_sms_command"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_sms_command",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "SMS Command",
+        "topic": "",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 570,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "func_store_sms_inputs",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Store SMS Inputs",
+        "func": "// Store phone and message in flow context when text inputs change\nif (msg.topic === 'phone') {\n    flow.set('sms_phone', msg.payload);\n} else if (msg.topic === 'message') {\n    flow.set('sms_message', msg.payload);\n}\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "link_in_sms_phone",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Phone Input",
+        "links": [
+            "ui_text_sms_phone"
+        ],
+        "x": 195,
+        "y": 100,
+        "wires": [
+            [
+                "func_store_sms_inputs"
+            ]
+        ]
+    },
+    {
+        "id": "link_in_sms_message",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Message Input",
+        "links": [
+            "ui_text_sms_message"
+        ],
+        "x": 195,
+        "y": 160,
+        "wires": [
+            [
+                "func_store_sms_inputs"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_in_sms_status",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "SMS Gateway Status",
+        "topic": "sms/gateway/status",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 300,
+        "wires": [
+            [
+                "func_sms_status_metadata"
+            ]
+        ]
+    },
+    {
+        "id": "func_sms_status_metadata",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "SMS Status Metadata",
+        "func": "let metadataKey = \"status_metadata_sms_gateway\";\nlet metadata = flow.get(metadataKey) || {\n    lastReportedMs: null,\n    lastChangedMs: null,\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\n// Parse status - could be timestamp string or JSON\nlet statusData = msg.payload;\nlet newState = \"online\";\n\nif (typeof statusData === 'string') {\n    // Try to parse as JSON\n    try {\n        statusData = JSON.parse(statusData);\n        newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n    } catch (e) {\n        // It's a timestamp string, device is online\n        newState = 'online';\n    }\n} else if (typeof statusData === 'object') {\n    newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n}\n\nlet nowMs = Date.now();\nmetadata.lastReportedMs = nowMs;\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChangedMs = nowMs;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nmsg.payload = typeof statusData === 'object' ? statusData : { timestamp: statusData, wifi: 'connected', mqtt: 'connected', gsm: 'initialized' };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 300,
+        "wires": [
+            [
+                "template_sms_status"
+            ]
+        ]
+    },
+    {
+        "id": "template_sms_status",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_sms_gateway",
+        "name": "SMS Gateway Status",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "format": "<div style=\"font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;\">\n    <!-- Status Badge -->\n    <div style=\"display: flex; align-items: center; justify-content: center; margin-bottom: 20px;\">\n        <div :style=\"statusBadgeStyle\" style=\"padding: 12px 32px; border-radius: 24px; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.3);\">\n            <div :style=\"statusDotStyle\" style=\"width: 12px; height: 12px; border-radius: 50%; animation: pulse 2s ease-in-out infinite;\"></div>\n            <span style=\"font-weight: 700; font-size: 1.3em; letter-spacing: 0.5px; text-transform: uppercase;\">\n                {{msg.payload.wifi === 'connected' && msg.payload.mqtt === 'connected' ? 'ONLINE' : 'OFFLINE'}}\n            </span>\n        </div>\n    </div>\n    \n    <!-- Connection Status -->\n    <div style=\"display: grid; gap: 8px;\">\n        <div style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;\">\n            <span style=\"color: #94a3b8; font-size: 0.9em;\">📶 WiFi</span>\n            <span :style=\"{ color: msg.payload.wifi === 'connected' ? '#10b981' : '#ef4444' }\">{{msg.payload.wifi || 'unknown'}}</span>\n        </div>\n        <div style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;\">\n            <span style=\"color: #94a3b8; font-size: 0.9em;\">📡 MQTT</span>\n            <span :style=\"{ color: msg.payload.mqtt === 'connected' ? '#10b981' : '#ef4444' }\">{{msg.payload.mqtt || 'unknown'}}</span>\n        </div>\n        <div style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;\">\n            <span style=\"color: #94a3b8; font-size: 0.9em;\">📱 GSM</span>\n            <span :style=\"{ color: msg.payload.gsm === 'initialized' ? '#10b981' : '#ef4444' }\">{{msg.payload.gsm || 'unknown'}}</span>\n        </div>\n        <div style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;\">\n            <span style=\"color: #94a3b8; font-size: 0.9em;\">⏱️ Last Update</span>\n            <span style=\"color: #e2e8f0; font-family: 'Consolas', monospace; font-size: 0.85em;\">{{formatDelta(msg.metadata.lastReportedMs)}}</span>\n        </div>\n    </div>\n</div>\n\n<style>\n@keyframes pulse {\n    0%, 100% { opacity: 1; transform: scale(1); }\n    50% { opacity: 0.5; transform: scale(1.1); }\n}\n</style>\n\n<script>\nexport default {\n    data() {\n        return {\n            now: Date.now(),\n            timer: null\n        }\n    },\n    mounted() {\n        this.timer = setInterval(() => {\n            this.now = Date.now()\n        }, 1000)\n    },\n    unmounted() {\n        clearInterval(this.timer)\n    },\n    methods: {\n        formatDelta(ms) {\n            if (!ms) return 'Never'\n            const seconds = Math.floor((this.now - ms) / 1000)\n            if (seconds < 2) return 'Just now'\n            if (seconds < 60) return `${seconds}s ago`\n            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`\n            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`\n            return new Date(ms).toLocaleDateString()\n        }\n    },\n    computed: {\n        statusBadgeStyle() {\n            const wifi = this.msg.payload.wifi === 'connected';\n            const mqtt = this.msg.payload.mqtt === 'connected';\n            if (wifi && mqtt) {\n                return {\n                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',\n                    color: '#ffffff',\n                    boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)'\n                }\n            } else {\n                return {\n                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',\n                    color: '#ffffff',\n                    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)'\n                }\n            }\n        },\n        statusDotStyle() {\n            const wifi = this.msg.payload.wifi === 'connected';\n            const mqtt = this.msg.payload.mqtt === 'connected';\n            return {\n                background: wifi && mqtt ? '#ffffff' : '#ffffff',\n                boxShadow: `0 0 8px ${wifi && mqtt ? '#10b981' : '#ef4444'}`\n            }\n        }\n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 640,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "mqtt_in_sms_response",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "SMS Send Response",
+        "topic": "sms/gateway/send/response",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 380,
+        "wires": [
+            [
+                "func_format_sms_response"
+            ]
+        ]
+    },
+    {
+        "id": "func_format_sms_response",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Format SMS Response",
+        "func": "// Format response for UI notification\nconst response = msg.payload;\nconst success = response.success || false;\nconst phone = response.to || 'Unknown';\nconst timestamp = response.timestamp || new Date().toISOString();\n\nconst emoji = success ? '✅' : '❌';\nconst status = success ? 'Success' : 'Failed';\n\nmsg.payload = {\n    success: success,\n    phone: phone,\n    timestamp: timestamp,\n    message: `${emoji} SMS ${status} to ${phone}`\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 380,
+        "wires": [
+            [
+                "ui_notification_sms_response"
+            ]
+        ]
+    },
+    {
+        "id": "ui_notification_sms_response",
+        "type": "ui-notification",
+        "z": "tab_dashboard",
+        "name": "SMS Response",
+        "ui": "ui_base",
+        "position": "top right",
+        "displayTime": "5",
+        "sendAll": false,
+        "highlight": "",
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "x": 620,
+        "y": 380,
+        "wires": []
+    }
+]

@@ -26,6 +26,19 @@ mqtt:
     client_presence: "clients/+/presence"
     client_heartbeat: "clients/+/heartbeat"
     automation_status: "automation/clients/status"
+    
+    # SMS Gateway topics (domain: 500-599)
+    sms_command_send: "sms/gateway/command/send"
+    sms_status: "sms/gateway/status"
+    sms_status_timestamp: "sms/gateway/status/timestamp"
+    sms_receive_from: "sms/gateway/receive/from"
+    sms_receive_text: "sms/gateway/receive/text"
+    sms_receive_timestamp: "sms/gateway/receive/timestamp"
+    sms_send_response: "sms/gateway/send/response"
+    sms_send_timestamp: "sms/gateway/send/timestamp"
+    sms_ota_command: "sms/gateway/command/ota"
+    sms_ota_status: "sms/gateway/ota/status"
+    sms_ota_progress: "sms/gateway/ota/progress"
   
   qos: 1
   retain: false

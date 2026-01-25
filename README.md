@@ -719,6 +719,7 @@ ServerBootShutdownMangement/
 - [Commit Conventions](docs/developer/COMMIT_MESSAGE_CONVENTIONS.md) - Git message standards
 - [Commit Checklist](docs/developer/COMMIT_CHECKLIST.md) - Pre-flight checks
 - [Documentation Policy](docs/developer/DOCUMENTATION_POLICY.md) - Standards for docs
+- [OTA Device Updates](docs/developer/OTA_DEVICE_UPDATES.md) - OTA update development guide
 
 ### Release Information
 - [Changelog](CHANGELOG.md) - Complete version history

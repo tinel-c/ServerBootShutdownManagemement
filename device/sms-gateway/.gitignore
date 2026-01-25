@@ -1,0 +1,21 @@
+# PlatformIO
+.pio/
+.vscode/
+.idea/
+
+# Environment files
+.env
+config/.env
+include/passwords.h
+
+# Build artifacts
+*.bin
+*.elf
+*.hex
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

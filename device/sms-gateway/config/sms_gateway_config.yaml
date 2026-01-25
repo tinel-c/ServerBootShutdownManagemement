@@ -1,0 +1,67 @@
+# SMS Gateway Configuration
+# This file follows the project's configuration structure
+
+sms_gateway:
+  # Device identification
+  device_id: "${SMS_GATEWAY_DEVICE_ID:esp32-sms-gateway}"
+  device_name: "${SMS_GATEWAY_DEVICE_NAME:SMS Gateway}"
+  
+  # Hardware configuration
+  hardware:
+    type: "lilygo-t-call-sim800"
+    modem_baud: 115200
+    serial_debug_baud: 115200
+  
+  # GPRS/APN configuration (if using GPRS for MQTT)
+  gprs:
+    apn: "${SMS_GATEWAY_APN:net}"
+    username: "${SMS_GATEWAY_APN_USER:}"
+    password: "${SMS_GATEWAY_APN_PASS:}"
+    enabled: false  # Set to true if using GPRS instead of WiFi
+
+mqtt:
+  broker:
+    host: "${MQTT_BROKER_HOST:localhost}"  # From environment variable
+    port: ${MQTT_BROKER_PORT:1883}          # From environment variable
+    keepalive: 60
+  
+  authentication:
+    username: "${MQTT_USERNAME:}"       # From environment variable
+    password: "${MQTT_PASSWORD:}"       # From environment variable
+  
+  topics:
+    # Command topics (subscribe)
+    command_send: "sms/gateway/command/send"
+    
+    # Status topics (publish)
+    status: "sms/gateway/status"
+    status_timestamp: "sms/gateway/status/timestamp"
+    
+    # Receive topics (publish received SMS)
+    receive_from: "sms/gateway/receive/from"
+    receive_text: "sms/gateway/receive/text"
+    receive_timestamp: "sms/gateway/receive/timestamp"
+    
+    # Send topics (publish sent SMS confirmation)
+    send_response: "sms/gateway/send/response"
+    send_timestamp: "sms/gateway/send/timestamp"
+  
+  qos: 1
+  retain: false
+
+# WiFi configuration (if using WiFi for MQTT)
+wifi:
+  enabled: true
+  ssid: "${WIFI_SSID:}"           # From environment variable
+  password: "${WIFI_PASSWORD:}"   # From environment variable
+
+# NTP configuration for timestamps
+ntp:
+  server: "pool.ntp.org"
+  gmt_offset_sec: 0
+  daylight_offset_sec: 3600
+
+# Timing configuration
+timing:
+  mqtt_reconnect_delay_ms: 5000
+  sms_buffer_check_delay_ms: 1000

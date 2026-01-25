@@ -34,6 +34,22 @@ The system uses MQTT for all remote commands and status updates. All messages ar
 | `clients/{client_id}/response` | Client command responses | 1 | Client → Server |
 | `automation/clients/status` | Automation status updates | 1 | Server → Server |
 
+### SMS Gateway Topics (Domain: 500-599)
+
+| Topic | Purpose | QoS | Direction |
+|-------|---------|-----|-----------|
+| `sms/gateway/command/send` | Send SMS command | 1 | Dashboard → Device |
+| `sms/gateway/status` | Device status timestamp | 1 | Device → Dashboard |
+| `sms/gateway/status/timestamp` | Last status update | 1 | Device → Dashboard |
+| `sms/gateway/receive/from` | Phone number of received SMS | 1 | Device → Dashboard |
+| `sms/gateway/receive/text` | Text content of received SMS | 1 | Device → Dashboard |
+| `sms/gateway/receive/timestamp` | Timestamp when SMS was received | 1 | Device → Dashboard |
+| `sms/gateway/send/response` | Send operation result | 1 | Device → Dashboard |
+| `sms/gateway/send/timestamp` | Timestamp when SMS was sent | 1 | Device → Dashboard |
+| `sms/gateway/command/ota` | OTA enable/disable command | 1 | Dashboard → Device |
+| `sms/gateway/ota/status` | OTA update status | 1 | Device → Dashboard |
+| `sms/gateway/ota/progress` | OTA update progress | 1 | Device → Dashboard |
+
 ---
 
 ## Message Schemas
@@ -412,6 +428,264 @@ The system uses MQTT for all remote commands and status updates. All messages ar
 | `timestamp` | string | ISO8601 timestamp of response |
 | `client_id` | string | Client identifier |
 | `hostname` | string | Windows hostname |
+
+**Example (Acknowledged):**
+```json
+{
+  "request_id": "shutdown-desktop-abc123-1736429400",
+  "action": "shutdown",
+  "success": true,
+  "message": "Shutdown command acknowledged, will shutdown in 30 seconds",
+  "timestamp": "2026-01-09T15:30:01+02:00",
+  "client_id": "desktop-abc123",
+  "hostname": "DESKTOP-ABC123"
+}
+```
+
+---
+
+## SMS Gateway Messages
+
+### Send SMS Command
+
+**Topic:** `sms/gateway/command/send`
+
+**Schema:**
+```json
+{
+  "to": "string",
+  "text": "string"
+}
+```
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `to` | string | Yes | Phone number with country code (e.g., "+1234567890") |
+| `text` | string | Yes | SMS message text (max 160 characters recommended) |
+
+**Example:**
+```json
+{
+  "to": "+1234567890",
+  "text": "Server is online and running normally."
+}
+```
+
+---
+
+### SMS Send Response
+
+**Topic:** `sms/gateway/send/response`
+
+**Schema:**
+```json
+{
+  "success": true,
+  "to": "string",
+  "timestamp": "ISO8601 timestamp"
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | boolean | Whether SMS was sent successfully |
+| `to` | string | Phone number that received the SMS |
+| `timestamp` | string | ISO8601 timestamp when SMS was sent |
+
+**Example (Success):**
+```json
+{
+  "success": true,
+  "to": "+1234567890",
+  "timestamp": "2026-01-25T17:00:00+00:00"
+}
+```
+
+**Example (Failure):**
+```json
+{
+  "success": false,
+  "to": "+1234567890",
+  "timestamp": "2026-01-25T17:00:00+00:00"
+}
+```
+
+---
+
+### SMS Receive Messages
+
+**Topic:** `sms/gateway/receive/from` and `sms/gateway/receive/text`
+
+**Schema (from topic):**
+```
+Phone number string (e.g., "+1234567890")
+```
+
+**Schema (text topic):**
+```
+SMS message text string
+```
+
+**Note:** These are published as separate topics. The timestamp is published to `sms/gateway/receive/timestamp`.
+
+**Example Usage:**
+```bash
+# Monitor received SMS
+mosquitto_sub -h localhost -t "sms/gateway/receive/+" -v
+```
+
+**Example Messages:**
+- `sms/gateway/receive/from`: `"+1234567890"`
+- `sms/gateway/receive/text`: `"Hello from phone!"`
+- `sms/gateway/receive/timestamp`: `"2026-01-25T17:05:00+00:00"`
+
+---
+
+### SMS Gateway Status
+
+**Topic:** `sms/gateway/status`
+
+**Schema:**
+```
+ISO8601 timestamp string
+```
+
+**Description:** Timestamp when device went online or last status update.
+
+**Example:**
+```
+2026-01-25T17:00:00+00:00
+```
+
+---
+
+### OTA Update Command
+
+**Topic:** `sms/gateway/command/ota`
+
+**Schema:**
+```json
+{
+  "action": "enable|disable"
+}
+```
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `action` | string | Yes | Must be "enable" or "disable" |
+
+**Example (Enable):**
+```json
+{
+  "action": "enable"
+}
+```
+
+**Example (Disable):**
+```json
+{
+  "action": "disable"
+}
+```
+
+---
+
+### OTA Update Status
+
+**Topic:** `sms/gateway/ota/status`
+
+**Schema:**
+```json
+{
+  "status": "started|completed|error",
+  "type": "sketch|filesystem",
+  "timestamp": "ISO8601 timestamp",
+  "duration_ms": 5000,
+  "error": "Error message",
+  "error_code": 1
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Update status: "started", "completed", or "error" |
+| `type` | string | Update type: "sketch" or "filesystem" (only when status="started") |
+| `timestamp` | string | ISO8601 timestamp |
+| `duration_ms` | integer | Update duration in milliseconds (only when status="completed") |
+| `error` | string | Error message (only when status="error") |
+| `error_code` | integer | Error code (only when status="error") |
+
+**Example (Started):**
+```json
+{
+  "status": "started",
+  "type": "sketch",
+  "timestamp": "2026-01-25T17:00:00+00:00"
+}
+```
+
+**Example (Completed):**
+```json
+{
+  "status": "completed",
+  "duration_ms": 45230,
+  "timestamp": "2026-01-25T17:00:45+00:00"
+}
+```
+
+**Example (Error):**
+```json
+{
+  "status": "error",
+  "error": "Receive Failed",
+  "error_code": 3,
+  "timestamp": "2026-01-25T17:00:00+00:00"
+}
+```
+
+---
+
+### OTA Update Progress
+
+**Topic:** `sms/gateway/ota/progress`
+
+**Schema:**
+```json
+{
+  "progress": 50,
+  "bytes": 524288,
+  "total": 1048576
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `progress` | integer | Progress percentage (0-100) |
+| `bytes` | integer | Bytes received so far |
+| `total` | integer | Total bytes to receive |
+
+**Example:**
+```json
+{
+  "progress": 50,
+  "bytes": 524288,
+  "total": 1048576
+}
+```
+
+**Note:** Progress updates are published every 10% increment.
+
+---
 
 **Example (Acknowledged):**
 ```json

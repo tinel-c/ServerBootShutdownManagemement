@@ -360,10 +360,10 @@ device/sms-gateway/
 
 ```bash
 # Build for LilyGo T-Call
-pio run -e lilygo-t-call
+pio run
 
-# Build for generic ESP32
-pio run -e esp32dev
+# Or specify environment explicitly
+pio run -e lilygo-t-call
 
 # Clean build
 pio run --target clean

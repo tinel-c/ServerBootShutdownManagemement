@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-01-25
+
+### Added - SMS Gateway Device Application
+
+#### Embedded SMS Gateway
+- **SMS Gateway Device** (`device/sms-gateway/`): Complete embedded device application for ESP32 with SIM800
+  - Full SMS send/receive capabilities via MQTT
+  - Integrated with project MQTT topic structure (`sms/gateway/*`)
+  - Self-recovery mechanisms with automatic WiFi/MQTT reconnection
+  - Reset detection and announcement via MQTT and SMS
+  - Emergency SMS alerts when WiFi/MQTT fails
+  - Watchdog timer for system stability
+  - Robust error handling and connection management
+
+#### OTA (Over-The-Air) Updates
+- **ArduinoOTA Integration**: Remote firmware updates via WiFi
+  - MQTT control for enable/disable OTA
+  - Real-time progress tracking via MQTT (`sms/gateway/ota/progress`)
+  - SMS notifications for OTA events (start/complete/fail)
+  - Password protection support
+  - Comprehensive developer guide (`docs/developer/OTA_DEVICE_UPDATES.md`)
+
+#### Documentation
+- **OTA Developer Guide**: Complete guide for OTA update development
+  - Development workflow and testing strategies
+  - Deployment procedures and troubleshooting
+  - Security best practices
+  - CI/CD integration examples
+- **SMS Gateway README**: Complete device documentation with setup, usage, and troubleshooting
+- **MQTT Protocol Updates**: Added SMS gateway message schemas and OTA topics
+
+### Changed
+- **MQTT Configuration**: Added SMS gateway topics to `config/mqtt_config.yaml`
+- **Git Ignore**: Added device credentials exclusion patterns
+
+### Integration
+- Follows project domain structure (SMS/Notifications: 500-599)
+- Uses project MQTT topic conventions
+- Compatible with Node-RED dashboard
+- Ready for automation platform integration
+
 ## [3.3.0] - 2026-01-18
 
 ### Security - Centralized Telegram Authorization

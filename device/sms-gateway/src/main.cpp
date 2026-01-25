@@ -152,6 +152,12 @@ bool GSM_ON(uint32_t time_delay) {
     }
 }
 
+// Forward declarations for SMS functions
+String readSMS(int index);
+String getSenderID(int index);
+int newMessageIndex(int startIndex);
+bool deleteSMS(int index);
+
 /**
  * Delete SMS message by index using AT command
  */

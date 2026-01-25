@@ -1053,6 +1053,35 @@ void setup() {
     Serial.println("SMS Gateway Ready!");
     Serial.println("========================================");
     Serial.println();
+    
+    // Send "Device Online" SMS notification after successful initialization
+    if (gsmInitialized && isEmergencySMSEnabled()) {
+        Serial.println("[BOOT] Sending 'Device Online' SMS notification...");
+        
+        String message = "SMS Gateway: Device is ONLINE\n";
+        message += "Boot #" + String(bootCount) + "\n";
+        
+        if (wifiConnected) {
+            message += "WiFi: Connected\n";
+            message += "IP: " + WiFi.localIP().toString() + "\n";
+        } else {
+            message += "WiFi: Disconnected\n";
+        }
+        
+        if (mqttConnected) {
+            message += "MQTT: Connected\n";
+        } else {
+            message += "MQTT: Disconnected\n";
+        }
+        
+        message += "GSM: " + String(gsmInitialized ? "Ready" : "Not Ready");
+        
+        if (sendSMS(getEmergencyPhoneNumber(), message)) {
+            Serial.println("[BOOT] 'Device Online' SMS sent successfully");
+        } else {
+            Serial.println("[BOOT] WARNING: Failed to send 'Device Online' SMS");
+        }
+    }
 }
 
 /**

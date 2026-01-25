@@ -34,6 +34,10 @@
 #include <ESPmDNS.h>
 #endif
 
+// Hardware Serial for SIM800 (must be declared before modem initialization)
+HardwareSerial serialGsm(1);
+#define SerialAT serialGsm
+
 #ifdef DUMP_AT_COMMANDS
 #include "StreamDebugger.h"
 StreamDebugger debugger(serialGsm, Serial);
@@ -46,10 +50,6 @@ TinyGsm modem(serialGsm);
 RTC_DATA_ATTR int bootCount = 0;
 RTC_DATA_ATTR unsigned long lastResetTime = 0;
 RTC_DATA_ATTR bool wasRunning = false;
-
-// Hardware Serial for SIM800
-HardwareSerial serialGsm(1);
-#define SerialAT serialGsm
 
 // MQTT Client
 WiFiClient espClient;

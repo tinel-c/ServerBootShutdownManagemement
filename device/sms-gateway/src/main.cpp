@@ -16,7 +16,7 @@
  * - Robust connection management
  */
 
-#define TINY_GSM_MODEM_SIM800
+// TINY_GSM_MODEM_SIM800 is defined in build_flags in platformio.ini
 #define TINY_GSM_RX_BUFFER 1024
 // #define DUMP_AT_COMMANDS  // Uncomment for AT command debugging
 
@@ -219,10 +219,10 @@ void clearSMSBuffer() {
     int maxAttempts = 20; // Limit to prevent infinite loop
     
     for (int i = 1; i <= maxAttempts; i++) {
-        // Check if message exists
-        int msgIndex = modem.newMessageIndex(i);
-        if (msgIndex > 0) {
-            if (deleteSMS(msgIndex)) {
+        // Check if message exists by trying to read it
+        String testSMS = readSMS(i);
+        if (testSMS.length() > 0) {
+            if (deleteSMS(i)) {
                 deletedCount++;
                 Serial.print(".");
             } else {
@@ -281,6 +281,144 @@ void publishTimestamp(const char* topic) {
     
     String timestamp = getTimestamp();
     mqttClient.publish(topic, timestamp.c_str());
+}
+
+/**
+ * Read SMS message by index using AT+CMGR command
+ * Returns the SMS text, or empty string on error
+ */
+String readSMS(int index) {
+    if (index <= 0 || !gsmInitialized) return "";
+    
+    // Set SMS to text mode if not already
+    SerialAT.print("AT+CMGF=1\r");
+    delay(500);
+    while (SerialAT.available()) SerialAT.read(); // Clear buffer
+    
+    // Read SMS at index
+    SerialAT.print("AT+CMGR=");
+    SerialAT.print(index);
+    SerialAT.print("\r");
+    delay(1000);
+    
+    // Read response
+    String response = "";
+    unsigned long startTime = millis();
+    while (millis() - startTime < 5000) {
+        if (SerialAT.available()) {
+            char c = SerialAT.read();
+            response += c;
+            if (response.indexOf("OK") >= 0 || response.indexOf("ERROR") >= 0) {
+                break;
+            }
+        }
+    }
+    
+    // Parse SMS text from response
+    // Format: +CMGR: "REC UNREAD","+1234567890","","22/01/25,15:30:00+00"\r\n<message text>\r\nOK
+    int textStart = response.indexOf("\r\n");
+    if (textStart >= 0) {
+        textStart += 2; // Skip \r\n
+        int textEnd = response.lastIndexOf("\r\nOK");
+        if (textEnd > textStart) {
+            return response.substring(textStart, textEnd);
+        }
+    }
+    
+    return "";
+}
+
+/**
+ * Get sender phone number from SMS at index using AT+CMGR command
+ * Returns the phone number, or empty string on error
+ */
+String getSenderID(int index) {
+    if (index <= 0 || !gsmInitialized) return "";
+    
+    // Set SMS to text mode if not already
+    SerialAT.print("AT+CMGF=1\r");
+    delay(500);
+    while (SerialAT.available()) SerialAT.read(); // Clear buffer
+    
+    // Read SMS at index
+    SerialAT.print("AT+CMGR=");
+    SerialAT.print(index);
+    SerialAT.print("\r");
+    delay(1000);
+    
+    // Read response
+    String response = "";
+    unsigned long startTime = millis();
+    while (millis() - startTime < 5000) {
+        if (SerialAT.available()) {
+            char c = SerialAT.read();
+            response += c;
+            if (response.indexOf("OK") >= 0 || response.indexOf("ERROR") >= 0) {
+                break;
+            }
+        }
+    }
+    
+    // Parse sender from response
+    // Format: +CMGR: "REC UNREAD","+1234567890","","22/01/25,15:30:00+00"
+    int senderStart = response.indexOf("\",\"");
+    if (senderStart >= 0) {
+        senderStart += 3; // Skip ",""
+        int senderEnd = response.indexOf("\",\"", senderStart);
+        if (senderEnd > senderStart) {
+            return response.substring(senderStart, senderEnd);
+        }
+    }
+    
+    return "";
+}
+
+/**
+ * Find index of new/unread SMS message
+ * Uses AT+CMGL to list messages and finds first unread one
+ * Returns message index (>0) if found, 0 if none
+ */
+int newMessageIndex(int startIndex) {
+    if (!gsmInitialized) return 0;
+    
+    // Set SMS to text mode
+    SerialAT.print("AT+CMGF=1\r");
+    delay(500);
+    while (SerialAT.available()) SerialAT.read(); // Clear buffer
+    
+    // List all unread messages (status "REC UNREAD")
+    SerialAT.print("AT+CMGL=\"REC UNREAD\"\r");
+    delay(1000);
+    
+    // Read response
+    String response = "";
+    unsigned long startTime = millis();
+    while (millis() - startTime < 5000) {
+        if (SerialAT.available()) {
+            char c = SerialAT.read();
+            response += c;
+            if (response.indexOf("OK") >= 0 || response.indexOf("ERROR") >= 0) {
+                break;
+            }
+        }
+    }
+    
+    // Parse first message index from response
+    // Format: +CMGL: <index>,"REC UNREAD","+1234567890",...
+    int cmglPos = response.indexOf("+CMGL:");
+    if (cmglPos >= 0) {
+        cmglPos += 7; // Skip "+CMGL: "
+        int commaPos = response.indexOf(",", cmglPos);
+        if (commaPos > cmglPos) {
+            String indexStr = response.substring(cmglPos, commaPos);
+            int index = indexStr.toInt();
+            if (index > 0) {
+                return index;
+            }
+        }
+    }
+    
+    return 0;
 }
 
 /**
@@ -953,10 +1091,10 @@ void loop() {
     
     // Check for new SMS messages
     if (gsmInitialized) {
-        int index = modem.newMessageIndex(0);
+        int index = newMessageIndex(0);
         if (index > 0) {
-            String SMS = modem.readSMS(index);
-            String ID = modem.getSenderID(index);
+            String SMS = readSMS(index);
+            String ID = getSenderID(index);
             
             Serial.println("[SMS] New message received!");
             Serial.print("[SMS] From: ");

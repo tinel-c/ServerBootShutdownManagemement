@@ -774,10 +774,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.6.0 (SMS Gateway Device & OTA Updates)  
+**Version:** 3.7.0 (SMS Gateway Node-RED Integration)  
 **Last Updated:** 2026-01-25
 
 ## Recent Releases
+
+### v3.7.0 (2026-01-25) - SMS Gateway Node-RED Integration
+- 🎛️ **Node-RED Dashboard** - Complete management interface for SMS Gateway
+- 📱 **SMS Controls** - Send SMS via web UI with phone number and message inputs
+- 📋 **Message Logging** - Complete history of received SMS messages (last 100)
+- 🤖 **Telegram Integration** - `/sms`, `/sms_status`, `/sms_log` commands
+- 🛡️ **Watchdog Monitoring** - SMS Gateway health monitoring with Telegram alerts
+- ✅ **Device Online Notification** - Automatic SMS when device initializes
+- See `RELEASE_NOTES_v3.7.0.md` for details
 
 ### v3.6.0 (2026-01-25) - SMS Gateway Device & OTA Updates
 - 📱 **SMS Gateway Device** - Embedded ESP32 + SIM800 device for SMS send/receive via MQTT

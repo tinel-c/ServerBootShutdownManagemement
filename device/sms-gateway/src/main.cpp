@@ -24,7 +24,7 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "TinyGsmClient.h"
-#include "SparkFunBME280.h"
+// #include "SparkFunBME280.h"  // Optional: Uncomment if using BME280 sensor
 #include "config.h"
 #include "passwords.h"
 #include "esp_task_wdt.h"
@@ -79,8 +79,12 @@ bool otaInProgress = false;
 unsigned long otaStartTime = 0;
 #endif
 
-// BME280 sensor (optional)
-BME280 mySensor;
+// BME280 sensor (optional - not currently used)
+// To enable BME280 support:
+// 1. Uncomment the library in platformio.ini
+// 2. Uncomment the include and variable below
+// #include "SparkFunBME280.h"
+// BME280 mySensor;
 bool isEnvSensor = false;
 
 // Emergency notification phone number (set in passwords.h)

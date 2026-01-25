@@ -774,10 +774,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.2.0 (Stability & Reliability Release)  
-**Last Updated:** 2026-01-18
+**Version:** 3.6.0 (SMS Gateway Device & OTA Updates)  
+**Last Updated:** 2026-01-25
 
 ## Recent Releases
+
+### v3.6.0 (2026-01-25) - SMS Gateway Device & OTA Updates
+- 📱 **SMS Gateway Device** - Embedded ESP32 + SIM800 device for SMS send/receive via MQTT
+- 🔄 **OTA Updates** - Over-The-Air firmware updates with MQTT control and progress tracking
+- 🛡️ **Self-Recovery** - Automatic WiFi/MQTT reconnection and reset detection
+- 📚 **Developer Guide** - Comprehensive OTA development guide
+- See `RELEASE_NOTES_v3.6.0.md` for details
 
 ### v3.2.0 (2026-01-18) - Enhanced Stability & Reliability
 - 🏥 **Robust Monitoring**: Added Ping Fallback for status reporting (Dell T310)

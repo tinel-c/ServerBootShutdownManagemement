@@ -7,10 +7,14 @@
 
 // Command topics (subscribe to receive commands)
 #define MQTT_TOPIC_COMMAND_SEND MQTT_TOPIC_PREFIX "/command/send"
+#define MQTT_TOPIC_WATCHDOG_ENROLL MQTT_TOPIC_PREFIX "/watchdog/enroll"
+#define MQTT_TOPIC_WATCHDOG_DELETE MQTT_TOPIC_PREFIX "/watchdog/delete"
+#define MQTT_TOPIC_WATCHDOG_HEARTBEAT MQTT_TOPIC_PREFIX "/watchdog/heartbeat"
 
 // Status topics (publish status updates)
 #define MQTT_TOPIC_STATUS MQTT_TOPIC_PREFIX "/status"
 #define MQTT_TOPIC_STATUS_TIMESTAMP MQTT_TOPIC_PREFIX "/status/timestamp"
+#define MQTT_TOPIC_WATCHDOG_STATUS MQTT_TOPIC_PREFIX "/watchdog/status"
 
 // Receive topics (publish received SMS)
 #define MQTT_TOPIC_RECEIVE_FROM MQTT_TOPIC_PREFIX "/receive/from"
@@ -55,6 +59,7 @@
 #define WATCHDOG_TIMEOUT 60  // seconds
 #define STATUS_PUBLISH_INTERVAL 300000  // milliseconds (5 minutes)
 #define WIFI_CHECK_INTERVAL 60000  // milliseconds (1 minute)
+#define MAX_WATCHDOG_DEVICES 10   // Maximum number of monitored devices
 
 // Emergency SMS notification (sent when WiFi fails)
 // Phone number should be set in passwords.h

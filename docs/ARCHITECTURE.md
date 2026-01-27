@@ -182,7 +182,40 @@ Running as background services on the automation server:
   - `hp/dl360p/health`: Health check data from monitoring
 - **Subscribes**: Scripts on automation server listen to command topics
 
-#### B. Courtyard & House Automation Layer (NEW v3.0+)
+### 5. Device Watchdog System (v3.8.0)
+
+The SMS Gateway serves as a low-level hardware watchdog for the entire ecosystem, providing an independent monitoring layer that operates even if the main Automation Server or WiFi network is compromised.
+
+#### A. Active Monitoring
+The SMS Gateway's embedded C++ firmware actively tracks "heartbeat" messages from other devices on the network.
+- **Heartbeat Topic**: `sms/gateway/watchdog/heartbeat`
+- **Mechanism**: Devices send a JSON heartbeat `{"name": "device_id"}` at regular intervals.
+- **Timeout Logic**: If a device misses its heartbeat for twice its configured interval, it is flagged as `offline`.
+
+#### B. Alerting Escalation
+- **Primary Alert**: Change in connection state is published to MQTT.
+- **Critical Alert**: On connection loss, the SMS Gateway sends an **Emergency SMS** to the pre-configured hardware number via its built-in GSM modem.
+- **Benefit**: Provides out-of-band alerting when the primary internet connection or server is down.
+
+#### C. Management Dashboard (Node-RED)
+A dedicated management interface (`flows/513-sms-gateway-watchdog.json`) allows for:
+- **Real-time Status**: Live view of all monitored devices, their online status, and heartbeat "age".
+- **Dynamic Enrollment**: Adding or updating devices and their timeout intervals via MQTT.
+- **Manual Debugging**: Dedicated "Pulse" buttons to manually simulate device check-ins.
+- **Stress Testing**: Built-in "Auto-Pulse" simulator for system verification.
+
+#### D. MQTT Protocol (Watchdog)
+```
+Commands (Dashboard → Device):
+- sms/gateway/watchdog/enroll   - Register/Update device (name, interval)
+- sms/gateway/watchdog/delete   - Stop monitoring a device
+- sms/gateway/watchdog/heartbeat - Heartbeat check-in from any device
+
+Status (Device → Dashboard):
+- sms/gateway/watchdog/status   - JSON array of all active devices and states
+```
+
+### 4. B. Courtyard & House Automation Layer (NEW v3.0+)
 
 The system integrates various hardware devices and sensors distributed across the property:
 

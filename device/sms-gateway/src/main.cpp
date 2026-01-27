@@ -59,11 +59,23 @@ PubSubClient mqttClient(espClient);
 bool modemConnected = false;
 bool wifiConnected = false;
 bool mqttConnected = false;
+bool lastMqttConnected = false; // Track previous MQTT connection state
 bool gsmInitialized = false;
 String smsNumber = "";
 String smsText = "";
 bool smsReceived = false;
 bool smsSent = false;
+
+// Device Watchdog
+struct WatchdogDevice {
+    String name;
+    unsigned long interval;
+    unsigned long lastHeartbeat;
+    bool isOnline;
+    bool isActive;
+};
+WatchdogDevice watchdogDevices[MAX_WATCHDOG_DEVICES];
+unsigned long lastWatchdogCheck = 0;
 
 // Connection tracking
 unsigned long lastWifiCheck = 0;
@@ -97,6 +109,12 @@ bool isEnvSensor = false;
 bool isEmergencySMSEnabled() {
     return EMERGENCY_SMS_ENABLED && strlen(EMERGENCY_PHONE_NUMBER) > 0;
 }
+
+// Forward declarations
+void publishWatchdogStatus();
+void publishError(String errorType, String errorMessage);
+String getTimestamp();
+bool sendSMS(String phoneNumber, String message);
 
 // Helper function to get emergency phone number as String
 String getEmergencyPhoneNumber() {
@@ -602,6 +620,12 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
         // Extract phone number and message text
         if (doc.containsKey("to") && doc.containsKey("text")) {
             smsNumber = doc["to"].as<String>();
+            
+            // Add '+' prefix if missing (stripped by Node-RED for MQTT compatibility)
+            if (smsNumber.length() > 0 && smsNumber.charAt(0) != '+') {
+                smsNumber = "+" + smsNumber;
+            }
+            
             smsText = doc["text"].as<String>();
             
             Serial.print("[MQTT] Sending SMS to: ");
@@ -627,6 +651,83 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
             smsSent = true;
         } else {
             Serial.println("[MQTT] ERROR: Invalid JSON - missing 'to' or 'text' field");
+        }
+    }
+    
+    // Watchdog: Enroll/Update
+    else if (String(topic) == String(MQTT_TOPIC_WATCHDOG_ENROLL)) {
+        StaticJsonDocument<256> doc;
+        if (deserializeJson(doc, messageTemp) == DeserializationError::Ok && doc.containsKey("name")) {
+            String name = doc["name"].as<String>();
+            unsigned long interval = doc["interval"] | 60;
+            
+            bool found = false;
+            int emptyIdx = -1;
+            for (int i = 0; i < MAX_WATCHDOG_DEVICES; i++) {
+                if (watchdogDevices[i].isActive && watchdogDevices[i].name == name) {
+                    watchdogDevices[i].interval = interval;
+                    found = true;
+                    String msg = "Watchdog: Device [" + name + "] updated. Interval: " + String(interval) + "s";
+                    Serial.println("[WATCHDOG] " + msg);
+                    if (isEmergencySMSEnabled() && gsmInitialized) sendSMS(getEmergencyPhoneNumber(), msg);
+                    publishWatchdogStatus();
+                    break;
+                }
+                if (!watchdogDevices[i].isActive && emptyIdx == -1) emptyIdx = i;
+            }
+            
+            if (!found && emptyIdx != -1) {
+                watchdogDevices[emptyIdx].name = name;
+                watchdogDevices[emptyIdx].interval = interval;
+                watchdogDevices[emptyIdx].lastHeartbeat = millis();
+                watchdogDevices[emptyIdx].isOnline = false;
+                watchdogDevices[emptyIdx].isActive = true;
+                String msg = "Watchdog: Device [" + name + "] enrolled. Interval: " + String(interval) + "s";
+                Serial.println("[WATCHDOG] " + msg);
+                if (isEmergencySMSEnabled() && gsmInitialized) sendSMS(getEmergencyPhoneNumber(), msg);
+                publishWatchdogStatus();
+            }
+        }
+    }
+    // Watchdog: Delete
+    else if (String(topic) == String(MQTT_TOPIC_WATCHDOG_DELETE)) {
+        StaticJsonDocument<128> doc;
+        if (deserializeJson(doc, messageTemp) == DeserializationError::Ok && doc.containsKey("name")) {
+            String name = doc["name"].as<String>();
+            Serial.print("[WATCHDOG] Delete request for: ");
+            Serial.println(name);
+            for (int i = 0; i < MAX_WATCHDOG_DEVICES; i++) {
+                if (watchdogDevices[i].isActive && watchdogDevices[i].name == name) {
+                    watchdogDevices[i].isActive = false;
+                    String msg = "Watchdog: Device [" + name + "] deleted and unmonitored.";
+                    Serial.println("[WATCHDOG] " + msg);
+                    if (isEmergencySMSEnabled() && gsmInitialized) sendSMS(getEmergencyPhoneNumber(), msg);
+                    publishWatchdogStatus();
+                    break;
+                }
+            }
+        }
+    }
+    // Watchdog: Heartbeat
+    else if (String(topic) == String(MQTT_TOPIC_WATCHDOG_HEARTBEAT)) {
+        StaticJsonDocument<128> doc;
+        if (deserializeJson(doc, messageTemp) == DeserializationError::Ok && doc.containsKey("name")) {
+            String name = doc["name"].as<String>();
+            for (int i = 0; i < MAX_WATCHDOG_DEVICES; i++) {
+                if (watchdogDevices[i].isActive && watchdogDevices[i].name == name) {
+                    watchdogDevices[i].lastHeartbeat = millis();
+                    Serial.print("[WATCHDOG] Heartbeat from: ");
+                    Serial.println(name);
+                    if (!watchdogDevices[i].isOnline) {
+                        watchdogDevices[i].isOnline = true;
+                        String msg = "Watchdog: Device [" + name + "] is ONLINE/CONNECTED";
+                        Serial.println("[WATCHDOG] " + msg);
+                        if (isEmergencySMSEnabled() && gsmInitialized) sendSMS(getEmergencyPhoneNumber(), msg);
+                    }
+                    publishWatchdogStatus();
+                    break;
+                }
+            }
         }
     }
     
@@ -726,16 +827,41 @@ bool reconnectMQTT() {
         mqttConnected = true;
         mqttReconnectAttempts = 0;
         
-        // Subscribe to command topic
+        // Subscribe to command topics
         if (mqttClient.subscribe(MQTT_TOPIC_COMMAND_SEND)) {
-            Serial.print("[MQTT] Subscribed to: ");
-            Serial.println(MQTT_TOPIC_COMMAND_SEND);
+            Serial.println("[MQTT] Subscribed to command SEND");
         } else {
-            Serial.println("[MQTT] WARNING: Failed to subscribe!");
+            Serial.println("[MQTT] ERROR: Failed to subscribe to command SEND");
         }
+
+        if (mqttClient.subscribe(MQTT_TOPIC_WATCHDOG_ENROLL)) {
+            Serial.println("[MQTT] Subscribed to Watchdog ENROLL");
+        } else {
+            Serial.println("[MQTT] ERROR: Failed to subscribe to Watchdog ENROLL");
+        }
+
+        if (mqttClient.subscribe(MQTT_TOPIC_WATCHDOG_DELETE)) {
+            Serial.println("[MQTT] Subscribed to Watchdog DELETE");
+        } else {
+            Serial.println("[MQTT] ERROR: Failed to subscribe to Watchdog DELETE");
+        }
+
+        if (mqttClient.subscribe(MQTT_TOPIC_WATCHDOG_HEARTBEAT)) {
+            Serial.println("[MQTT] Subscribed to Watchdog HEARTBEAT");
+        } else {
+            Serial.println("[MQTT] ERROR: Failed to subscribe to Watchdog HEARTBEAT");
+        }
+        
+        Serial.println("[MQTT] Subscription process complete");
         
         // Publish initial status
         publishTimestamp(MQTT_TOPIC_STATUS);
+        
+        // Notify via SMS if reconnected after failure
+        if (isEmergencySMSEnabled() && gsmInitialized) {
+            String message = "SMS Gateway: MQTT connection restored. Device back online.";
+            sendSMS(getEmergencyPhoneNumber(), message);
+        }
         
         return true;
     } else {
@@ -801,6 +927,42 @@ void publishError(String errorType, String errorMessage) {
     serializeJson(errorInfo, buffer);
     
     mqttClient.publish(MQTT_TOPIC_ERROR, buffer);
+    
+    // Notify via SMS if emergency number is set
+    if (isEmergencySMSEnabled() && gsmInitialized) {
+        String smsMessage = "SMS Gateway EXCEPTION: [" + errorType + "] " + errorMessage;
+        sendSMS(getEmergencyPhoneNumber(), smsMessage);
+    }
+}
+
+/**
+ * Publish watchdog status to MQTT
+ */
+void publishWatchdogStatus() {
+    if (!mqttConnected) return;
+    
+    Serial.println("[WATCHDOG] Publishing status...");
+    StaticJsonDocument<1024> doc;
+    JsonArray array = doc.to<JsonArray>();
+    
+    unsigned long now = millis();
+    for (int i = 0; i < MAX_WATCHDOG_DEVICES; i++) {
+        if (watchdogDevices[i].isActive) {
+            JsonObject device = array.createNestedObject();
+            device["name"] = watchdogDevices[i].name;
+            device["interval"] = watchdogDevices[i].interval;
+            device["online"] = watchdogDevices[i].isOnline;
+            device["age"] = (now - watchdogDevices[i].lastHeartbeat) / 1000;
+        }
+    }
+    
+    char buffer[1024];
+    serializeJson(doc, buffer);
+    if (mqttClient.publish(MQTT_TOPIC_WATCHDOG_STATUS, buffer)) {
+        Serial.println("[WATCHDOG] Status published successfully");
+    } else {
+        Serial.println("[WATCHDOG] ERROR: Failed to publish status");
+    }
 }
 
 #ifdef OTA_ENABLED
@@ -1100,11 +1262,24 @@ void loop() {
     
     // Maintain MQTT connection
     if (wifiConnected) {
-        if (!mqttClient.connected()) {
+        bool currentMqttConnected = mqttClient.connected();
+        
+        // Detect disconnect
+        if (!currentMqttConnected && lastMqttConnected) {
+            Serial.println("[MQTT] WARNING: Connection lost!");
+            if (isEmergencySMSEnabled() && gsmInitialized) {
+                String message = "SMS Gateway ALERT: MQTT connection lost! Attempting recovery...";
+                sendSMS(getEmergencyPhoneNumber(), message);
+            }
+        }
+        
+        if (!currentMqttConnected) {
             reconnectMQTT();
         } else {
             mqttClient.loop();
         }
+        
+        lastMqttConnected = mqttClient.connected();
     }
     
     // Publish periodic status
@@ -1155,6 +1330,29 @@ void loop() {
                 Serial.println("[SMS] WARNING: Failed to delete message (may remain in buffer)");
             }
         }
+    }
+    
+    // Check watchdog devices
+    if (now - lastWatchdogCheck > 10000) { // Check every 10 seconds
+        lastWatchdogCheck = now;
+        for (int i = 0; i < MAX_WATCHDOG_DEVICES; i++) {
+            if (watchdogDevices[i].isActive && watchdogDevices[i].isOnline) {
+                if (now - watchdogDevices[i].lastHeartbeat > (watchdogDevices[i].interval * 2000)) {
+                    watchdogDevices[i].isOnline = false;
+                    String msg = "Watchdog ALERT: Device [" + watchdogDevices[i].name + "] connection LOST! Timeout: " + String(watchdogDevices[i].interval * 2) + "s";
+                    Serial.println("[WATCHDOG] " + msg);
+                    if (isEmergencySMSEnabled() && gsmInitialized) sendSMS(getEmergencyPhoneNumber(), msg);
+                    
+                    // Also publish error to MQTT
+                    publishError("WatchdogTimeout", "Connection lost for " + watchdogDevices[i].name);
+                    
+                    publishWatchdogStatus();
+                }
+            }
+        }
+        
+        // Always publish status periodically if check triggered
+        publishWatchdogStatus();
     }
     
     // Small delay to prevent watchdog issues

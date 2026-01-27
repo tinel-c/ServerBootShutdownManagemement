@@ -1,0 +1,175 @@
+[
+    {
+        "id": "sms_watchdog_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ SMS GATEWAY WATCHDOG ═══════════════",
+        "info": "## SMS Gateway Watchdog Management\n\n**Flow Number:** 513\n**Domain:** SMS/Notifications (500-599)\n\n### Purpose\nMonitors and manages devices watched by the SMS Gateway.\n\n### Features\n- Real-time status list of watched devices\n- Enroll/Update monitored devices\n- Delete monitored devices\n- Manual heartbeat pulse for any device\n- Dedicated Test Device controls",
+        "x": 280,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_watchdog_status",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Watchdog Status",
+        "topic": "sms/gateway/watchdog/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "template_watchdog_list"
+            ]
+        ]
+    },
+    {
+        "id": "template_watchdog_list",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_sms_watchdog",
+        "name": "Watchdog List",
+        "order": 1,
+        "width": 6,
+        "height": 12,
+        "format": "<div style=\"font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); height: 100%; display: flex; flex-direction: column;\">\n    <div style=\"margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;\">\n        <h3 style=\"margin: 0; color: #e2e8f0; font-size: 1.2em;\">🛡️ Monitored Devices</h3>\n        <div style=\"font-size: 0.8em; color: #94a3b8;\">{{msg.payload?.length || 0}} Active</div>\n    </div>\n\n    <div style=\"flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;\">\n        <div v-if=\"!msg.payload || msg.payload.length === 0\" style=\"text-align: center; padding: 40px; color: #64748b;\">No devices enrolled</div>\n        \n        <div v-for=\"dev in msg.payload\" :key=\"dev.name\" style=\"background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; border-left: 4px solid\" :style=\"{ borderLeftColor: dev.online ? '#10b981' : '#ef4444' }\">\n            <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;\">\n                <div style=\"display: flex; align-items: center; gap: 10px;\">\n                    <span :style=\"{ color: dev.online ? '#10b981' : '#ef4444' }\" style=\"font-size: 1.1em;\">{{dev.online ? '🟢' : '🔴'}}</span>\n                    <span style=\"color: #f1f5f9; font-weight: 600;\">{{dev.name}}</span>\n                </div>\n                <div style=\"display: flex; gap: 5px;\">\n                    <button @click=\"pulseDevice(dev.name)\" title=\"Send Heartbeat\" style=\"background: rgba(16,185,129,0.1); border: none; color: #10b981; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: 0.2s;\">💓</button>\n                    <button @click=\"deleteDevice(dev.name)\" title=\"Delete\" style=\"background: rgba(239,68,68,0.1); border: none; color: #ef4444; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: 0.2s;\">🗑️</button>\n                </div>\n            </div>\n            <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85em; color: #94a3b8;\">\n                <div>Interval: {{dev.interval}}s</div>\n                <div style=\"text-align: right;\">Last pulse: {{dev.age}}s ago</div>\n            </div>\n        </div>\n    </div>\n\n    <div style=\"margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 12px;\">\n        <div style=\"display: grid; grid-template-columns: 1fr 1fr 20%; gap: 8px;\">\n            <input v-model=\"newName\" placeholder=\"Name\" style=\"background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 6px; font-size: 0.9em;\">\n            <input v-model.number=\"newInterval\" type=\"number\" placeholder=\"Sync(s)\" style=\"background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 6px; font-size: 0.9em;\">\n            <button @click=\"enrollDevice\" style=\"background: #3b82f6; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;\">➕</button>\n        </div>\n\n        <div style=\"background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); flex-shrink: 0;\">\n            <div style=\"color: #94a3b8; font-size: 0.8em; margin-bottom: 8px; text-transform: uppercase;\">Test Device Controls</div>\n            <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;\">\n                <button @click=\"enrollTest\" style=\"background: #475569; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85em;\">Enroll Test</button>\n                <button @click=\"deleteDevice('test-device')\" style=\"background: #475569; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85em;\">Remove Test</button>\n            </div>\n            <button @click=\"pulseDevice('test-device')\" style=\"background: #10b981; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;\">SEND TEST PULSE</button>\n        </div>\n\n        <button @click=\"toggleDummy\" :style=\"{ background: dummyActive ? '#ef4444' : '#6366f1' }\" style=\"color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;\">{{dummyActive ? 'STOP AUTO PULSE' : 'START AUTO PULSE'}}</button>\n    </div>\n</div>\n\n<script>\nexport default {\n    data() {\n        return {\n            newName: '',\n            newInterval: 60,\n            dummyActive: false\n        }\n    },\n    methods: {\n        enrollDevice() {\n            console.log('UI: Enrolling', this.newName);\n            if (!this.newName) return;\n            this.send({ \n                topic: \"enroll\", \n                payload: { name: this.newName, interval: this.newInterval || 60 } \n            });\n            this.newName = '';\n        },\n        enrollTest() {\n            console.log('UI: Enrolling Test Device');\n            this.send({ \n                topic: \"enroll\", \n                payload: { name: \"test-device\", interval: this.newInterval || 60 } \n            });\n        },\n        deleteDevice(name) {\n            console.log('UI: Deleting', name);\n            this.send({ \n                topic: \"delete\", \n                payload: { name: name } \n            });\n        },\n        pulseDevice(name) {\n            console.log('UI: Pulsing', name);\n            this.send({ \n                topic: \"pulse\", \n                payload: { name: name } \n            });\n        },\n        toggleDummy() {\n            this.dummyActive = !this.dummyActive;\n            this.send({ \n                topic: \"dummy\", \n                payload: this.dummyActive \n            });\n        }\n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 400,
+        "y": 100,
+        "wires": [
+            [
+                "func_handle_watchdog_ui",
+                "debug_watchdog_ui"
+            ]
+        ]
+    },
+    {
+        "id": "debug_watchdog_ui",
+        "type": "debug",
+        "z": "tab_dashboard",
+        "name": "Watchdog UI Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "func_handle_watchdog_ui",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Handle Watchdog UI",
+        "func": "node.warn('Watchdog UI Command: ' + msg.topic);\nif (msg.topic === 'enroll') {\n    msg.topic = 'sms/gateway/watchdog/enroll';\n    msg.payload = JSON.stringify(msg.payload);\n    return [msg, { payload: 'Enrolling ' + JSON.parse(msg.payload).name, title: 'Watchdog' }];\n} else if (msg.topic === 'delete') {\n    msg.topic = 'sms/gateway/watchdog/delete';\n    msg.payload = JSON.stringify(msg.payload);\n    return [msg, { payload: 'Deleting ' + JSON.parse(msg.payload).name, title: 'Watchdog' }];\n} else if (msg.topic === 'pulse') {\n    msg.topic = 'sms/gateway/watchdog/heartbeat';\n    msg.payload = JSON.stringify(msg.payload);\n    return [msg, { payload: 'Pulse sent for ' + JSON.parse(msg.payload).name, title: 'Watchdog' }];\n} else if (msg.topic === 'dummy') {\n    flow.set('dummy_watchdog_active', msg.payload);\n    return [null, { payload: 'Dummy mode: ' + (msg.payload ? 'ON' : 'OFF'), title: 'Watchdog' }];\n}\nreturn null;",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 140,
+        "wires": [
+            [
+                "mqtt_out_watchdog"
+            ],
+            [
+                "ui_notification_watchdog"
+            ]
+        ]
+    },
+    {
+        "id": "ui_notification_watchdog",
+        "type": "ui-notification",
+        "z": "tab_dashboard",
+        "group": "ui_group_sms_watchdog",
+        "name": "Watchdog Notification",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "duration": 3,
+        "showTimeline": true,
+        "position": "top-right",
+        "color": "default",
+        "x": 880,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "mqtt_out_watchdog",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Watchdog Commands",
+        "topic": "",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 880,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "inject_dummy_heartbeat",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Dummy Heartbeat Tick",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "30",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "tick",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 200,
+        "wires": [
+            [
+                "func_send_dummy_heartbeat"
+            ]
+        ]
+    },
+    {
+        "id": "func_send_dummy_heartbeat",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Send Dummy Heartbeat",
+        "func": "if (flow.get('dummy_watchdog_active')) {\n    msg.topic = 'sms/gateway/watchdog/heartbeat';\n    msg.payload = JSON.stringify({ name: 'dummy-device' });\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 200,
+        "wires": [
+            [
+                "mqtt_out_watchdog"
+            ]
+        ]
+    }
+]

@@ -94,7 +94,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Prepare SMS Command",
-        "func": "// Get phone and message from flow context (set by text inputs)\nconst phone = flow.get('sms_phone') || '';\nconst message = flow.get('sms_message') || '';\n\nif (!phone || !message) {\n    node.warn('Phone number or message missing');\n    return null;\n}\n\n// Create SMS command payload\nmsg.payload = {\n    to: phone,\n    text: message\n};\n\nmsg.topic = 'sms/gateway/command/send';\n\n// Store timestamp for tracking\nmsg.timestamp = new Date().toISOString();\n\nreturn msg;",
+        "func": "// Get phone and message from flow context (set by text inputs)\nlet phone = flow.get('sms_phone') || '';\nconst message = flow.get('sms_message') || '';\n\nif (!phone || !message) {\n    node.warn('Phone number or message missing');\n    return null;\n}\n\n// Strip '+' prefix if present (MQTT/GSM module requirement)\nphone = phone.replace('+', '');\n\n// Create SMS command payload\nmsg.payload = {\n    to: phone,\n    text: message\n};\n\nmsg.topic = 'sms/gateway/command/send';\n\n// Store timestamp for tracking\nmsg.timestamp = new Date().toISOString();\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -190,6 +190,32 @@
         "y": 300,
         "wires": [
             [
+                "func_sms_status_metadata",
+                "trigger_sms_heartbeat"
+            ]
+        ]
+    },
+    {
+        "id": "trigger_sms_heartbeat",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "SMS Heartbeat Timeout",
+        "op1": "",
+        "op2": "offline",
+        "op1type": "nul",
+        "op2type": "str",
+        "duration": "10",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 400,
+        "y": 260,
+        "wires": [
+            [
                 "func_sms_status_metadata"
             ]
         ]
@@ -199,7 +225,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "SMS Status Metadata",
-        "func": "let metadataKey = \"status_metadata_sms_gateway\";\nlet metadata = flow.get(metadataKey) || {\n    lastReportedMs: null,\n    lastChangedMs: null,\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\n// Parse status - could be timestamp string or JSON\nlet statusData = msg.payload;\nlet newState = \"online\";\n\nif (typeof statusData === 'string') {\n    // Try to parse as JSON\n    try {\n        statusData = JSON.parse(statusData);\n        newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n    } catch (e) {\n        // It's a timestamp string, device is online\n        newState = 'online';\n    }\n} else if (typeof statusData === 'object') {\n    newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n}\n\nlet nowMs = Date.now();\nmetadata.lastReportedMs = nowMs;\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChangedMs = nowMs;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nmsg.payload = typeof statusData === 'object' ? statusData : { timestamp: statusData, wifi: 'connected', mqtt: 'connected', gsm: 'initialized' };\n\nreturn msg;",
+        "func": "let metadataKey = \"status_metadata_sms_gateway\";\nlet metadata = flow.get(metadataKey) || {\n    lastReportedMs: null,\n    lastChangedMs: null,\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\n// Parse status - could be timestamp string, JSON, or 'offline' trigger\nlet statusData = msg.payload;\nlet newState = \"online\";\n\nif (statusData === \"offline\") {\n    newState = \"offline\";\n} else if (typeof statusData === 'string') {\n    // Try to parse as JSON\n    try {\n        statusData = JSON.parse(statusData);\n        newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n    } catch (e) {\n        // It's a timestamp string or other reported data, device is online\n        newState = 'online';\n    }\n} else if (typeof statusData === 'object') {\n    newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n}\n\nlet nowMs = Date.now();\n\n// Only update lastReported if it's an actual report, not a heartbeat timeout\nif (statusData !== \"offline\") {\n    metadata.lastReportedMs = nowMs;\n}\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChangedMs = nowMs;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nmsg.payload = typeof statusData === 'object' ? statusData : { timestamp: statusData, wifi: 'connected', mqtt: 'connected', gsm: 'initialized' };\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",

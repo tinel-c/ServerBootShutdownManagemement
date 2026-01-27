@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.0] - 2026-01-28
+
+### Added - SMS Gateway Device Watchdog System
+
+#### Device Watchdog (C++ Implementation)
+- **Active Monitoring**: Monitors heartbeats from other network devices via MQTT.
+- **Smart Timeouts**: Automatically detects connection loss after double the configured interval.
+- **Emergency SMS Alerting**: Sends an SMS to the emergency contact when a monitored device goes offline.
+- **Life-cycle Notifications**: SMS alerts for enrollment, deletion, connection, and disconnection events.
+- **Status Reporting**: Publishes a comprehensive JSON status array of all monitored devices to `sms/gateway/watchdog/status`.
+- **Instrumentation**: Detailed serial logging for enrollment, heartbeat, and status publishing events.
+
+#### Node-RED Management Dashboard
+- **Live Watchdog Monitor**: Real-time visualization of all watched devices, their intervals, and connection state.
+- **Advanced Controls**:
+  - Manual Pulse (💓) button for immediate heartbeat simulation.
+  - Enrollment and Deletion forms directly in the UI.
+  - Quick-test controls for a `test-device`.
+  - Automated "Auto-Pulse" simulator for stress testing the watchdog.
+- **Fixes**: Corrected template communication to use Dashboard 2.0 `this.send()` standard.
+
+## [3.7.0] - 2026-01-25
+
+### Added - SMS Gateway Node-RED Integration
+
+#### Dashboard & Management
+- **Dashboard Controls (510)**: Web interface for sending SMS and monitoring device status.
+- **Message Logging (511)**: Persistent history of received SMS messages.
+- **Telegram Bot (512)**: Remote SMS control via Telegram (`/sms`, `/sms_status`).
+- **Watchdog Integration (90)**: Central watchdog now monitors the SMS Gateway itself.
+
+#### Device Enhancements
+- **Startup Notification**: Automatically sends "Device Online" SMS with diagnostic info.
+- **AT Command Implementation**: Fixed TinyGSM compatibility issues by implementing custom AT sequence for SMS buffer management.
+
+#### Build System
+- **Pinned Dependencies**: Stabilized build environment by pinning `esptool` and library versions.
+- **Simplified platformio.ini**: Cleaned up project configuration for faster builds.
+
 ## [3.6.2] - 2026-01-25
 
 ### Fixed - Node-RED Camera Management Dashboard

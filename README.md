@@ -35,7 +35,7 @@ A unified automation ecosystem for managing servers (Dell T310, HP DL360p), cour
 
 ## System Architecture
 
-![Platform Architecture](docs/architecture_v3_4.png)
+![System Architecture](docs/architecture_v3_8.png)
 
 The system serves as a **centralized automation hub** running Node-RED (native installation), Mosquitto MQTT broker, and Python management scripts. It coordinates interactions between servers, courtyard hardware, and residential automation devices.
 

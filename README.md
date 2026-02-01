@@ -84,8 +84,8 @@ The platform supports **multiple automation domains** through a scalable, modula
 
 Status and health monitoring is published back through MQTT to the dashboard for real-time visibility.
 
-**Detailed Documentation**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete system architecture, communication flows, and deployment information.  
-**Architecture Diagram Source**: See [docs/ARCHITECTURE_DIAGRAM_DESCRIPTION.md](docs/ARCHITECTURE_DIAGRAM_DESCRIPTION.md) for diagram specification.
+**Detailed Documentation**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete system architecture, communication flows, and deployment information.
+**Architecture Diagram**: See [docs/architecture_diagram_v4.png](docs/architecture_diagram_v4.png) for the latest diagram source.
 
 ## Quick Start
 
@@ -133,7 +133,7 @@ Status and health monitoring is published back through MQTT to the dashboard for
    - `T310_PROXMOX_HOST`, `T310_PROXMOX_USERNAME`, `T310_PROXMOX_PASSWORD`
    - `T310_MAC_ADDRESS` (for Wake-on-LAN)
    
-   See [ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md) for detailed configuration instructions.
+   See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) for detailed configuration instructions.
 
 4. **Enable and start services:**
    ```bash
@@ -179,7 +179,7 @@ sudo ./update.sh          # Safe update with config preservation
 ./check_env.sh            # Check environment variables
 ```
 
-See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for complete command reference.
+See [docs/REFERENCE.md](docs/REFERENCE.md) for complete command reference.
 
 5. **Verify services are running:**
    ```bash
@@ -758,7 +758,7 @@ ServerBootShutdownMangement/
 ## Support
 
 For issues and questions, please refer to:
-- [Development Guide](DEVELOPMENT_GUIDE.md)
+- [Development Guide](docs/DEVELOPMENT.md)
 - [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 - [GitHub Issues](https://github.com/tinel-c/ServerBootShutdownManagemement/issues)
 

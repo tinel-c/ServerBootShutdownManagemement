@@ -107,7 +107,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Process Complete SMS",
-        "func": "// All three parts received, combine into complete SMS message\nconst from = flow.get('sms_current_from') || 'Unknown';\nconst text = flow.get('sms_current_text') || '';\nconst timestamp = msg.payload || new Date().toISOString();\n\n// Create complete SMS message object\nconst smsMessage = {\n    from: from,\n    text: text,\n    timestamp: timestamp,\n    receivedAt: new Date().toISOString()\n};\n\n// Get message log from flow context\nlet messageLog = flow.get('sms_message_log') || [];\n\n// Add to log (keep last 100 messages)\nmessageLog.unshift(smsMessage);\nif (messageLog.length > 100) {\n    messageLog = messageLog.slice(0, 100);\n}\n\n// Store updated log\nflow.set('sms_message_log', messageLog);\n\n// Clear temporary storage\nflow.set('sms_current_from', null);\nflow.set('sms_current_text', null);\n\n// Prepare message for UI\nmsg.payload = {\n    messages: messageLog,\n    messageCount: messageLog.length,\n    latest: smsMessage\n};\n\nnode.status({fill: \"green\", shape: \"dot\", text: `${messageLog.length} messages`});\n\nreturn msg;",
+        "func": "// All three parts received, combine into complete SMS message\nconst from = flow.get('sms_current_from') || 'Unknown';\nconst text = flow.get('sms_current_text') || '';\nconst timestamp = msg.payload || new Date().toISOString();\n\n// Create complete SMS message object\nconst smsMessage = {\n    from: from,\n    text: text,\n    timestamp: timestamp,\n    receivedAt: new Date().toISOString()\n};\n\n// Get message log from flow context\nlet messageLog = flow.get('sms_message_log') || [];\n\n// Add to log (keep last 100 messages)\nmessageLog.unshift(smsMessage);\nif (messageLog.length > 100) {\n    messageLog = messageLog.slice(0, 100);\n}\n\n// Store updated log\nflow.set('sms_message_log', messageLog);\n\n// Clear temporary storage\nflow.set('sms_current_from', null);\nflow.set('sms_current_text', null);\n\n// Prepare message for UI and MQTT\nmsg.payload = {\n    messages: messageLog,\n    messageCount: messageLog.length,\n    latest: smsMessage\n};\n\nnode.status({fill: \"green\", shape: \"dot\", text: `${messageLog.length} messages`});\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -117,9 +117,85 @@
         "y": 180,
         "wires": [
             [
-                "template_sms_log"
+                "template_sms_log",
+                "func_publish_sms_received",
+                "func_forward_sms_emergency"
             ]
         ]
+    },
+    {
+        "id": "func_publish_sms_received",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Publish New SMS to MQTT",
+        "func": "// Publish to sms/command/received for flow 514 (SMS commands)\nmsg.payload = JSON.stringify(msg.payload);\nmsg.topic = 'sms/command/received';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 220,
+        "wires": [
+            [
+                "mqtt_out_sms_received"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_sms_received",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Publish New SMS",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 880,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "func_forward_sms_emergency",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Forward SMS to Emergency",
+        "func": "// Forward ALL received SMS to emergency phone number (HARDCODED)\n// Phone numbers in MQTT payload 'to' must be digits-only (no +)\nconst EMERGENCY_PHONE = '40740244845';\n\nconst latest = msg.payload.latest;\nif (!latest || !latest.from || !latest.text) {\n    return null;\n}\n\nconst fromDigits = String(latest.from).replace(/\\D/g, '');\nconst forwardText = 'SMS from ' + (fromDigits || latest.from) + ': ' + latest.text;\nmsg.payload = JSON.stringify({ to: EMERGENCY_PHONE, text: forwardText.substring(0, 160) });\nmsg.topic = 'sms/gateway/command/send';\n\nnode.status({ fill: 'blue', shape: 'dot', text: 'Fwd to emergency' });\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 260,
+        "wires": [
+            [
+                "mqtt_out_forward_emergency"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_forward_emergency",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Send to Emergency",
+        "topic": "",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 930,
+        "y": 260,
+        "wires": []
     },
     {
         "id": "template_sms_log",

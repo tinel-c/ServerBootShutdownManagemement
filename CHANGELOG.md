@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0] - 2026-02-01
+
+### Fixed - SMS Command Interface & Reply Reliability
+
+#### SMS Command Replies
+- **Fixed HELP command not replying**: Shortened HELP reply to ≤160 characters for reliable single-SMS delivery; some GSM modems reject longer messages.
+- **Added 3-second delay** before sending command replies to avoid modem conflicts when both emergency forward and reply are queued in quick succession.
+- **Replaced Link nodes with MQTT**: Flow 511 now publishes to `sms/command/received`, Flow 514 subscribes for more reliable inter-flow communication.
+- **Explicit JSON stringification**: All MQTT payloads to `sms/gateway/command/send` use `JSON.stringify()` for gateway device compatibility.
+- **Robust payload parsing**: Flow 514 handles object, JSON string, and Buffer payloads from MQTT in node.
+
+#### Documentation
+- **New**: `docs/SMS_INTERFACE.md` - Comprehensive SMS command reference, message flow, and troubleshooting.
+- **Updated**: `nodered/flows/README.md` - SMS flows (510, 511, 514) with delay, HELP shortening, default allowed phones.
+- **Updated**: `docs/MQTT_PROTOCOL.md` - Added `sms/command/received` topic and internal schema.
+- **Updated**: `docs/TELEGRAM_INTERFACE.md` - Added SMS parity reference.
+- **Updated**: `docs/developer/WORKFLOW.md` - SMS testing in integration test checklist.
+- **Updated**: Main `README.md` - Added SMS Interface documentation link.
+
 ## [3.8.0] - 2026-01-28
 
 ### Added - SMS Gateway Device Watchdog System

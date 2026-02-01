@@ -232,6 +232,8 @@ sudo ./manage.sh restart          # Restart everything
 # - Send MQTT command
 # - Check Telegram notifications
 # - Verify dashboard updates
+# - SMS: Send HELP to gateway SIM, verify reply (~3s delay)
+# - SMS: Verify emergency forward of received messages
 ```
 
 ### Production Testing

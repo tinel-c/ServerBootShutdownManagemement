@@ -291,6 +291,133 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 ---
 
+### 510-sms-gateway-controls.json
+**SMS Gateway Control Dashboard**
+
+- Dashboard UI for sending SMS messages (phone number + message input)
+- Real-time gateway status display (WiFi, MQTT, GSM state)
+- Send response tracking with success/error notifications
+- Configuration UI for:
+  - **Allowed phones (SMS commands)**: Comma-separated list of numbers authorized to send SMS commands
+
+**MQTT Topics**:
+- Publish: `sms/gateway/command/send` (to send SMS)
+- Subscribe: `sms/gateway/status`, `sms/gateway/send/response`
+
+**Default Config** (set at flow init):
+- Allowed phones: `+40740244845`, `+40745218721`
+
+---
+
+### 511-sms-gateway-status.json
+**SMS Gateway Status & Message Logging**
+
+- Subscribes to `sms/gateway/receive/from`, `sms/gateway/receive/text`, `sms/gateway/receive/timestamp` to capture incoming SMS.
+- Combines all three into a complete message object and logs to flow context (`sms_message_log`, max 100).
+- Displays in Dashboard with modern UI, timestamps, and "NEW" badges.
+- Publishes to `sms/command/received` so flow 514 can process SMS commands.
+- **SMS Forwarding**: Automatically forwards ALL received SMS to the hardcoded emergency phone number `+40740244845`. Format: "SMS from +40xxx: [message text]".
+
+---
+
+### 512-sms-gateway-telegram.json
+**SMS Gateway Telegram Integration**
+
+- Telegram commands to interact with the SMS gateway:
+  - `/sms <phone> <message>` – Send SMS via Telegram
+  - `/sms_status` – Get gateway status
+  - `/sms_log` – View recent received SMS
+
+---
+
+### 513-sms-gateway-watchdog.json
+**SMS Gateway Watchdog & Alerts**
+
+- Monitors SMS gateway connectivity
+- Sends Telegram alerts when gateway goes offline/online
+- Heartbeat monitoring
+
+---
+
+### 514-sms-gateway-interface.json
+**SMS Gateway Command Interface** (mirrors ALL Telegram commands)
+
+- Subscribes to `sms/command/received` (published by flow 511 when new SMS arrives).
+- Parses SMS text as a command (with or without `/`) and replies via SMS to the sender.
+- **3-second delay** before reply so the GSM modem can finish sending the forward first (avoids modem conflicts).
+- **Shortened HELP reply** (≤160 chars) for reliable single-SMS delivery.
+- **Full Telegram parity**: All commands available on Telegram work via SMS.
+
+**Commands (send via SMS to the gateway SIM):**
+
+*Server Management:*
+- `BOOT [dell|hp]` – Boot server (WoL/iLO)
+- `SHUTDOWN [dell|hp]` – Graceful shutdown
+- `FORCE [dell|hp]` – Force shutdown
+- `STATUS` – Get server status
+
+*Main Gate:*
+- `GATE_OPEN` or `GATE` – Open main gate
+- `GATE_STATUS` – Get main gate status
+
+*Sliding Gate:*
+- `SLIDING_OPEN` – Open sliding gate
+- `SLIDING_CLOSE` – Close sliding gate
+- `SLIDING_TRIGGER` – Trigger automation
+- `SLIDING_STATUS` – Get status
+
+*Secondary Gate:*
+- `SECONDARY_OPEN` – Open gate
+- `SECONDARY_CLOSE` – Close gate
+- `SECONDARY_TRIGGER` – Trigger automation
+- `SECONDARY_STOP` – Stop gate
+- `SECONDARY_LIGHT_LEFT` – Left light (120s)
+- `SECONDARY_LIGHT_RIGHT` – Right light (120s)
+- `SECONDARY_STATUS` – Get status
+
+*Garden Power:*
+- `GARDEN_ON` – Turn on garden power
+- `GARDEN_OFF` – Turn off garden power
+- `GARDEN_TOGGLE` – Toggle power
+- `GARDEN_STATUS` – Get power status & metrics
+
+*Garden Lights:*
+- `LIGHTS_ON` – Turn all 16 lights ON
+- `LIGHTS_OFF` – Turn all 16 lights OFF
+- `LIGHTS_STATUS` – Get lights summary
+
+*Water Pump:*
+- `PUMP_START` – Start water pump
+- `PUMP_STOP` – Stop water pump
+- `PUMP_DRAIN` – Drain water (10s pulse)
+- `PUMP_TRENCH1_ON/OFF` – Feed trench 1
+- `PUMP_TRENCH2_ON/OFF` – Feed trench 2
+- `PUMP_STATUS` – Get pump status
+
+*Aquarium:*
+- `AQUARIUM_ON` – Light ON
+- `AQUARIUM_OFF` – Light OFF
+- `AQUARIUM_TOGGLE` – Toggle light
+- `AQUARIUM_STATUS` – Get status
+
+*SMS Gateway:*
+- `SMS_STATUS` – Gateway WiFi/MQTT/GSM status
+- `SMS_LOG` – Last 3 received SMS
+
+*Help:*
+- `HELP` or `COMMANDS` – List available commands
+
+**Configuration (Dashboard → SMS Gateway tab):**
+- **Allowed phones (SMS commands)**: Comma-separated numbers (e.g. `+40123456789, +40987654321`). Only these can send commands. Leave empty to allow all. Default: `+40740244845, +40745218721`.
+
+**SMS Forwarding**: All received SMS are automatically forwarded to the hardcoded emergency number `+40740244845` (see flow 511).
+
+**Dependencies**: Flow 511 (publishes to `sms/command/received`), `mqtt_broker_local`, flow/global context for device states.
+
+**Import**: After 511-sms-gateway-status.json so the topic is available.
+
+---
+
 ### 90-log-console.json
 **System Log Console**
 
@@ -486,6 +613,6 @@ For detailed development guidance, see:
 
 ---
 
-**Last Updated**: January 7, 2026
-**Format Version**: 2.3.0 (Modular + Smart Automation)
+**Last Updated**: February 1, 2026
+**Format Version**: 2.4.0 (SMS Command Interface + Forwarding)
 

@@ -49,6 +49,7 @@ The system uses MQTT for all remote commands and status updates. All messages ar
 | `sms/gateway/command/ota` | OTA enable/disable command | 1 | Dashboard → Device |
 | `sms/gateway/ota/status` | OTA update status | 1 | Device → Dashboard |
 | `sms/gateway/ota/progress` | OTA update progress | 1 | Device → Dashboard |
+| `sms/command/received` | Internal: new SMS for command processing | 1 | Node-RED 511 → 514 |
 
 ---
 
@@ -531,6 +532,14 @@ SMS message text string
 ```
 
 **Note:** These are published as separate topics. The timestamp is published to `sms/gateway/receive/timestamp`.
+
+### SMS Command Received (Internal Node-RED)
+
+**Topic:** `sms/command/received`
+
+**Schema:** JSON string with `messages`, `messageCount`, `latest` fields. Flow 511 publishes; Flow 514 subscribes for command processing.
+
+---
 
 **Example Usage:**
 ```bash

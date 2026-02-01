@@ -81,5 +81,11 @@ To add a new domain to help:
 - **Status stale**: Verify MQTT broker is running and services are active.
 
 ---
+
+## 📱 SMS Parity
+
+All Telegram commands are available via SMS. See [SMS_INTERFACE.md](SMS_INTERFACE.md) for the full SMS command reference and setup.
+
+---
 **Version**: 2.0.0  
-**Last Updated**: January 2026
+**Last Updated**: February 2026

@@ -677,6 +677,7 @@ ServerBootShutdownMangement/
 │   ├── MQTT_PROTOCOL.md
 │   ├── ARCHITECTURE.md
 │   ├── TELEGRAM_INTERFACE.md
+│   ├── SMS_INTERFACE.md
 │   ├── CLIENT_MANAGEMENT.md
 │   ├── DEVELOPMENT.md
 │   ├── REFERENCE.md
@@ -700,6 +701,7 @@ ServerBootShutdownMangement/
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Message specifications
 - [Telegram Interface](docs/TELEGRAM_INTERFACE.md) - Bot command reference & gateway
+- [SMS Interface](docs/SMS_INTERFACE.md) - SMS command reference & emergency forwarding
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
 
 ### Multi-Domain Automation System (NEW v3.0)

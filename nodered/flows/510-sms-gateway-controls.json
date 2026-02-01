@@ -10,6 +10,81 @@
         "wires": []
     },
     {
+        "id": "ui_text_sms_allowed_phones",
+        "type": "ui-text-input",
+        "z": "tab_dashboard",
+        "group": "ui_group_sms_gateway",
+        "name": "Allowed phones (SMS commands)",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 500,
+        "topic": "allowed_phones",
+        "label": "Allowed phones (SMS commands)",
+        "tooltip": "Comma-separated numbers that can send SMS commands (HELP, GATE_OPEN, etc.). Leave empty to allow all.",
+        "place": "e.g. +40123456789, +40987654321. Empty = allow all",
+        "format": "{{value}}",
+        "className": "",
+        "x": 225,
+        "y": 60,
+        "wires": [
+            [
+                "func_store_sms_allowed_phones"
+            ]
+        ]
+    },
+    {
+        "id": "func_store_sms_allowed_phones",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Store allowed phones",
+        "func": "// Parse comma-separated phone numbers and store for SMS interface (514)\nconst raw = (msg.payload != null ? String(msg.payload) : '').trim();\nconst list = raw\n    .split(',')\n    .map(s => s.trim())\n    .filter(s => s.length > 0);\nflow.set('sms_allowed_phones', list);\nif (list.length > 0) {\n    node.status({ fill: 'green', shape: 'dot', text: list.length + ' allowed' });\n} else {\n    node.status({ fill: 'grey', shape: 'ring', text: 'allow all' });\n}\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "inject_sms_allowed_init",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Init allowed phones",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 60,
+        "wires": [
+            [
+                "func_init_sms_allowed_phones"
+            ]
+        ]
+    },
+    {
+        "id": "func_init_sms_allowed_phones",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Set initial config",
+        "func": "// Set default allowed numbers at flow start (SMS command interface 514)\n// Use full numbers with country code to match gateway 'from' (e.g. 40740244845)\nflow.set('sms_allowed_phones', ['+40740244845', '+40745218721']);\nnode.status({ fill: 'green', shape: 'dot', text: '2 allowed' });\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 60,
+        "wires": []
+    },
+    {
         "id": "ui_text_sms_phone",
         "type": "ui-text-input",
         "z": "tab_dashboard",
@@ -94,7 +169,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Prepare SMS Command",
-        "func": "// Get phone and message from flow context (set by text inputs)\nlet phone = flow.get('sms_phone') || '';\nconst message = flow.get('sms_message') || '';\n\nif (!phone || !message) {\n    node.warn('Phone number or message missing');\n    return null;\n}\n\n// Strip '+' prefix if present (MQTT/GSM module requirement)\nphone = phone.replace('+', '');\n\n// Create SMS command payload\nmsg.payload = {\n    to: phone,\n    text: message\n};\n\nmsg.topic = 'sms/gateway/command/send';\n\n// Store timestamp for tracking\nmsg.timestamp = new Date().toISOString();\n\nreturn msg;",
+        "func": "// Get phone and message from flow context (set by text inputs)\nlet phone = flow.get('sms_phone') || '';\nconst message = flow.get('sms_message') || '';\n\nif (!phone || !message) {\n    node.warn('Phone number or message missing');\n    return null;\n}\n\n// Strip all non-digits for MQTT (gateway expects digits-only in 'to')\nphone = String(phone).replace(/\\D/g, '');\n\n// Create SMS command payload (JSON string for gateway)\nmsg.payload = JSON.stringify({ to: phone, text: message });\nmsg.topic = 'sms/gateway/command/send';\n\n// Store timestamp for tracking\nmsg.timestamp = new Date().toISOString();\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -225,7 +300,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "SMS Status Metadata",
-        "func": "let metadataKey = \"status_metadata_sms_gateway\";\nlet metadata = flow.get(metadataKey) || {\n    lastReportedMs: null,\n    lastChangedMs: null,\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\n// Parse status - could be timestamp string, JSON, or 'offline' trigger\nlet statusData = msg.payload;\nlet newState = \"online\";\n\nif (statusData === \"offline\") {\n    newState = \"offline\";\n} else if (typeof statusData === 'string') {\n    // Try to parse as JSON\n    try {\n        statusData = JSON.parse(statusData);\n        newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n    } catch (e) {\n        // It's a timestamp string or other reported data, device is online\n        newState = 'online';\n    }\n} else if (typeof statusData === 'object') {\n    newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n}\n\nlet nowMs = Date.now();\n\n// Only update lastReported if it's an actual report, not a heartbeat timeout\nif (statusData !== \"offline\") {\n    metadata.lastReportedMs = nowMs;\n}\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChangedMs = nowMs;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nmsg.payload = typeof statusData === 'object' ? statusData : { timestamp: statusData, wifi: 'connected', mqtt: 'connected', gsm: 'initialized' };\n\nreturn msg;",
+        "func": "let metadataKey = \"status_metadata_sms_gateway\";\nlet metadata = flow.get(metadataKey) || {\n    lastReportedMs: null,\n    lastChangedMs: null,\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\n// Parse status - could be timestamp string, JSON, or 'offline' trigger\nlet statusData = msg.payload;\nlet newState = \"online\";\n\nif (statusData === \"offline\") {\n    newState = \"offline\";\n} else if (typeof statusData === 'string') {\n    // Try to parse as JSON\n    try {\n        statusData = JSON.parse(statusData);\n        newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n    } catch (e) {\n        // It's a timestamp string or other reported data, device is online\n        newState = 'online';\n    }\n} else if (typeof statusData === 'object') {\n    newState = statusData.wifi === 'connected' && statusData.mqtt === 'connected' ? 'online' : 'offline';\n}\n\nlet nowMs = Date.now();\n\n// Only update lastReported if it's an actual report, not a heartbeat timeout\nif (statusData !== \"offline\") {\n    metadata.lastReportedMs = nowMs;\n}\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChangedMs = nowMs;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nmsg.payload = typeof statusData === 'object' ? statusData : { timestamp: statusData, wifi: 'connected', mqtt: 'connected', gsm: 'initialized' };\nflow.set('sms_gateway_status', msg.payload);\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",

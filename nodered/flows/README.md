@@ -344,9 +344,9 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 - Subscribes to `sms/command/received` (published by flow 511 when new SMS arrives).
 - Parses SMS text as a command (with or without `/`) and replies via SMS to the sender.
-- **3-second delay** before reply so the GSM modem can finish sending the forward first (avoids modem conflicts).
-- **Shortened HELP reply** (≤160 chars) for reliable single-SMS delivery.
-- **Full Telegram parity**: All commands available on Telegram work via SMS.
+- **3-second delay** before reply, then **rate limit 1 per 5s** for multi-SMS (e.g. HELP sends 8 messages with descriptions).
+- **HELP / COMMANDS / LIST / START**: Sends **8 SMS chunks** with full command descriptions (same as Telegram).
+- **Full Telegram parity**: All commands available on Telegram work via SMS, including CAMERA_STATUS and CAMERA_HELP.
 
 **Commands (send via SMS to the gateway SIM):**
 
@@ -400,12 +400,16 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 - `AQUARIUM_TOGGLE` – Toggle light
 - `AQUARIUM_STATUS` – Get status
 
+*Camera (Tapo ONVIF):*
+- `CAMERA_STATUS` – Camera health and last detection event
+- `CAMERA_HELP` – Camera system help
+
 *SMS Gateway:*
 - `SMS_STATUS` – Gateway WiFi/MQTT/GSM status
 - `SMS_LOG` – Last 3 received SMS
 
 *Help:*
-- `HELP` or `COMMANDS` – List available commands
+- `HELP` or `COMMANDS` or `LIST` or `START` – Full command list (8 SMS with descriptions)
 
 **Configuration (Dashboard → SMS Gateway tab):**
 - **Allowed phones (SMS commands)**: Comma-separated numbers (e.g. `+40123456789, +40987654321`). Only these can send commands. Leave empty to allow all. Default: `+40740244845, +40745218721`.

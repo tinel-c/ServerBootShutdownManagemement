@@ -82,6 +82,12 @@ Commands are case-insensitive. Use with or without `/` prefix (e.g. `help`, `/he
 | `AQUARIUM_TOGGLE` | Toggle light |
 | `AQUARIUM_STATUS` | Get status |
 
+### 📷 Camera (Tapo ONVIF)
+| Command | Description |
+|---------|-------------|
+| `CAMERA_STATUS` | Camera health and last detection event |
+| `CAMERA_HELP` | Camera system help |
+
 ### 📱 SMS Gateway
 | Command | Description |
 |---------|-------------|
@@ -91,7 +97,7 @@ Commands are case-insensitive. Use with or without `/` prefix (e.g. `help`, `/he
 ### ❓ Help
 | Command | Description |
 |---------|-------------|
-| `HELP` or `COMMANDS` or `START` | List available commands (≤160 chars) |
+| `HELP` or `COMMANDS` or `LIST` or `START` | Full command list: **8 SMS messages** with descriptions (sent with 3s then 5s spacing) |
 
 ---
 
@@ -102,7 +108,7 @@ Commands are case-insensitive. Use with or without `/` prefix (e.g. `help`, `/he
 3. **Process**: Flow 511 publishes to `sms/command/received` → Flow 514 subscribes
 4. **Parse**: Flow 514 extracts command from text (strips modem `+CMGR:` lines if present)
 5. **Authorize**: Only allowed phone numbers can trigger commands
-6. **Reply**: Flow 514 sends reply with 3-second delay (avoids modem conflict with forward)
+6. **Reply**: Flow 514 sends reply with 3-second delay (avoids modem conflict with forward). For HELP/COMMANDS/LIST, **multiple SMS** are sent (8 chunks) with 5-second spacing between each (rate limit) so the modem can send one at a time.
 
 ---
 
@@ -135,7 +141,7 @@ Commands are case-insensitive. Use with or without `/` prefix (e.g. `help`, `/he
 Gateway may include raw AT response lines (e.g. `+CMGR: "REC READ",...`) in the SMS text. Flow 514 strips these and extracts the actual command line.
 
 ### Reply Delay
-A 3-second delay before sending command replies avoids GSM modem conflicts when both the forward and reply are queued in quick succession.
+A 3-second delay before sending command replies avoids GSM modem conflicts when both the forward and reply are queued in quick succession. **Multi-SMS**: When the reply is multiple messages (e.g. HELP), a rate-limit delay (1 message per 5 seconds) after the 3s delay spaces them so the device sends one SMS at a time.
 
 ---
 

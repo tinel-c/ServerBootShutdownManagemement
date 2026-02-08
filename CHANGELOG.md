@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.0] - 2026-02-08
+
+### Added - SMS Multi-Reply, Comprehensive HELP, Camera Parity
+
+#### Multi-SMS Replies
+- **Multiple SMS replies**: Flow 514 can send several SMS messages per command (e.g. HELP sends 8 chunks) with 3s initial delay then 5s spacing (rate limit) to avoid modem overload.
+- **`replyMultiple(texts)` helper**: Builds one MQTT payload per string; new "Rate 1 per 5s" delay node spaces them.
+
+#### Comprehensive HELP
+- **HELP / COMMANDS / LIST / START** now send **8 SMS messages** with full command descriptions (server, gates, garden, lights, pump, aquarium, camera, SMS).
+- **LIST** alias added for COMMANDS (Telegram parity).
+
+#### Camera Commands (Telegram Parity)
+- **CAMERA_STATUS**: Returns Tapo camera health and last detection from flow context (same as flow 611).
+- **CAMERA_HELP**: Short help for camera commands.
+
+#### Documentation
+- **Updated**: `docs/SMS_INTERFACE.md` - Camera section, multi-SMS HELP, LIST.
+- **Updated**: `nodered/flows/README.md` - 514 multi-SMS and camera commands.
+
 ## [3.9.0] - 2026-02-01
 
 ### Fixed - SMS Command Interface & Reply Reliability

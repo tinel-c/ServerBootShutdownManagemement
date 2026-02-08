@@ -776,10 +776,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.7.0 (SMS Gateway Node-RED Integration)  
-**Last Updated:** 2026-01-25
+**Version:** 3.10.0 (SMS Multi-Reply & Comprehensive HELP)  
+**Last Updated:** 2026-02-08
 
 ## Recent Releases
+
+### v3.10.0 (2026-02-08) - SMS Multi-Reply & Comprehensive HELP
+- 📱 **Multi-SMS replies** - HELP/COMMANDS send 8 SMS with full descriptions (3s + 5s spacing)
+- 📋 **LIST** alias - Same as COMMANDS (Telegram parity)
+- 📷 **Camera commands** - CAMERA_STATUS, CAMERA_HELP via SMS
+- See `RELEASE_NOTES_v3.10.0.md` for details
 
 ### v3.7.0 (2026-01-25) - SMS Gateway Node-RED Integration
 - 🎛️ **Node-RED Dashboard** - Complete management interface for SMS Gateway

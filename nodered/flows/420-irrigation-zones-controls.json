@@ -1,18 +1,18 @@
 [
     {
-        "id": "a87d8c82a860eb8b",
+        "id": "c91cc9577065fd3b",
         "type": "comment",
-        "z": "tab_dashboard",
+        "z": "b3b5bbeab11d67eb",
         "name": "═══════════════ IRRIGATION ZONES CONTROLS (Converted to Dashboard 2.0) ═══════════════",
         "info": "## 12-Zone Irrigation System\n\nConverted from legacy UI to Dashboard 2.0\nPreserves node-red-contrib-sprinkler automation\n\nDevice: IrigationSystem (Tasmota)\nZones: 12 (POWER2-5, POWER10-17)\nPower: POWER1 (24V)\nPump: pompaApa/Power1",
         "x": 440,
-        "y": 40,
+        "y": 28,
         "wires": []
     },
     {
-        "id": "2c4e70d18f7d7ac5",
+        "id": "4893b81f724442c7",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER2",
         "qos": "2",
@@ -23,18 +23,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 540,
-        "y": 98,
+        "y": 86,
         "wires": [
             [
-                "dc005e41b2a4dce0",
-                "cfd0bc89aad9d8dd"
+                "4bf05581985ff163",
+                "bceec202089bfd51"
             ]
         ]
     },
     {
-        "id": "e6d3dbd6923ad8e9",
+        "id": "943c408e577643ee",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER2",
         "qos": "0",
@@ -46,13 +46,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 1990,
-        "y": 140,
+        "y": 128,
         "wires": []
     },
     {
-        "id": "b6bc6511975e3dc1",
+        "id": "6a3949ccb3c4bda9",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER3",
         "qos": "2",
@@ -63,18 +63,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 540,
-        "y": 214,
+        "y": 202,
         "wires": [
             [
-                "e81dbafd18ea7aeb",
-                "6a69bcacc34cb91c"
+                "b7f0188e6e2fbb81",
+                "97faef97ff340ee4"
             ]
         ]
     },
     {
-        "id": "2c24cf793692678b",
+        "id": "16f936a7f8e122b0",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER3",
         "qos": "",
@@ -86,13 +86,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 1990,
-        "y": 256,
+        "y": 244,
         "wires": []
     },
     {
-        "id": "b76916d87f63460a",
+        "id": "9f65e0ccc5b04e23",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER4",
         "qos": "2",
@@ -103,18 +103,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 540,
-        "y": 330,
+        "y": 318,
         "wires": [
             [
-                "46efbdf7a755bfee",
-                "dc63beb3daa667c9"
+                "025dd00f248e2c48",
+                "b85465f697d94230"
             ]
         ]
     },
     {
-        "id": "f05bcb22593670e7",
+        "id": "e6680489d9568005",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER4",
         "qos": "",
@@ -126,13 +126,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 1990,
-        "y": 372,
+        "y": 360,
         "wires": []
     },
     {
-        "id": "4edf219d032abaf2",
+        "id": "f67e9ae1718c42de",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER5",
         "qos": "2",
@@ -143,18 +143,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 540,
-        "y": 446,
+        "y": 434,
         "wires": [
             [
-                "cedfaf214640b739",
-                "095f6ee5aa9635fe"
+                "c97340cad469410b",
+                "473ec49e189781c7"
             ]
         ]
     },
     {
-        "id": "d9567dbf2e9926a9",
+        "id": "c0afcb322e3f6750",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER5",
         "qos": "",
@@ -166,13 +166,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 1990,
-        "y": 488,
+        "y": 476,
         "wires": []
     },
     {
-        "id": "10fe922bef9f12d6",
+        "id": "eebee4d24ba4c004",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER10",
         "qos": "2",
@@ -183,18 +183,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 568,
+        "y": 556,
         "wires": [
             [
-                "9f7d7a74e6f8c88e",
-                "79f3fb864bc6ff2d"
+                "a62f47290e7cc387",
+                "870eb8a59c7118fb"
             ]
         ]
     },
     {
-        "id": "d240239bd76c754c",
+        "id": "305f0e200c2093c4",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER10",
         "qos": "",
@@ -206,13 +206,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 600,
+        "y": 588,
         "wires": []
     },
     {
-        "id": "a56b63d27c3f9c3f",
+        "id": "f5a84ba26b0d1240",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER11",
         "qos": "2",
@@ -223,18 +223,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 684,
+        "y": 672,
         "wires": [
             [
-                "3ceef9f342ae6be1",
-                "82ba5fccf6e7cdca"
+                "6f5c28c34fc58f6c",
+                "483192ac7ebab14f"
             ]
         ]
     },
     {
-        "id": "963675f364b6f126",
+        "id": "2b8dfdb156733d57",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER11",
         "qos": "",
@@ -246,13 +246,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 720,
+        "y": 708,
         "wires": []
     },
     {
-        "id": "20eea1c177a08312",
+        "id": "387c830ad1b9409e",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER12",
         "qos": "2",
@@ -263,18 +263,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 800,
+        "y": 788,
         "wires": [
             [
-                "fbedeeedf7ea28a5",
-                "dc9defadaabffc9c"
+                "36e443965cfa5a87",
+                "499e86eb91313caf"
             ]
         ]
     },
     {
-        "id": "07310c155ed61583",
+        "id": "1bda43813ddf9b93",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER12",
         "qos": "",
@@ -286,13 +286,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 836,
+        "y": 824,
         "wires": []
     },
     {
-        "id": "125df1bda395df3f",
+        "id": "93da35b44912a263",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER13",
         "qos": "2",
@@ -303,18 +303,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 916,
+        "y": 904,
         "wires": [
             [
-                "b8bdf3c8a99b1085",
-                "9bbaba0521c58af1"
+                "ea6704d4b93ecc66",
+                "74eb5b751752d468"
             ]
         ]
     },
     {
-        "id": "a3be68c5fa64b084",
+        "id": "3644054a5ed09eba",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER13",
         "qos": "",
@@ -326,13 +326,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 952,
+        "y": 940,
         "wires": []
     },
     {
-        "id": "24bf46d9908dead5",
+        "id": "9e3ab0db58f1deed",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER14",
         "qos": "2",
@@ -343,18 +343,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 1032,
+        "y": 1020,
         "wires": [
             [
-                "5e6ffdc7dba7b53a",
-                "bde1df4db2ac5fae"
+                "c0157d69d6c4f402",
+                "144066070a4bd47b"
             ]
         ]
     },
     {
-        "id": "43719fc6761ff94b",
+        "id": "93dffdb461f687f9",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER14",
         "qos": "",
@@ -366,13 +366,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 1068,
+        "y": 1056,
         "wires": []
     },
     {
-        "id": "0e9b92c1e8a3a224",
+        "id": "b3e8635784d7230c",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER15",
         "qos": "2",
@@ -383,18 +383,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 1148,
+        "y": 1136,
         "wires": [
             [
-                "6bf54baaf1cbaae2",
-                "aacbea75eeebe72c"
+                "5e9ea8a49f0cb523",
+                "150a20f9eb93410e"
             ]
         ]
     },
     {
-        "id": "7192f8a02af696d8",
+        "id": "fef6018ea9982ce5",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER15",
         "qos": "",
@@ -406,13 +406,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 1184,
+        "y": 1172,
         "wires": []
     },
     {
-        "id": "1196891b07da63e8",
+        "id": "7b5ae98d97f68a5e",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER16",
         "qos": "2",
@@ -423,18 +423,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 1264,
+        "y": 1252,
         "wires": [
             [
-                "d4ecfcf0bcfbd37c",
-                "ea5b371b864abfcf"
+                "964fd2cf7d878b6d",
+                "58b45e50a79cb13a"
             ]
         ]
     },
     {
-        "id": "ee35f6acdbcac244",
+        "id": "01dff20116c62f1b",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER16",
         "qos": "",
@@ -446,13 +446,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 1300,
+        "y": 1288,
         "wires": []
     },
     {
-        "id": "8fbe3468a162b673",
+        "id": "110b319ba095e7b6",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER17",
         "qos": "2",
@@ -463,18 +463,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 550,
-        "y": 1380,
+        "y": 1368,
         "wires": [
             [
-                "ea3b677c8a0c6d6f",
-                "3fccf8c1efa1ee9f"
+                "34a15b2250bcc95f",
+                "2354cec35e4e0fb9"
             ]
         ]
     },
     {
-        "id": "5e8420025ab57f3a",
+        "id": "5eaab7e74aa81365",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER17",
         "qos": "",
@@ -486,13 +486,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 2020,
-        "y": 1416,
+        "y": 1404,
         "wires": []
     },
     {
-        "id": "8729815e97259ebe",
+        "id": "9b91e5426e5c8738",
         "type": "mqtt in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "stat/IrigationSystem/POWER1",
         "qos": "2",
@@ -503,18 +503,18 @@
         "rh": 0,
         "inputs": 0,
         "x": 540,
-        "y": 1490,
+        "y": 1478,
         "wires": [
             [
-                "0db72feb00ddc264",
-                "b66066da65aeed0a"
+                "3795513ee28b2a99",
+                "885b9a3e77b545ae"
             ]
         ]
     },
     {
-        "id": "1f319ab97d4b61a3",
+        "id": "833dd27f8e4e2214",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/IrigationSystem/POWER1",
         "qos": "",
@@ -526,13 +526,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 1990,
-        "y": 1532,
+        "y": 1520,
         "wires": []
     },
     {
-        "id": "44546fbc698797c1",
+        "id": "0355a8d9d361e2ee",
         "type": "mqtt out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "topic": "cmnd/pompaApa/Power1",
         "qos": "2",
@@ -544,13 +544,13 @@
         "expiry": "",
         "broker": "73850d9f081d4c01",
         "x": 1990,
-        "y": 1698,
+        "y": 1686,
         "wires": []
     },
     {
-        "id": "11d5751eaf5f0540",
+        "id": "a26d485674835455",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit pompa fantana",
         "rules": [
             {
@@ -566,18 +566,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1925,
+        "x": 1460,
+        "y": 1908,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "3e7ed95721dcb4a2",
+        "id": "0173550210df5903",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -596,21 +596,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 1771,
-        "y": 1993,
+        "x": 1150,
+        "y": 1976,
         "wires": [
             [
-                "11d5751eaf5f0540"
+                "a26d485674835455"
             ],
             [
-                "5270cea5e08c7fab"
+                "e6aff2a54a9f3d19"
             ]
         ]
     },
     {
-        "id": "5270cea5e08c7fab",
+        "id": "e6aff2a54a9f3d19",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit pompa fantana",
         "rules": [
             {
@@ -626,18 +626,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1993,
+        "x": 1460,
+        "y": 1976,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "ade8569566317f39",
+        "id": "3f8d65ba6cb373e0",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit 24V ",
         "rules": [
             {
@@ -653,18 +653,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4111,
-        "y": 2051,
+        "x": 1450,
+        "y": 2028,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "c576445de1a511f6",
+        "id": "2f34f3a5c1e4876a",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -683,21 +683,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 3071,
-        "y": 2119,
+        "x": 1250,
+        "y": 2068,
         "wires": [
             [
-                "ade8569566317f39"
+                "3f8d65ba6cb373e0"
             ],
             [
-                "cebae2bdfae6b97b"
+                "632a9f059e0b2dfc"
             ]
         ]
     },
     {
-        "id": "cebae2bdfae6b97b",
+        "id": "632a9f059e0b2dfc",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit 24V ",
         "rules": [
             {
@@ -713,336 +713,336 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 3981,
-        "y": 2119,
+        "x": 1440,
+        "y": 2088,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "8f448cc2c35c23bb",
+        "id": "3dc6ccd7ee834cdd",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I1",
         "mode": "link",
         "links": [
-            "d8c20da0eb6f7cc1"
+            "86037092ba93f313"
         ],
-        "x": 3461,
-        "y": 2245,
+        "x": 1185,
+        "y": 2228,
         "wires": []
     },
     {
-        "id": "d8c20da0eb6f7cc1",
+        "id": "86037092ba93f313",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I1",
         "links": [
-            "8f448cc2c35c23bb"
+            "3dc6ccd7ee834cdd"
         ],
-        "x": 2161,
-        "y": 40,
+        "x": 1380,
+        "y": 32,
         "wires": [
             [
-                "e6d3dbd6923ad8e9"
+                "943c408e577643ee"
             ]
         ]
     },
     {
-        "id": "bc29790f107638ac",
+        "id": "d85bb6d675c0db3f",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I2",
         "mode": "link",
         "links": [
-            "d3d0af1969195b53"
+            "f193879a436e4392"
         ],
-        "x": 3331,
-        "y": 2419,
+        "x": 1195,
+        "y": 2428,
         "wires": []
     },
     {
-        "id": "d3d0af1969195b53",
+        "id": "f193879a436e4392",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I2",
         "links": [
-            "bc29790f107638ac"
+            "d85bb6d675c0db3f"
         ],
-        "x": 2161,
-        "y": 156,
+        "x": 1380,
+        "y": 148,
         "wires": [
             [
-                "2c24cf793692678b"
+                "16f936a7f8e122b0"
             ]
         ]
     },
     {
-        "id": "956f78744c0aa353",
+        "id": "a913226bb5b4a72b",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I3",
         "links": [
-            "7553d17571f3ceb0"
+            "7f9c637627c1a2a1"
         ],
-        "x": 2161,
-        "y": 272,
+        "x": 1380,
+        "y": 264,
         "wires": [
             [
-                "f05bcb22593670e7"
+                "e6680489d9568005"
             ]
         ]
     },
     {
-        "id": "d79234c25daf72ad",
+        "id": "9c47d83ed82768df",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I4",
         "links": [
-            "3971b2ef0de10474"
+            "4cb22153c886ef31"
         ],
-        "x": 2161,
-        "y": 388,
+        "x": 1380,
+        "y": 380,
         "wires": [
             [
-                "d9567dbf2e9926a9"
+                "c0afcb322e3f6750"
             ]
         ]
     },
     {
-        "id": "17b81b3bd18e26f2",
+        "id": "25b8bb51ba957ae2",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I5",
         "links": [
-            "fbe4b184bd6ac1c4"
+            "2eefed51f6ddc4dd"
         ],
-        "x": 2161,
-        "y": 504,
+        "x": 1380,
+        "y": 496,
         "wires": [
             [
-                "d240239bd76c754c"
+                "305f0e200c2093c4"
             ]
         ]
     },
     {
-        "id": "94b5b1d3108e2827",
+        "id": "5ac98a092f05edde",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I6",
         "links": [
-            "a7e9072620affafe"
+            "f359700922212484"
         ],
-        "x": 2161,
-        "y": 620,
+        "x": 1380,
+        "y": 612,
         "wires": [
             [
-                "963675f364b6f126"
+                "2b8dfdb156733d57"
             ]
         ]
     },
     {
-        "id": "dcb5df8be2099a5f",
+        "id": "56ee0a7756616494",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I7",
         "links": [
-            "12a90f0a01aa39f1"
+            "7f54da1bca1bd2b1"
         ],
-        "x": 2161,
-        "y": 736,
+        "x": 1380,
+        "y": 728,
         "wires": [
             [
-                "07310c155ed61583"
+                "1bda43813ddf9b93"
             ]
         ]
     },
     {
-        "id": "5b902d548e01aab7",
+        "id": "508cbb9bb7e0fa2a",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I8",
         "links": [
-            "b4e2d0b0ad7140b1"
+            "1f9e10c2b2155b27"
         ],
-        "x": 2161,
-        "y": 852,
+        "x": 1380,
+        "y": 844,
         "wires": [
             [
-                "a3be68c5fa64b084"
+                "3644054a5ed09eba"
             ]
         ]
     },
     {
-        "id": "d9b69afc10734906",
+        "id": "92b27ae4109be56b",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I9",
         "links": [],
-        "x": 2161,
-        "y": 968,
+        "x": 1380,
+        "y": 960,
         "wires": [
             [
-                "43719fc6761ff94b"
+                "93dffdb461f687f9"
             ]
         ]
     },
     {
-        "id": "f7e85b38934017fe",
+        "id": "b60d2a500b68b3d6",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I10",
         "links": [],
-        "x": 2161,
-        "y": 1084,
+        "x": 1380,
+        "y": 1076,
         "wires": [
             [
-                "7192f8a02af696d8"
+                "fef6018ea9982ce5"
             ]
         ]
     },
     {
-        "id": "edfcd385602e4adc",
+        "id": "718d74ff529bf0ab",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I11",
         "links": [],
-        "x": 2161,
-        "y": 1200,
+        "x": 1380,
+        "y": 1192,
         "wires": [
             [
-                "ee35f6acdbcac244"
+                "01dff20116c62f1b"
             ]
         ]
     },
     {
-        "id": "11e21586609a555b",
+        "id": "b296194f8399174a",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I12",
         "links": [],
-        "x": 2161,
-        "y": 1316,
+        "x": 1380,
+        "y": 1308,
         "wires": [
             [
-                "5e8420025ab57f3a"
+                "5eaab7e74aa81365"
             ]
         ]
     },
     {
-        "id": "aab540ef1b048d52",
+        "id": "2d34e358fb05a9b1",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Power",
         "links": [
-            "7e02788257794e5d",
-            "b8dfed2ac23f1add"
+            "6691c3155695d70c",
+            "8616b14656f6a0cc"
         ],
-        "x": 2161,
-        "y": 1432,
+        "x": 1380,
+        "y": 1424,
         "wires": [
             [
-                "1f319ab97d4b61a3"
+                "833dd27f8e4e2214"
             ]
         ]
     },
     {
-        "id": "7e02788257794e5d",
+        "id": "6691c3155695d70c",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Start Power",
         "mode": "link",
         "links": [
-            "aab540ef1b048d52"
+            "2d34e358fb05a9b1"
         ],
-        "x": 1251,
-        "y": 3647,
+        "x": 1255,
+        "y": 3636,
         "wires": []
     },
     {
-        "id": "7553d17571f3ceb0",
+        "id": "7f9c637627c1a2a1",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I3",
         "mode": "link",
         "links": [
-            "956f78744c0aa353"
+            "a913226bb5b4a72b"
         ],
-        "x": 3331,
-        "y": 2535,
+        "x": 1195,
+        "y": 2528,
         "wires": []
     },
     {
-        "id": "3971b2ef0de10474",
+        "id": "4cb22153c886ef31",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I4",
         "mode": "link",
         "links": [
-            "d79234c25daf72ad"
+            "9c47d83ed82768df"
         ],
-        "x": 3331,
-        "y": 2709,
+        "x": 1185,
+        "y": 2708,
         "wires": []
     },
     {
-        "id": "fbe4b184bd6ac1c4",
+        "id": "2eefed51f6ddc4dd",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I5",
         "mode": "link",
         "links": [
-            "17b81b3bd18e26f2"
+            "25b8bb51ba957ae2"
         ],
-        "x": 3201,
-        "y": 2825,
+        "x": 1175,
+        "y": 2828,
         "wires": []
     },
     {
-        "id": "a7e9072620affafe",
+        "id": "f359700922212484",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I6",
         "mode": "link",
         "links": [
-            "94b5b1d3108e2827"
+            "5ac98a092f05edde"
         ],
-        "x": 3201,
-        "y": 2999,
+        "x": 1205,
+        "y": 3008,
         "wires": []
     },
     {
-        "id": "12a90f0a01aa39f1",
+        "id": "7f54da1bca1bd2b1",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I7",
         "mode": "link",
         "links": [
-            "dcb5df8be2099a5f"
+            "56ee0a7756616494"
         ],
-        "x": 3331,
-        "y": 3115,
+        "x": 1195,
+        "y": 3128,
         "wires": []
     },
     {
-        "id": "b4e2d0b0ad7140b1",
+        "id": "1f9e10c2b2155b27",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "I8",
         "mode": "link",
         "links": [
-            "5b902d548e01aab7"
+            "508cbb9bb7e0fa2a"
         ],
-        "x": 3461,
-        "y": 3405,
+        "x": 1255,
+        "y": 3468,
         "wires": []
     },
     {
-        "id": "426b138b1601d7a0",
+        "id": "372e2dbf67d04ff3",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I1",
         "rules": [
             {
@@ -1058,18 +1058,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2187,
+        "x": 1460,
+        "y": 2188,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "47afa61171190b60",
+        "id": "3f97030f9e5859ed",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1088,21 +1088,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 2245,
+        "x": 1230,
+        "y": 2268,
         "wires": [
             [
-                "426b138b1601d7a0"
+                "372e2dbf67d04ff3"
             ],
             [
-                "432ddde70b00fd49"
+                "52ee98a3f8ab1806"
             ]
         ]
     },
     {
-        "id": "432ddde70b00fd49",
+        "id": "52ee98a3f8ab1806",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I1",
         "rules": [
             {
@@ -1118,18 +1118,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2245,
+        "x": 1460,
+        "y": 2246,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "0e1ac461825264df",
+        "id": "ae64d2a3789251c7",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I2",
         "rules": [
             {
@@ -1145,18 +1145,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2361,
+        "x": 1460,
+        "y": 2362,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "09b274f82d9d6503",
+        "id": "8efc8991c4f5d6b6",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1175,21 +1175,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 2477,
+        "x": 1230,
+        "y": 2468,
         "wires": [
             [
-                "0e1ac461825264df"
+                "ae64d2a3789251c7"
             ],
             [
-                "2942aaab75ca5494"
+                "829854f2c9d8c4b7"
             ]
         ]
     },
     {
-        "id": "2942aaab75ca5494",
+        "id": "829854f2c9d8c4b7",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I2",
         "rules": [
             {
@@ -1205,18 +1205,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2477,
+        "x": 1460,
+        "y": 2478,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "a7c370b75bbc92eb",
+        "id": "6deba1070cddf778",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I3",
         "rules": [
             {
@@ -1232,16 +1232,16 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2535,
+        "x": 1460,
+        "y": 2536,
         "wires": [
             []
         ]
     },
     {
-        "id": "3fda499df6fac1b5",
+        "id": "ca4acaa47f3d0be5",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1260,21 +1260,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 2651,
+        "x": 1230,
+        "y": 2568,
         "wires": [
             [
-                "a7c370b75bbc92eb"
+                "6deba1070cddf778"
             ],
             [
-                "11b8d014463237aa"
+                "a9c32e11783ecbc8"
             ]
         ]
     },
     {
-        "id": "11b8d014463237aa",
+        "id": "a9c32e11783ecbc8",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I3",
         "rules": [
             {
@@ -1290,18 +1290,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2651,
+        "x": 1460,
+        "y": 2652,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "e1b2f4fe904407e7",
+        "id": "86ea3adb4725b163",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I4",
         "rules": [
             {
@@ -1317,18 +1317,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2767,
+        "x": 1460,
+        "y": 2768,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "df7f7005d74c102e",
+        "id": "631e8e6dd50b6243",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1347,21 +1347,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 2825,
+        "x": 1210,
+        "y": 2748,
         "wires": [
             [
-                "e1b2f4fe904407e7"
+                "86ea3adb4725b163"
             ],
             [
-                "dcce92cf4f3598dd"
+                "62367db594ae2f82"
             ]
         ]
     },
     {
-        "id": "dcce92cf4f3598dd",
+        "id": "62367db594ae2f82",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I4",
         "rules": [
             {
@@ -1377,18 +1377,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2825,
+        "x": 1460,
+        "y": 2826,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "838f4deac848ec2b",
+        "id": "4e238c53f38dd847",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I6",
         "rules": [
             {
@@ -1404,18 +1404,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 3115,
+        "x": 1460,
+        "y": 3116,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "cf0397a001cf76c2",
+        "id": "37a11f832f3ee350",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1434,21 +1434,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 3231,
+        "x": 1250,
+        "y": 3068,
         "wires": [
             [
-                "838f4deac848ec2b"
+                "4e238c53f38dd847"
             ],
             [
-                "6109902bef541957"
+                "f41a6ad8c5921aa5"
             ]
         ]
     },
     {
-        "id": "6109902bef541957",
+        "id": "f41a6ad8c5921aa5",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I6",
         "rules": [
             {
@@ -1464,18 +1464,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 3231,
+        "x": 1460,
+        "y": 3232,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "e033aa55ecf2a6e5",
+        "id": "9a5fc9256cd1e8b4",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I7",
         "rules": [
             {
@@ -1491,18 +1491,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 3289,
+        "x": 1460,
+        "y": 3290,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "18375a5ce75f5cda",
+        "id": "0626facabbc962d5",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1521,21 +1521,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 3347,
+        "x": 1230,
+        "y": 3188,
         "wires": [
             [
-                "e033aa55ecf2a6e5"
+                "9a5fc9256cd1e8b4"
             ],
             [
-                "70950e23982c6c9d"
+                "b15c6b201badd0e6"
             ]
         ]
     },
     {
-        "id": "70950e23982c6c9d",
+        "id": "b15c6b201badd0e6",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I7",
         "rules": [
             {
@@ -1551,18 +1551,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 3347,
+        "x": 1460,
+        "y": 3348,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "12c3ddf38ba1fb3e",
+        "id": "1768449d61288616",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I8",
         "rules": [
             {
@@ -1578,18 +1578,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 3463,
+        "x": 1460,
+        "y": 3464,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "ac27992f7a7b1d02",
+        "id": "d55d533ccd772e29",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1608,21 +1608,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 3579,
+        "x": 1290,
+        "y": 3508,
         "wires": [
             [
-                "12c3ddf38ba1fb3e"
+                "1768449d61288616"
             ],
             [
-                "f0997861c29e7a20"
+                "0af8502569a02907"
             ]
         ]
     },
     {
-        "id": "f0997861c29e7a20",
+        "id": "0af8502569a02907",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I8",
         "rules": [
             {
@@ -1638,18 +1638,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 3579,
+        "x": 1460,
+        "y": 3580,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "4e1ee3c17d57d950",
+        "id": "6f9e7a2cc9eca96f",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pornit I5",
         "rules": [
             {
@@ -1665,18 +1665,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 2941,
+        "x": 1460,
+        "y": 2942,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "520460f649a9e310",
+        "id": "27c5a5de71b98e36",
         "type": "switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "property": "payload",
         "propertyType": "msg",
@@ -1695,21 +1695,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 4241,
-        "y": 3057,
+        "x": 1210,
+        "y": 2888,
         "wires": [
             [
-                "4e1ee3c17d57d950"
+                "6f9e7a2cc9eca96f"
             ],
             [
-                "ba6922f06184b319"
+                "4d9f08731fda9491"
             ]
         ]
     },
     {
-        "id": "ba6922f06184b319",
+        "id": "4d9f08731fda9491",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Oprit I5",
         "rules": [
             {
@@ -1725,18 +1725,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 4435,
-        "y": 3057,
+        "x": 1460,
+        "y": 3058,
         "wires": [
             [
-                "cb2b5ef700f9d62f"
+                "8a94930afc7b1cd5"
             ]
         ]
     },
     {
-        "id": "06d8dda3f0a2f1f4",
+        "id": "0a38ef451c6f2f0c",
         "type": "inject",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "props": [
             {
@@ -1754,19 +1754,19 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 180,
-        "y": 3647,
+        "x": 280,
+        "y": 3635,
         "wires": [
             [
-                "47450b82d0dacf76",
-                "4d687e986471703c"
+                "1f46f0c7625a4075",
+                "c6c0e38de641fb7e"
             ]
         ]
     },
     {
-        "id": "72fd7b060def998b",
+        "id": "826fe42befda3a03",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1780,18 +1780,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1641,
-        "y": 3807,
+        "x": 1741,
+        "y": 3795,
         "wires": [
             [
-                "e93ac5d3054d0ec7"
+                "3abe52395eb9245f"
             ]
         ]
     },
     {
-        "id": "ca3d22d3be6d7417",
+        "id": "071d9664dbcaae98",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1805,18 +1805,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 3875,
+        "x": 1481,
+        "y": 3863,
         "wires": [
             [
-                "bc4b96a59a93bad3"
+                "a7d14567e0cddcef"
             ]
         ]
     },
     {
-        "id": "72243b042b988917",
+        "id": "867d93858fa1463e",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1830,18 +1830,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 3943,
+        "x": 1481,
+        "y": 3931,
         "wires": [
             [
-                "5d574efb270cf0f7"
+                "b1f947c90d60a78d"
             ]
         ]
     },
     {
-        "id": "27d05f708e36b5a4",
+        "id": "59d5fc3850b8c60d",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1855,18 +1855,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 4011,
+        "x": 1481,
+        "y": 3999,
         "wires": [
             [
-                "0abed1d21d180372"
+                "dbb556ed200bc6d8"
             ]
         ]
     },
     {
-        "id": "a34603d0cdbde634",
+        "id": "930d4d1118c33a91",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1880,18 +1880,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 4079,
+        "x": 1481,
+        "y": 4067,
         "wires": [
             [
-                "8954105d3169b239"
+                "10868cb22f36ea64"
             ]
         ]
     },
     {
-        "id": "ea12eb2c5149f9dd",
+        "id": "628c2b2a8c5fa67c",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1905,18 +1905,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 4147,
+        "x": 1481,
+        "y": 4135,
         "wires": [
             [
-                "5939b783192319d2"
+                "bf9c1babe46b3f9c"
             ]
         ]
     },
     {
-        "id": "1947b6560793a699",
+        "id": "0b7a5735181b35f8",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1930,18 +1930,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 4215,
+        "x": 1481,
+        "y": 4203,
         "wires": [
             [
-                "8465cea3957cb5cb"
+                "946ddbd2eec5f9a4"
             ]
         ]
     },
     {
-        "id": "85c3bcfff98634db",
+        "id": "0bef2e8622675dd3",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1955,18 +1955,18 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 4283,
+        "x": 1481,
+        "y": 4271,
         "wires": [
             [
-                "b6dcbeec97dbee1b"
+                "a19e3cdf8767a2ba"
             ]
         ]
     },
     {
-        "id": "3b0e511aaeeab2e3",
+        "id": "d1bda710ee1e5be8",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "2",
@@ -1980,20 +1980,20 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 944,
-        "y": 3579,
+        "x": 1044,
+        "y": 3567,
         "wires": [
             [
-                "44546fbc698797c1",
-                "3e7ed95721dcb4a2",
-                "de56b5f20251f7c5"
+                "0355a8d9d361e2ee",
+                "0173550210df5903",
+                "030ca2e8c832a441"
             ]
         ]
     },
     {
-        "id": "dca7f49ccccfd0a9",
+        "id": "e04e09d42dda2dcf",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "4",
@@ -2007,20 +2007,20 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 944,
-        "y": 3647,
+        "x": 1044,
+        "y": 3635,
         "wires": [
             [
-                "01f7da8be7cc003a",
-                "7e02788257794e5d",
-                "c576445de1a511f6"
+                "407630d4dbdbd844",
+                "6691c3155695d70c",
+                "2f34f3a5c1e4876a"
             ]
         ]
     },
     {
-        "id": "914f76d0ffe2cee6",
+        "id": "9690f5d4e3433e2a",
         "type": "delay",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "pauseType": "delay",
         "timeout": "4",
@@ -2034,74 +2034,74 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1381,
-        "y": 4351,
+        "x": 1481,
+        "y": 4339,
         "wires": [
             [
-                "aaaba20d110dd4fe"
+                "71d01b442b6a8eb2"
             ]
         ]
     },
     {
-        "id": "785057845b4b3c0e",
+        "id": "ca80ecd5d4df641b",
         "type": "link in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Pump",
         "links": [
-            "de56b5f20251f7c5",
-            "d0e68e838552f48d"
+            "030ca2e8c832a441",
+            "55783d1f953b1767"
         ],
-        "x": 2551,
-        "y": 1606,
+        "x": 1405,
+        "y": 1648,
         "wires": [
             [
-                "44546fbc698797c1"
+                "0355a8d9d361e2ee"
             ]
         ]
     },
     {
-        "id": "de56b5f20251f7c5",
+        "id": "030ca2e8c832a441",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Start pump",
         "mode": "link",
         "links": [
-            "785057845b4b3c0e"
+            "ca80ecd5d4df641b"
         ],
-        "x": 1251,
-        "y": 3579,
+        "x": 1255,
+        "y": 3568,
         "wires": []
     },
     {
-        "id": "b8dfed2ac23f1add",
+        "id": "8616b14656f6a0cc",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Stop Power",
         "mode": "link",
         "links": [
-            "aab540ef1b048d52"
+            "2d34e358fb05a9b1"
         ],
-        "x": 2681,
-        "y": 4351,
+        "x": 1835,
+        "y": 4336,
         "wires": []
     },
     {
-        "id": "d0e68e838552f48d",
+        "id": "55783d1f953b1767",
         "type": "link out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Stop pump",
         "mode": "link",
         "links": [
-            "785057845b4b3c0e"
+            "ca80ecd5d4df641b"
         ],
-        "x": 2941,
-        "y": 4283,
+        "x": 1835,
+        "y": 4268,
         "wires": []
     },
     {
-        "id": "b6dcbeec97dbee1b",
+        "id": "a19e3cdf8767a2ba",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "STOP",
         "rules": [
             {
@@ -2117,18 +2117,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2031,
-        "y": 4283,
+        "x": 1690,
+        "y": 4268,
         "wires": [
             [
-                "d0e68e838552f48d"
+                "55783d1f953b1767"
             ]
         ]
     },
     {
-        "id": "aaaba20d110dd4fe",
+        "id": "71d01b442b6a8eb2",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "STOP",
         "rules": [
             {
@@ -2144,134 +2144,177 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2031,
-        "y": 4351,
+        "x": 1690,
+        "y": 4336,
         "wires": [
             [
-                "b8dfed2ac23f1add"
+                "8616b14656f6a0cc"
             ]
         ]
     },
     {
-        "id": "4eb071bd39094a07",
+        "id": "cb57250902e4f56e",
         "type": "ui-button",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
+        "group": "3ea65f5775023a96",
         "name": "",
-        "group": "ui_group_irrigation_automation",
+        "label": "Start",
         "order": 7,
         "width": 0,
         "height": 0,
-        "passthru": false,
-        "label": "Start",
+        "emulateClick": false,
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
         "icon": "",
+        "iconPosition": "left",
         "payload": "ON",
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
-        "x": 310,
-        "y": 3579,
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 410,
+        "y": 3567,
         "wires": [
             [
-                "4d687e986471703c"
+                "c6c0e38de641fb7e"
             ]
         ]
     },
     {
-        "id": "45a0da393c502308",
+        "id": "420db8e3d6134993",
         "type": "ui-button",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
+        "group": "3ea65f5775023a96",
         "name": "",
-        "group": "ui_group_irrigation_automation",
+        "label": "Pause",
         "order": 7,
         "width": 0,
         "height": 0,
-        "passthru": false,
-        "label": "Pause",
+        "emulateClick": false,
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
         "icon": "",
+        "iconPosition": "left",
         "payload": "pause",
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
-        "x": 570,
-        "y": 2709,
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 330,
+        "y": 2728,
         "wires": [
             [
-                "e4fd6f9ab593c20e"
+                "bc3ea208500ac233"
             ]
         ]
     },
     {
-        "id": "5141bbb02fa742f9",
+        "id": "0ed612dc21f11cbf",
         "type": "ui-button",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
+        "group": "ui_group_water_pump",
         "name": "",
-        "group": "ui_group_irrigation_automation",
+        "label": "Skip",
         "order": 7,
         "width": 0,
         "height": 0,
-        "passthru": false,
-        "label": "Skip",
+        "emulateClick": false,
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
         "icon": "",
+        "iconPosition": "left",
         "payload": "skip",
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
-        "x": 570,
-        "y": 2825,
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 330,
+        "y": 2848,
         "wires": [
             [
-                "e4fd6f9ab593c20e"
+                "bc3ea208500ac233"
             ]
         ]
     },
     {
-        "id": "86e48c6cf33389a2",
+        "id": "9c57ea5765f784aa",
         "type": "ui-button",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
+        "group": "3ea65f5775023a96",
         "name": "",
-        "group": "ui_group_irrigation_automation",
+        "label": "Resume",
         "order": 7,
         "width": 0,
         "height": 0,
-        "passthru": false,
-        "label": "Resume",
+        "emulateClick": false,
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
         "icon": "",
+        "iconPosition": "left",
         "payload": "Resume",
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
-        "x": 440,
-        "y": 2999,
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 340,
+        "y": 2948,
         "wires": [
             [
-                "e4fd6f9ab593c20e"
+                "bc3ea208500ac233"
             ]
         ]
     },
     {
-        "id": "e25d5e6f58aabfb1",
+        "id": "0909bc00ffb11cb0",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 1",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -2280,6 +2323,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -2288,19 +2334,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 98,
+        "x": 1200,
+        "y": 130,
         "wires": [
             [
-                "c2834293e3bde0bf"
+                "bd394e984f998472"
             ]
         ]
     },
     {
-        "id": "dc005e41b2a4dce0",
+        "id": "4bf05581985ff163",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -2327,18 +2372,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 98,
+        "x": 1640,
+        "y": 90,
         "wires": [
             [
-                "e25d5e6f58aabfb1"
+                "0909bc00ffb11cb0"
             ]
         ]
     },
     {
-        "id": "c2834293e3bde0bf",
+        "id": "bd394e984f998472",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -2365,18 +2410,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 272,
+        "x": 1640,
+        "y": 264,
         "wires": [
             [
-                "e6d3dbd6923ad8e9"
+                "943c408e577643ee"
             ]
         ]
     },
     {
-        "id": "cfd0bc89aad9d8dd",
+        "id": "bceec202089bfd51",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_1 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_1 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -2385,17 +2430,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 98,
+        "y": 88,
         "wires": []
     },
     {
-        "id": "9bd39f6b43f3919d",
+        "id": "909e66ccd491c3ef",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 2",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -2404,6 +2448,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -2412,19 +2459,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 214,
+        "x": 1200,
+        "y": 246,
         "wires": [
             [
-                "9ea7fefe9f28814d"
+                "67307d94fc8479fc"
             ]
         ]
     },
     {
-        "id": "e81dbafd18ea7aeb",
+        "id": "b7f0188e6e2fbb81",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -2451,18 +2497,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 214,
+        "x": 1640,
+        "y": 206,
         "wires": [
             [
-                "9bd39f6b43f3919d"
+                "909e66ccd491c3ef"
             ]
         ]
     },
     {
-        "id": "9ea7fefe9f28814d",
+        "id": "67307d94fc8479fc",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -2489,18 +2535,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 388,
+        "x": 1640,
+        "y": 380,
         "wires": [
             [
-                "2c24cf793692678b"
+                "16f936a7f8e122b0"
             ]
         ]
     },
     {
-        "id": "6a69bcacc34cb91c",
+        "id": "97faef97ff340ee4",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_2 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_2 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -2509,17 +2555,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 214,
+        "y": 204,
         "wires": []
     },
     {
-        "id": "d7395141a8d53ff2",
+        "id": "e1c32d56b85f39dd",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 3",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -2528,6 +2573,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -2536,19 +2584,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 330,
+        "x": 1200,
+        "y": 362,
         "wires": [
             [
-                "eaa8dbff6b3e5ec2"
+                "b1ab1872cd55ae22"
             ]
         ]
     },
     {
-        "id": "46efbdf7a755bfee",
+        "id": "025dd00f248e2c48",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -2575,18 +2622,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 330,
+        "x": 1640,
+        "y": 322,
         "wires": [
             [
-                "d7395141a8d53ff2"
+                "e1c32d56b85f39dd"
             ]
         ]
     },
     {
-        "id": "eaa8dbff6b3e5ec2",
+        "id": "b1ab1872cd55ae22",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -2613,18 +2660,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 504,
+        "x": 1640,
+        "y": 496,
         "wires": [
             [
-                "f05bcb22593670e7"
+                "e6680489d9568005"
             ]
         ]
     },
     {
-        "id": "dc63beb3daa667c9",
+        "id": "b85465f697d94230",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_3 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_3 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -2633,17 +2680,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 330,
+        "y": 320,
         "wires": []
     },
     {
-        "id": "a8b926814a2255fc",
+        "id": "e91ebb660bd354d1",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 4",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -2652,6 +2698,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -2660,19 +2709,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 446,
+        "x": 1200,
+        "y": 478,
         "wires": [
             [
-                "a0518ed09fec5b49"
+                "83355b595aea540b"
             ]
         ]
     },
     {
-        "id": "cedfaf214640b739",
+        "id": "c97340cad469410b",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -2699,18 +2747,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 446,
+        "x": 1640,
+        "y": 438,
         "wires": [
             [
-                "a8b926814a2255fc"
+                "e91ebb660bd354d1"
             ]
         ]
     },
     {
-        "id": "a0518ed09fec5b49",
+        "id": "83355b595aea540b",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -2737,18 +2785,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 620,
+        "x": 1640,
+        "y": 612,
         "wires": [
             [
-                "d9567dbf2e9926a9"
+                "c0afcb322e3f6750"
             ]
         ]
     },
     {
-        "id": "095f6ee5aa9635fe",
+        "id": "473ec49e189781c7",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_4 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_4 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -2757,17 +2805,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 446,
+        "y": 436,
         "wires": []
     },
     {
-        "id": "2d04b99246874e0c",
+        "id": "912e040c30a53afc",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 5",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -2776,6 +2823,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -2784,19 +2834,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 562,
+        "x": 1200,
+        "y": 594,
         "wires": [
             [
-                "be8a5e8be2ebaf9b"
+                "c1a43cae719075d1"
             ]
         ]
     },
     {
-        "id": "9f7d7a74e6f8c88e",
+        "id": "a62f47290e7cc387",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -2823,18 +2872,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 562,
+        "x": 1640,
+        "y": 554,
         "wires": [
             [
-                "2d04b99246874e0c"
+                "912e040c30a53afc"
             ]
         ]
     },
     {
-        "id": "be8a5e8be2ebaf9b",
+        "id": "c1a43cae719075d1",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -2861,18 +2910,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 736,
+        "x": 1640,
+        "y": 728,
         "wires": [
             [
-                "d240239bd76c754c"
+                "305f0e200c2093c4"
             ]
         ]
     },
     {
-        "id": "79f3fb864bc6ff2d",
+        "id": "870eb8a59c7118fb",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_5 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_5 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -2881,17 +2930,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 562,
+        "y": 552,
         "wires": []
     },
     {
-        "id": "d23743d9237ac80c",
+        "id": "a2902e61442e2e06",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 6",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -2900,6 +2948,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -2908,19 +2959,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 678,
+        "x": 1200,
+        "y": 710,
         "wires": [
             [
-                "f2dcc4ed73cffba8"
+                "d846007a63d734e8"
             ]
         ]
     },
     {
-        "id": "3ceef9f342ae6be1",
+        "id": "6f5c28c34fc58f6c",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -2947,18 +2997,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 678,
+        "x": 1640,
+        "y": 670,
         "wires": [
             [
-                "d23743d9237ac80c"
+                "a2902e61442e2e06"
             ]
         ]
     },
     {
-        "id": "f2dcc4ed73cffba8",
+        "id": "d846007a63d734e8",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -2985,18 +3035,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 852,
+        "x": 1640,
+        "y": 844,
         "wires": [
             [
-                "963675f364b6f126"
+                "2b8dfdb156733d57"
             ]
         ]
     },
     {
-        "id": "82ba5fccf6e7cdca",
+        "id": "483192ac7ebab14f",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_6 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_6 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3005,17 +3055,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 678,
+        "y": 668,
         "wires": []
     },
     {
-        "id": "f76cdae743d251fd",
+        "id": "627622259f743ecb",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 7",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -3024,6 +3073,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -3032,19 +3084,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 794,
+        "x": 1200,
+        "y": 826,
         "wires": [
             [
-                "cabfdd8a1e3c9b9e"
+                "591fa63b78ee560d"
             ]
         ]
     },
     {
-        "id": "fbedeeedf7ea28a5",
+        "id": "36e443965cfa5a87",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -3071,18 +3122,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 794,
+        "x": 1640,
+        "y": 786,
         "wires": [
             [
-                "f76cdae743d251fd"
+                "627622259f743ecb"
             ]
         ]
     },
     {
-        "id": "cabfdd8a1e3c9b9e",
+        "id": "591fa63b78ee560d",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -3109,18 +3160,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 968,
+        "x": 1640,
+        "y": 960,
         "wires": [
             [
-                "07310c155ed61583"
+                "1bda43813ddf9b93"
             ]
         ]
     },
     {
-        "id": "dc9defadaabffc9c",
+        "id": "499e86eb91313caf",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_7 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_7 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3129,17 +3180,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 794,
+        "y": 784,
         "wires": []
     },
     {
-        "id": "5c378098229843f3",
+        "id": "3eadc3a28a6535f7",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 8",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -3148,6 +3198,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -3156,19 +3209,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 910,
+        "x": 1200,
+        "y": 942,
         "wires": [
             [
-                "2daa2c6283eb4eea"
+                "b85675054b172ecd"
             ]
         ]
     },
     {
-        "id": "b8bdf3c8a99b1085",
+        "id": "ea6704d4b93ecc66",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -3195,18 +3247,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 910,
+        "x": 1640,
+        "y": 902,
         "wires": [
             [
-                "5c378098229843f3"
+                "3eadc3a28a6535f7"
             ]
         ]
     },
     {
-        "id": "2daa2c6283eb4eea",
+        "id": "b85675054b172ecd",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -3233,18 +3285,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1084,
+        "x": 1640,
+        "y": 1076,
         "wires": [
             [
-                "a3be68c5fa64b084"
+                "3644054a5ed09eba"
             ]
         ]
     },
     {
-        "id": "9bbaba0521c58af1",
+        "id": "74eb5b751752d468",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_8 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_8 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3253,17 +3305,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 910,
+        "y": 900,
         "wires": []
     },
     {
-        "id": "2c31dc97a7af7cf0",
+        "id": "70cf2eeb9f1343cb",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 9",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -3272,6 +3323,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -3280,19 +3334,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 1026,
+        "x": 1200,
+        "y": 1058,
         "wires": [
             [
-                "2456fa0b1c4af2be"
+                "b2bc2d551914b5ed"
             ]
         ]
     },
     {
-        "id": "5e6ffdc7dba7b53a",
+        "id": "c0157d69d6c4f402",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -3319,18 +3372,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1026,
+        "x": 1640,
+        "y": 1018,
         "wires": [
             [
-                "2c31dc97a7af7cf0"
+                "70cf2eeb9f1343cb"
             ]
         ]
     },
     {
-        "id": "2456fa0b1c4af2be",
+        "id": "b2bc2d551914b5ed",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -3357,18 +3410,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1200,
+        "x": 1640,
+        "y": 1192,
         "wires": [
             [
-                "43719fc6761ff94b"
+                "93dffdb461f687f9"
             ]
         ]
     },
     {
-        "id": "bde1df4db2ac5fae",
+        "id": "144066070a4bd47b",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_9 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_9 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3377,17 +3430,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 1026,
+        "y": 1016,
         "wires": []
     },
     {
-        "id": "01cd6fc8ac5440cf",
+        "id": "83414113ae88a2ef",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 10",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -3396,6 +3448,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -3404,19 +3459,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 1142,
+        "x": 1200,
+        "y": 1174,
         "wires": [
             [
-                "0e02fe0b67e0cb0d"
+                "2ca7699b26c94c4b"
             ]
         ]
     },
     {
-        "id": "6bf54baaf1cbaae2",
+        "id": "5e9ea8a49f0cb523",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -3443,18 +3497,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1142,
+        "x": 1640,
+        "y": 1134,
         "wires": [
             [
-                "01cd6fc8ac5440cf"
+                "83414113ae88a2ef"
             ]
         ]
     },
     {
-        "id": "0e02fe0b67e0cb0d",
+        "id": "2ca7699b26c94c4b",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -3481,18 +3535,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1316,
+        "x": 1640,
+        "y": 1308,
         "wires": [
             [
-                "7192f8a02af696d8"
+                "fef6018ea9982ce5"
             ]
         ]
     },
     {
-        "id": "aacbea75eeebe72c",
+        "id": "150a20f9eb93410e",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_10 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_10 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3501,17 +3555,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 1142,
+        "y": 1132,
         "wires": []
     },
     {
-        "id": "5f4186f524916303",
+        "id": "243c57d592b875b9",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 11",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -3520,6 +3573,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -3528,19 +3584,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 1258,
+        "x": 1200,
+        "y": 1290,
         "wires": [
             [
-                "f2afeeeae9424ab3"
+                "03873c39980db29a"
             ]
         ]
     },
     {
-        "id": "d4ecfcf0bcfbd37c",
+        "id": "964fd2cf7d878b6d",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -3567,18 +3622,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1258,
+        "x": 1640,
+        "y": 1250,
         "wires": [
             [
-                "5f4186f524916303"
+                "243c57d592b875b9"
             ]
         ]
     },
     {
-        "id": "f2afeeeae9424ab3",
+        "id": "03873c39980db29a",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -3605,18 +3660,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1432,
+        "x": 1640,
+        "y": 1424,
         "wires": [
             [
-                "ee35f6acdbcac244"
+                "01dff20116c62f1b"
             ]
         ]
     },
     {
-        "id": "ea5b371b864abfcf",
+        "id": "58b45e50a79cb13a",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_11 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_11 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3625,17 +3680,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 1258,
+        "y": 1248,
         "wires": []
     },
     {
-        "id": "94d6a24262c27f7a",
+        "id": "4e369ba64919b13a",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "switch 12",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -3644,6 +3698,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -3652,19 +3709,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1641,
-        "y": 1374,
+        "x": 1200,
+        "y": 1406,
         "wires": [
             [
-                "3afacabe1c9fdbb8"
+                "f5e438314362b650"
             ]
         ]
     },
     {
-        "id": "ea3b677c8a0c6d6f",
+        "id": "34a15b2250bcc95f",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -3691,18 +3747,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1374,
+        "x": 1640,
+        "y": 1366,
         "wires": [
             [
-                "94d6a24262c27f7a"
+                "4e369ba64919b13a"
             ]
         ]
     },
     {
-        "id": "3afacabe1c9fdbb8",
+        "id": "f5e438314362b650",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -3729,18 +3785,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2421,
-        "y": 1548,
+        "x": 1640,
+        "y": 1540,
         "wires": [
             [
-                "5e8420025ab57f3a"
+                "5eaab7e74aa81365"
             ]
         ]
     },
     {
-        "id": "3fccf8c1efa1ee9f",
+        "id": "2354cec35e4e0fb9",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store zone_12 State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.zone_12 = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3749,17 +3805,16 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 1374,
+        "y": 1364,
         "wires": []
     },
     {
-        "id": "733451bb13aa6ec4",
+        "id": "401da38d6749eb3d",
         "type": "ui-switch",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "label": "Power",
-        "tooltip": "",
-        "group": "ui_group_irrigation_zones",
+        "group": "3ea65f5775023a96",
         "order": 0,
         "width": 0,
         "height": 0,
@@ -3768,6 +3823,9 @@
         "topic": "topic",
         "topicType": "msg",
         "style": "",
+        "className": "",
+        "layout": "",
+        "clickableArea": "switch",
         "onvalue": "true",
         "onvalueType": "bool",
         "onicon": "",
@@ -3776,19 +3834,18 @@
         "offvalueType": "bool",
         "officon": "",
         "offcolor": "",
-        "className": "",
-        "x": 1511,
-        "y": 1490,
+        "x": 1070,
+        "y": 1522,
         "wires": [
             [
-                "f8bfa93e10c1e1e0"
+                "90788ecc33821c64"
             ]
         ]
     },
     {
-        "id": "0db72feb00ddc264",
+        "id": "3795513ee28b2a99",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "ON/OFF to Boolean",
         "rules": [
             {
@@ -3815,18 +3872,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2291,
-        "y": 1490,
+        "x": 1510,
+        "y": 1482,
         "wires": [
             [
-                "733451bb13aa6ec4"
+                "401da38d6749eb3d"
             ]
         ]
     },
     {
-        "id": "f8bfa93e10c1e1e0",
+        "id": "90788ecc33821c64",
         "type": "change",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Boolean to ON/OFF",
         "rules": [
             {
@@ -3853,18 +3910,18 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 2291,
-        "y": 1606,
+        "x": 1510,
+        "y": 1598,
         "wires": [
             [
-                "1f319ab97d4b61a3"
+                "833dd27f8e4e2214"
             ]
         ]
     },
     {
-        "id": "b66066da65aeed0a",
+        "id": "885b9a3e77b545ae",
         "type": "function",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Store power_24v State",
         "func": "let state = global.get('irrigation_zones_state') || {};\nstate.power_24v = msg.payload;\nglobal.set('irrigation_zones_state', state);\nreturn null;",
         "outputs": 0,
@@ -3873,14 +3930,14 @@
         "finalize": "",
         "libs": [],
         "x": 830,
-        "y": 1490,
+        "y": 1480,
         "wires": []
     },
     {
-        "id": "ef7f6b80171ab23d",
+        "id": "9cc85cc46927650e",
         "type": "ui-text",
-        "z": "dd53b5c74524e7c3",
-        "group": "ui_group_irrigation_automation",
+        "z": "b3b5bbeab11d67eb",
+        "group": "3ea65f5775023a96",
         "order": 14,
         "width": 0,
         "height": 0,
@@ -3888,16 +3945,23 @@
         "label": "Last trigger time",
         "format": "{{msg.myrawdate}}",
         "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
         "className": "",
-        "x": 1901,
-        "y": 1857,
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1280,
+        "y": 1840,
         "wires": []
     },
     {
-        "id": "cb2b5ef700f9d62f",
+        "id": "8a94930afc7b1cd5",
         "type": "ui-text",
-        "z": "dd53b5c74524e7c3",
-        "group": "ui_group_irrigation_automation",
+        "z": "b3b5bbeab11d67eb",
+        "group": "3ea65f5775023a96",
         "order": 14,
         "width": 0,
         "height": 0,
@@ -3905,15 +3969,22 @@
         "label": "Status automatizare irigatie",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
         "className": "",
-        "x": 4845,
-        "y": 2825,
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1920,
+        "y": 2768,
         "wires": []
     },
     {
-        "id": "47450b82d0dacf76",
+        "id": "1f46f0c7625a4075",
         "type": "simpletime",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "Print time",
         "mydate": true,
         "myymd": true,
@@ -3934,146 +4005,146 @@
         "myepoch": true,
         "myrawdate": true,
         "mypm": true,
-        "x": 944,
-        "y": 1857,
+        "x": 1044,
+        "y": 1845,
         "wires": [
             [
-                "ef7f6b80171ab23d"
+                "9cc85cc46927650e"
             ]
         ]
     },
     {
-        "id": "0e2373160662a3f5",
+        "id": "258922f7480c9eb3",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I1",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 2303,
+        "x": 990,
+        "y": 2252,
         "wires": [
             [
-                "8f448cc2c35c23bb",
-                "47afa61171190b60"
+                "3dc6ccd7ee834cdd",
+                "3f97030f9e5859ed"
             ]
         ]
     },
     {
-        "id": "c5f311a8d4b477b3",
+        "id": "379581bf343d10ca",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I2",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 2477,
+        "x": 990,
+        "y": 2426,
         "wires": [
             [
-                "bc29790f107638ac",
-                "09b274f82d9d6503"
+                "d85bb6d675c0db3f",
+                "8efc8991c4f5d6b6"
             ]
         ]
     },
     {
-        "id": "4b80f6162887af42",
+        "id": "48ab257b7e7ab40e",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I3",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 2593,
+        "x": 990,
+        "y": 2542,
         "wires": [
             [
-                "7553d17571f3ceb0",
-                "3fda499df6fac1b5"
+                "7f9c637627c1a2a1",
+                "ca4acaa47f3d0be5"
             ]
         ]
     },
     {
-        "id": "471cc31458e24c5a",
+        "id": "447c4c820a395a49",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I4",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 2767,
+        "x": 990,
+        "y": 2716,
         "wires": [
             [
-                "3971b2ef0de10474",
-                "df7f7005d74c102e"
+                "4cb22153c886ef31",
+                "631e8e6dd50b6243"
             ]
         ]
     },
     {
-        "id": "fe77840c79b00de0",
+        "id": "8b5a8de2b64bdff4",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I5",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 2883,
+        "x": 990,
+        "y": 2832,
         "wires": [
             [
-                "fbe4b184bd6ac1c4",
-                "520460f649a9e310"
+                "2eefed51f6ddc4dd",
+                "27c5a5de71b98e36"
             ]
         ]
     },
     {
-        "id": "b19ec6bab0b8c7d5",
+        "id": "b02715661441f78a",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I6",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 3057,
+        "x": 990,
+        "y": 3006,
         "wires": [
             [
-                "a7e9072620affafe",
-                "cf0397a001cf76c2"
+                "f359700922212484",
+                "37a11f832f3ee350"
             ]
         ]
     },
     {
-        "id": "2d74264b5d3785fc",
+        "id": "bf5f274993ecef5c",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I7",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 3173,
+        "x": 990,
+        "y": 3122,
         "wires": [
             [
-                "12a90f0a01aa39f1",
-                "18375a5ce75f5cda"
+                "7f54da1bca1bd2b1",
+                "0626facabbc962d5"
             ]
         ]
     },
     {
-        "id": "a16bfbb6b8c0e017",
+        "id": "791b89cd97214e3e",
         "type": "zone in",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I8",
         "program": "78e05c6d467c7326",
-        "x": 2811,
-        "y": 3521,
+        "x": 990,
+        "y": 3470,
         "wires": [
             [
-                "b4e2d0b0ad7140b1",
-                "ac27992f7a7b1d02"
+                "1f9e10c2b2155b27",
+                "d55d533ccd772e29"
             ]
         ]
     },
     {
-        "id": "01f7da8be7cc003a",
+        "id": "407630d4dbdbd844",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I1",
         "zonenametype": "str",
@@ -4084,18 +4155,18 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 3807,
+        "x": 1044,
+        "y": 3795,
         "wires": [
             [
-                "72fd7b060def998b"
+                "826fe42befda3a03"
             ]
         ]
     },
     {
-        "id": "e93ac5d3054d0ec7",
+        "id": "3abe52395eb9245f",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I2",
         "zonenametype": "str",
@@ -4106,18 +4177,18 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 3875,
+        "x": 1044,
+        "y": 3863,
         "wires": [
             [
-                "ca3d22d3be6d7417"
+                "071d9664dbcaae98"
             ]
         ]
     },
     {
-        "id": "bc4b96a59a93bad3",
+        "id": "a7d14567e0cddcef",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I3",
         "zonenametype": "str",
@@ -4128,18 +4199,18 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 3943,
+        "x": 1044,
+        "y": 3931,
         "wires": [
             [
-                "72243b042b988917"
+                "867d93858fa1463e"
             ]
         ]
     },
     {
-        "id": "5d574efb270cf0f7",
+        "id": "b1f947c90d60a78d",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I4",
         "zonenametype": "str",
@@ -4150,18 +4221,18 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 4011,
+        "x": 1044,
+        "y": 3999,
         "wires": [
             [
-                "27d05f708e36b5a4"
+                "59d5fc3850b8c60d"
             ]
         ]
     },
     {
-        "id": "0abed1d21d180372",
+        "id": "dbb556ed200bc6d8",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I5",
         "zonenametype": "str",
@@ -4172,18 +4243,18 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 4079,
+        "x": 1044,
+        "y": 4067,
         "wires": [
             [
-                "a34603d0cdbde634"
+                "930d4d1118c33a91"
             ]
         ]
     },
     {
-        "id": "8954105d3169b239",
+        "id": "10868cb22f36ea64",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I6",
         "zonenametype": "str",
@@ -4194,18 +4265,18 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 4147,
+        "x": 1044,
+        "y": 4135,
         "wires": [
             [
-                "ea12eb2c5149f9dd"
+                "628c2b2a8c5fa67c"
             ]
         ]
     },
     {
-        "id": "5939b783192319d2",
+        "id": "bf9c1babe46b3f9c",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I7",
         "zonenametype": "str",
@@ -4216,18 +4287,18 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 4215,
+        "x": 1044,
+        "y": 4203,
         "wires": [
             [
-                "1947b6560793a699"
+                "0b7a5735181b35f8"
             ]
         ]
     },
     {
-        "id": "8465cea3957cb5cb",
+        "id": "946ddbd2eec5f9a4",
         "type": "zone-timer",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "zonename": "I8",
         "zonenametype": "str",
@@ -4238,19 +4309,19 @@
         "onvaltype": "str",
         "offval": "OFF",
         "offvaltype": "str",
-        "x": 944,
-        "y": 4283,
+        "x": 1044,
+        "y": 4271,
         "wires": [
             [
-                "85c3bcfff98634db",
-                "914f76d0ffe2cee6"
+                "0bef2e8622675dd3",
+                "9690f5d4e3433e2a"
             ]
         ]
     },
     {
-        "id": "e4fd6f9ab593c20e",
+        "id": "bc3ea208500ac233",
         "type": "timerctl out",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "program": "78e05c6d467c7326",
         "block": false,
@@ -4261,22 +4332,22 @@
         "adjustCmd": "adjust",
         "skipCmd": "skip",
         "scaleCmd": "scale",
-        "x": 1074,
-        "y": 2941,
+        "x": 520,
+        "y": 2848,
         "wires": []
     },
     {
-        "id": "4d687e986471703c",
+        "id": "c6c0e38de641fb7e",
         "type": "run-gate",
-        "z": "dd53b5c74524e7c3",
+        "z": "b3b5bbeab11d67eb",
         "name": "",
         "program": "78e05c6d467c7326",
-        "x": 700,
-        "y": 3647,
+        "x": 800,
+        "y": 3635,
         "wires": [
             [
-                "3b0e511aaeeab2e3",
-                "dca7f49ccccfd0a9"
+                "d1bda710ee1e5be8",
+                "e04e09d42dda2dcf"
             ]
         ]
     },
@@ -4309,15 +4380,32 @@
         "sessionExpiry": ""
     },
     {
-        "id": "0363603b3b8b845f",
-        "type": "ui_group",
-        "name": "Irigatie",
-        "tab": "d8f9da260f68b17a",
-        "order": 7,
-        "disp": true,
+        "id": "3ea65f5775023a96",
+        "type": "ui-group",
+        "name": "Irigation control",
+        "page": "ui_page_irrigation",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "ui_group_water_pump",
+        "type": "ui-group",
+        "name": "Water Pump Control",
+        "page": "ui_page_irrigation",
         "width": "6",
-        "collapse": false,
-        "className": ""
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
     },
     {
         "id": "78e05c6d467c7326",
@@ -4325,19 +4413,86 @@
         "name": "Lawn"
     },
     {
-        "id": "d8f9da260f68b17a",
-        "type": "ui_tab",
-        "name": "Home",
-        "icon": "dashboard",
-        "disabled": false,
-        "hidden": false
+        "id": "ui_page_irrigation",
+        "type": "ui-page",
+        "name": "Irrigation",
+        "ui": "b89dd587275b51bf",
+        "path": "/irrigation",
+        "icon": "water",
+        "layout": "grid",
+        "theme": "39a2cf2c0af73875",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 5,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
     },
     {
-        "id": "86cdfe0b6b76140b",
+        "id": "b89dd587275b51bf",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "39a2cf2c0af73875",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "4de764ff1e095db3",
         "type": "global-config",
         "env": [],
         "modules": {
-            "node-red-dashboard": "3.6.6",
+            "@flowfuse/node-red-dashboard": "1.30.2",
             "node-red-contrib-simpletime": "3.1.0",
             "node-red-contrib-sprinkler": "1.0.0"
         }

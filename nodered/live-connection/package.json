@@ -1,0 +1,21 @@
+{
+  "name": "node-red-live-connection",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Connect to a live Node-RED instance (Admin HTTP API) for status checks and flow snapshots",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "status": "node src/cli.mjs status",
+    "flows": "node src/cli.mjs flows",
+    "snapshot": "node src/cli.mjs snapshot",
+    "backup": "node src/cli.mjs backup",
+    "agent-backup": "node scripts/run-agent-backup.mjs",
+    "analyze-tabs": "node scripts/analyze-tab-mapping.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

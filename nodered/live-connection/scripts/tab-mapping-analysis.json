@@ -1,0 +1,567 @@
+{
+  "generatedAt": "2026-04-10T17:29:19.904Z",
+  "nodeRedBaseUrl": "http://192.168.2.4:1880",
+  "summary": {
+    "repoFlowFiles": 41,
+    "uniqueTabIdsReferencedInRepo": 4,
+    "liveFlowTabs": 19
+  },
+  "repoTabIdsNotOnLive": [],
+  "liveTabIdsNotInRepoFiles": [
+    "df2ec36c3dbdb923",
+    "78a53e75516b910d",
+    "1443ac5c69d1a2ac",
+    "402ae319d72eccf6",
+    "ec1761727ca60cf2",
+    "30c2080cd95f07e3",
+    "b4bebeffd798d684",
+    "23aa7fa50f4c8897",
+    "857d3990d66f478f",
+    "8becda4e1ec6a8b9",
+    "3195cc3e12704648",
+    "9337e17fae1562ac",
+    "3ad4d40302b85f75",
+    "505d65598f2b53fe",
+    "e826d780f81b166d"
+  ],
+  "liveTabsOrdered": [
+    {
+      "tabId": "857d3990d66f478f",
+      "label": "Acvariu"
+    },
+    {
+      "tabId": "1443ac5c69d1a2ac",
+      "label": "Automatizare poarta"
+    },
+    {
+      "tabId": "402ae319d72eccf6",
+      "label": "Automatizare poarta mica"
+    },
+    {
+      "tabId": "b4bebeffd798d684",
+      "label": "Email to sms"
+    },
+    {
+      "tabId": "30c2080cd95f07e3",
+      "label": "Garden Lights"
+    },
+    {
+      "tabId": "gate_main_tab",
+      "label": "Gate Management"
+    },
+    {
+      "tabId": "b3b5bbeab11d67eb",
+      "label": "Irigation control"
+    },
+    {
+      "tabId": "dd53b5c74524e7c3",
+      "label": "Irigation old ui"
+    },
+    {
+      "tabId": "e826d780f81b166d",
+      "label": "Irrigation UI status"
+    },
+    {
+      "tabId": "78a53e75516b910d",
+      "label": "Main Gate"
+    },
+    {
+      "tabId": "ec1761727ca60cf2",
+      "label": "Power Garden"
+    },
+    {
+      "tabId": "tab_dashboard",
+      "label": "Server Management"
+    },
+    {
+      "tabId": "df2ec36c3dbdb923",
+      "label": "SMS gateway"
+    },
+    {
+      "tabId": "3ad4d40302b85f75",
+      "label": "sms-gateway"
+    },
+    {
+      "tabId": "9337e17fae1562ac",
+      "label": "Tapo Cameras"
+    },
+    {
+      "tabId": "3195cc3e12704648",
+      "label": "Telegram interface"
+    },
+    {
+      "tabId": "8becda4e1ec6a8b9",
+      "label": "Watchdogs"
+    },
+    {
+      "tabId": "23aa7fa50f4c8897",
+      "label": "Water pump old ui"
+    },
+    {
+      "tabId": "505d65598f2b53fe",
+      "label": "Waterpump"
+    }
+  ],
+  "perFile": [
+    {
+      "file": "00-base-config.json",
+      "nodeCount": 12,
+      "tabRefs": []
+    },
+    {
+      "file": "10-dell-controls.json",
+      "nodeCount": 4,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 4,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "11-dell-status.json",
+      "nodeCount": 3,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 3,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "12-dell-health.json",
+      "nodeCount": 2,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 2,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "12-server-telegram.json",
+      "nodeCount": 16,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 16,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "20-hp-controls.json",
+      "nodeCount": 4,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 4,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "200-gate-base-config.json",
+      "nodeCount": 14,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 3,
+          "liveLabel": "Gate Management"
+        }
+      ]
+    },
+    {
+      "file": "21-hp-status.json",
+      "nodeCount": 3,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 3,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "210-main-gate-controls.json",
+      "nodeCount": 9,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 9,
+          "liveLabel": "Gate Management"
+        }
+      ]
+    },
+    {
+      "file": "211-main-gate-status.json",
+      "nodeCount": 29,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 29,
+          "liveLabel": "Gate Management"
+        }
+      ]
+    },
+    {
+      "file": "212-gate-telegram.json",
+      "nodeCount": 21,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 20,
+          "liveLabel": "Gate Management"
+        },
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 1,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "22-hp-health.json",
+      "nodeCount": 2,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 2,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "220-sliding-gate-controls.json",
+      "nodeCount": 25,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 25,
+          "liveLabel": "Gate Management"
+        }
+      ]
+    },
+    {
+      "file": "221-sliding-gate-telegram.json",
+      "nodeCount": 13,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 12,
+          "liveLabel": "Gate Management"
+        },
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 1,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "230-secondary-gate-controls.json",
+      "nodeCount": 44,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 44,
+          "liveLabel": "Gate Management"
+        }
+      ]
+    },
+    {
+      "file": "231-secondary-gate-telegram.json",
+      "nodeCount": 16,
+      "tabRefs": [
+        {
+          "tabId": "gate_main_tab",
+          "nodes": 15,
+          "liveLabel": "Gate Management"
+        },
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 1,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "300-power-base-config.json",
+      "nodeCount": 4,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 1,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "310-garden-power-monitor.json",
+      "nodeCount": 21,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 21,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "311-garden-power-telegram.json",
+      "nodeCount": 13,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 13,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "320-garden-lights-controls.json",
+      "nodeCount": 51,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 51,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "321-garden-lights-telegram.json",
+      "nodeCount": 45,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 45,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "40-client-tracking.json",
+      "nodeCount": 12,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 11,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "400-irrigation-base-config.json",
+      "nodeCount": 7,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 3,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "41-client-automation.json",
+      "nodeCount": 15,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 15,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "410-water-pump-controls.json",
+      "nodeCount": 26,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 26,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "411-water-pump-telegram.json",
+      "nodeCount": 17,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 17,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "42-client-shutdown.json",
+      "nodeCount": 9,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 8,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "420-irrigation-zones-ORIGINAL.json",
+      "nodeCount": 140,
+      "tabRefs": [
+        {
+          "tabId": "dd53b5c74524e7c3",
+          "nodes": 135,
+          "liveLabel": "Irigation old ui"
+        }
+      ]
+    },
+    {
+      "file": "420-irrigation-zones-controls.json",
+      "nodeCount": 216,
+      "tabRefs": [
+        {
+          "tabId": "b3b5bbeab11d67eb",
+          "nodes": 207,
+          "liveLabel": "Irigation control"
+        }
+      ]
+    },
+    {
+      "file": "421-irrigation-status-dashboard.json",
+      "nodeCount": 13,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 11,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "50-telegram-interface.json",
+      "nodeCount": 13,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 12,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "500-aquarium-light-controls.json",
+      "nodeCount": 12,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 11,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "501-aquarium-telegram.json",
+      "nodeCount": 12,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 12,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "510-sms-gateway-controls.json",
+      "nodeCount": 20,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 20,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "511-sms-gateway-status.json",
+      "nodeCount": 14,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 14,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "512-sms-gateway-telegram.json",
+      "nodeCount": 13,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 13,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "513-sms-gateway-watchdog.json",
+      "nodeCount": 9,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 9,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "514-sms-gateway-interface.json",
+      "nodeCount": 8,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 8,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "611-camera-management.json",
+      "nodeCount": 14,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 14,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "90-device-watchdog.json",
+      "nodeCount": 67,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 67,
+          "liveLabel": "Server Management"
+        }
+      ]
+    },
+    {
+      "file": "90-log-console.json",
+      "nodeCount": 4,
+      "tabRefs": [
+        {
+          "tabId": "tab_dashboard",
+          "nodes": 4,
+          "liveLabel": "Server Management"
+        }
+      ]
+    }
+  ]
+}

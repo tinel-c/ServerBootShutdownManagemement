@@ -776,10 +776,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.10.0 (SMS Multi-Reply & Comprehensive HELP)  
-**Last Updated:** 2026-02-08
+**Version:** 3.10.6 (Irrigation 421 weekdays, season & schedule)  
+**Last Updated:** 2026-04-11
 
 ## Recent Releases
+
+### v3.10.6 (2026-04-11) - Irrigation 421 weekdays, season & schedule
+- 📅 **Weekday gates** for automatic Lawn/Flowers; **Mar–Nov** irrigation season; **season-themed** Irrigation days card.
+- See `CHANGELOG.md` for details.
 
 ### v3.10.0 (2026-02-08) - SMS Multi-Reply & Comprehensive HELP
 - 📱 **Multi-SMS replies** - HELP/COMMANDS send 8 SMS with full descriptions (3s + 5s spacing)

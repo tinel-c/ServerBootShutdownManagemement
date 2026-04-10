@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.6] - 2026-04-11
+
+### Changed - Irrigation status dashboard (421) schedule UI & season
+
+- **Weekday gates:** Mon–Sun checkboxes (`flow.irrigation_weekdays_enabled`); default alternating days. Scheduler and rain-smart next-run respect enabled days.
+- **Season:** Meteorological season badge; **automatic irrigation limited to March–November** (local month); December–February skipped for auto runs (manual triggers unchanged). Extended next-run lookahead to 120 days across winter.
+- **Irrigation days card:** Season gradient as full-card background with overlay art; `irrigationDaysCardBase` Vue helper.
+- **Fix:** Emoji for spring/autumn use valid JavaScript `\uD83C\uDF38` / `\uD83C\uDF42` escapes (not Python `\U`).
+- **Removed** standalone helper scripts under `nodered/flows/` (`_irr421_*.js`, `_patch421.py`) — logic lives in the exported flow JSON.
+
 ## [3.10.5] - 2026-04-10
 
 ### Added - Irrigation status (421) rain-smart UI & triggers

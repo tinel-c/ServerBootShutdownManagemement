@@ -1,13 +1,539 @@
 [
     {
-        "id": "irr421_comment_0001",
+        "id": "c2eace846a56f0ac",
         "type": "comment",
-        "z": "tab_dashboard",
+        "z": "1e882bb57588dff2",
         "name": "═══════════════ 421 IRRIGATION STATUS (mobile UI) ═══════════════",
-        "info": "## Irrigation status dashboard\n\n**Flow:** 421-irrigation-status-dashboard.json\n\n### MQTT\n- `stat/IrigationSystem/#` — zones + 24V\n- `stat/pompaApa/POWER1` — pump relay (timers)\n- `tele/pompaApa/STATE` — Tasmota JSON → **pump web link** (`http://<IP>/`)\n- 1s inject — refresh **running** elapsed times\n\n### Timers\nFlow context stores start/end/duration per zone and pump (OFF→ON / ON→OFF edges).\nEach zone card shows **Started**, **Ended**, **Duration** (running elapsed while ON; last completed run while OFF).\n\n### Event log\nUp to **25** recent state changes (newest first): pump, zones, 24V — timestamp + icon + text.\n\n### Areas\n**A:** I1–I10. **B:** I11 & I12.\n\n### SMS alerts\nSet **`flow.irrigation_sms_to`** (or use the **SMS Gateway** dashboard phone — **`flow.sms_phone`** from flow 510) to a **digits-only** number (min **8** digits). Publishes on **`mqtt_broker_local`** topic **`sms/gateway/command/send`** (same as flow 510 — not the device MQTT broker).\n\n### Telegram alerts\nSame events as SMS. Uses **`flow.telegram_chat_ids`** (from flow 50 when you message the bot). **After a Node-RED restart** that list is empty until you send any message to the bot again — the flow also **falls back** to chat `991635368` (same allowlist as flow 50) so alerts still work. Messages are plain text (no Markdown) to avoid API rejections.\n\n### Weather (Open-Meteo)\n- Fetches **4×/day** (every **6 h**).\n- Set **`flow.irrigation_lat`** / **`flow.irrigation_lon`** and optional **`flow.irrigation_location_name`** (defaults: **Lunca Cetățuii**, Iași — ~47.10°N, 27.56°E).\n- **Rain skip**: `flow.irrigation_rain_skip_mm` (default 1), `flow.irrigation_rain_skip_prob` (default 70).\n\n### Scheduler\n- **Lawn** default **03:00**, **Flowers** default **05:00** local (Node-RED host time).\n- `flow.irrigation_sched_area_a_hour` / `_minute`, same for B.\n- `flow.irrigation_scheduler_enabled` = `false` to disable.\n- **Lawn** → **Gate lawn** (`run-gate`, Lawn program); **Flowers** → **Gate Flowers** (`run-gate`, Flowers program).\n- Scheduler uses **link** nodes like the **Start** buttons. Weather: **UI init** + deploy inject + every **6 h**.\n- **Trigger Irrigation Lawn / Flowers** buttons on the “next run” cards send the same `ON` message via **`Test → Gate … (420)`** link nodes (no rain check — manual trigger only).\n",
-        "x": 60,
-        "y": 40,
+        "info": "## Irrigation status dashboard\n\n**Flow:** 421-irrigation-status-dashboard.json\n\n### MQTT\n- `stat/IrigationSystem/#` — zones + 24V\n- `stat/pompaApa/POWER1` — pump relay (timers)\n- `tele/pompaApa/STATE` — Tasmota JSON → **pump web link** (`http://<IP>/`)\n- 1s inject — refresh **running** elapsed times\n\n### Timers\nFlow context stores start/end/duration per zone and pump (OFF→ON / ON→OFF edges).\nEach zone card shows **Started**, **Ended**, **Duration** (running elapsed while ON; last completed run while OFF).\n\n### Event log\nUp to **25** recent state changes (newest first): pump, zones, 24V — timestamp + icon + text.\n\n### Areas\n**A:** I1–I10. **B:** I11 & I12.\n\n### SMS alerts\nSet **`flow.irrigation_sms_to`** (or use the **SMS Gateway** dashboard phone — **`flow.sms_phone`** from flow 510) to a **digits-only** number (min **8** digits). Publishes on **`mqtt_broker_local`** topic **`sms/gateway/command/send`** (same as flow 510 — not the device MQTT broker).\n\n### Telegram alerts\nSame events as SMS. Uses **`flow.telegram_chat_ids`** (from flow 50 when you message the bot). **After a Node-RED restart** that list is empty until you send any message to the bot again — the flow also **falls back** to chat `991635368` (same allowlist as flow 50) so alerts still work. Messages are plain text (no Markdown) to avoid API rejections.\n\n### Weather (Open-Meteo)\n- Fetches **4×/day** (every **6 h**).\n- Set **`flow.irrigation_lat`** / **`flow.irrigation_lon`** and optional **`flow.irrigation_location_name`** (defaults: **Lunca Cetățuii**, Iași — ~47.10°N, 27.56°E).\n- **Rain skip**: `flow.irrigation_rain_skip_mm` (default 1), `flow.irrigation_rain_skip_prob` (default 70).\n\n### Scheduler\n- **Lawn** default **03:00**, **Flowers** default **05:00** local (Node-RED host time).\n- `flow.irrigation_sched_area_a_hour` / `_minute`, same for B.\n- `flow.irrigation_scheduler_enabled` = `false` to disable.\n- **Lawn** → **Gate lawn** (`run-gate`, Lawn program); **Flowers** → **Gate Flowers** (`run-gate`, Flowers program).\n- Scheduler uses **link** nodes like the **Start** buttons. Weather: **UI init** + deploy inject + every **6 h**.\n- **Irrigation season (automatic):** **March–November** only (local month). **December–February** skips automatic Lawn/Flowers; manual triggers still work.\n\n- **Weekday gates:** `flow.irrigation_weekdays_enabled` — array of **7 booleans** **Mon→Sun**. Unchecked days skip automatic Lawn/Flowers (rain-smart next-run and live scheduler). Default **every other day**: Mon, Wed, Fri, Sun on; Tue, Thu, Sat off.\n- **Trigger Irrigation Lawn / Flowers** buttons on the “next run” cards send the same `ON` message via **`Test → Gate … (420)`** link nodes (no rain check — manual trigger only).\n",
+        "x": 360,
+        "y": 60,
         "wires": []
+    },
+    {
+        "id": "a4d3fd9f2b0a8228",
+        "type": "mqtt in",
+        "z": "1e882bb57588dff2",
+        "name": "IrigationSystem stat",
+        "topic": "stat/IrigationSystem/#",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "73850d9f081d4c01",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 440,
+        "y": 160,
+        "wires": [
+            [
+                "6fdd66e921dec2ac"
+            ]
+        ]
+    },
+    {
+        "id": "2e00da6e93079c05",
+        "type": "mqtt in",
+        "z": "1e882bb57588dff2",
+        "name": "Pump stat",
+        "topic": "stat/pompaApa/POWER1",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "73850d9f081d4c01",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 440,
+        "y": 220,
+        "wires": [
+            [
+                "6fdd66e921dec2ac"
+            ]
+        ]
+    },
+    {
+        "id": "c549e25f9eb8a10d",
+        "type": "mqtt in",
+        "z": "1e882bb57588dff2",
+        "name": "Pump tele STATE",
+        "topic": "tele/pompaApa/STATE",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "73850d9f081d4c01",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 440,
+        "y": 280,
+        "wires": [
+            [
+                "6fdd66e921dec2ac"
+            ]
+        ]
+    },
+    {
+        "id": "355ab1a150008d3f",
+        "type": "inject",
+        "z": "1e882bb57588dff2",
+        "name": "Tick 1s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "__tick__",
+        "payload": "",
+        "payloadType": "str",
+        "x": 420,
+        "y": 340,
+        "wires": [
+            [
+                "6fdd66e921dec2ac"
+            ]
+        ]
+    },
+    {
+        "id": "ac68a1c8fb8f248f",
+        "type": "inject",
+        "z": "1e882bb57588dff2",
+        "name": "UI init",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.4,
+        "topic": "__init__",
+        "payload": "",
+        "payloadType": "str",
+        "x": 410,
+        "y": 400,
+        "wires": [
+            [
+                "6fdd66e921dec2ac",
+                "a5b9f989503788de"
+            ]
+        ]
+    },
+    {
+        "id": "6fdd66e921dec2ac",
+        "type": "function",
+        "z": "1e882bb57588dff2",
+        "name": "Merge status → UI payload",
+        "func": "const topic = msg.topic || '';\nconst raw = msg.payload;\nfunction payloadToPowerString(r) {\n    if (r === null || r === undefined || r === '') return 'UNKNOWN';\n    if (Buffer.isBuffer(r)) return r.toString().trim();\n    if (typeof r === 'object') {\n        if (r.POWER !== undefined) return String(r.POWER).trim();\n        if (r.POWER1 !== undefined) return String(r.POWER1).trim();\n        for (const k of Object.keys(r)) {\n            if (/^POWER\\d+$/i.test(k) && r[k] !== undefined) return String(r[k]).trim();\n        }\n    }\n    return String(r).trim();\n}\nfunction resolveTelegramChatIds() {\n    const fromFlow = flow.get('telegram_chat_ids') || [];\n    if (fromFlow.length) return fromFlow;\n    try {\n        const g = global.get('telegram_chat_ids');\n        if (g && g.length) return g;\n    } catch (e) {}\n    return [991635368];\n}\nconst pl = payloadToPowerString(raw);\n\nconst ZONE_KEYS = ['POWER2', 'POWER3', 'POWER4', 'POWER5', 'POWER10', 'POWER11', 'POWER12', 'POWER13', 'POWER14', 'POWER15', 'POWER16', 'POWER17'];\n\nconst POWER_TO_I = { POWER2: 'I1', POWER3: 'I2', POWER4: 'I3', POWER5: 'I4', POWER10: 'I5', POWER11: 'I6', POWER12: 'I7', POWER13: 'I8', POWER14: 'I9', POWER15: 'I10', POWER16: 'I11', POWER17: 'I12' };\nconst ZONE_KEYS_AREA_A = ['POWER2', 'POWER3', 'POWER4', 'POWER5', 'POWER10', 'POWER11', 'POWER12', 'POWER13', 'POWER14', 'POWER15'];\nconst ZONE_KEYS_AREA_B = ['POWER16', 'POWER17'];\nconst ZONE_KEY_TO_ICON = { POWER2: '🌱', POWER3: '🌿', POWER4: '🍃', POWER5: '🌾', POWER10: '🥬', POWER11: '🌽', POWER12: '🍅', POWER13: '🫛', POWER14: '🌻', POWER15: '🪴', POWER16: '🌳', POWER17: '🏞️' };\nconst LOG_MAX = 25;\nlet smsLine = null;\nfunction pushLog(icon, line) {\n    const arr = flow.get('irrigation_event_log_v1') || [];\n    arr.unshift({ ts: new Date().toISOString(), icon: icon || '📋', line: String(line || '') });\n    while (arr.length > LOG_MAX) arr.pop();\n    flow.set('irrigation_event_log_v1', arr);\n    smsLine = String(line || '');\n}\n\nfunction buildSmsOut() {\n    let to = String(flow.get('irrigation_sms_to') || '').replace(/\\D/g, '');\n    if (!to || to.length < 8) {\n        to = String(flow.get('sms_phone') || '').replace(/\\D/g, '');\n    }\n    if (!to || to.length < 8 || !smsLine) return null;\n    const text = ('Irrigation: ' + smsLine).substring(0, 160);\n    return { topic: 'sms/gateway/command/send', payload: JSON.stringify({ to: to, text: text }) };\n}\n\nfunction buildTelegramTrigger() {\n    if (!smsLine) return null;\n    const ids = resolveTelegramChatIds();\n    if (!ids.length) return null;\n    return { payload: { irrigationTgAlert: smsLine } };\n}\n\nfunction pad2(n) { return (n < 10 ? '0' : '') + n; }\nfunction localYmd(d) {\n    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());\n}\nfunction wmoEmoji(code) {\n    const c = Number(code) || 0;\n    if (c === 0) return '☀️';\n    if (c <= 3) return '🌤️';\n    if (c <= 48) return '☁️';\n    if (c <= 67) return '🌧️';\n    if (c <= 77) return '🌨️';\n    if (c <= 82) return '🌧️';\n    return '⛈️';\n}\nfunction isDayWet(dateStr) {\n    const w = flow.get('irrigation_weather_v1');\n    if (!w || !w.daily || !w.daily.length) return false;\n    const row = w.daily.find(function (x) { return x.date === dateStr; });\n    return row ? !!row.wet : false;\n}\nfunction isIrrigationWeekdayEnabledForDate(d) {\n    const arr = flow.get('irrigation_weekdays_enabled');\n    if (!Array.isArray(arr) || arr.length !== 7) return true;\n    const idx = d.getDay();\n    const monFirst = idx === 0 ? 6 : idx - 1;\n    return !!arr[monFirst];\n}\nfunction buildWeekdayScheduleUi() {\n    const def = [true, false, true, false, true, false, true];\n    let arr = flow.get('irrigation_weekdays_enabled');\n    if (!Array.isArray(arr) || arr.length !== 7) arr = def.slice();\n    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];\n    return labels.map(function (label, i) {\n        return { label: label, enabled: !!arr[i] };\n    });\n}\nfunction monthNum(d) { return d.getMonth() + 1; }\nfunction isInIrrigationSeasonForDate(d) {\n    const m = monthNum(d);\n    return m >= 3 && m <= 11;\n}\nfunction buildSeasonUi(nowMs) {\n    const d = new Date(nowMs);\n    const m = monthNum(d);\n    let key = 'winter';\n    let label = 'Winter';\n    let emoji = '\\u2744\\ufe0f';\n    let artGradient = 'linear-gradient(135deg, #1e3a5f 0%, #0c4a6e 40%, #312e81 100%)';\n    let glow = 'rgba(56, 189, 248, 0.35)';\n    if (m >= 3 && m <= 5) {\n        key = 'spring';\n        label = 'Spring';\n        emoji = '\\uD83C\\uDF38';\n        artGradient = 'linear-gradient(135deg, #ecfdf5 0%, #6ee7b7 35%, #34d399 70%, #059669 100%)';\n        glow = 'rgba(52, 211, 153, 0.45)';\n    } else if (m >= 6 && m <= 8) {\n        key = 'summer';\n        label = 'Summer';\n        emoji = '\\u2600\\ufe0f';\n        artGradient = 'linear-gradient(135deg, #fef08a 0%, #fbbf24 40%, #f97316 85%, #ea580c 100%)';\n        glow = 'rgba(251, 191, 36, 0.5)';\n    } else if (m >= 9 && m <= 11) {\n        key = 'autumn';\n        label = 'Autumn';\n        emoji = '\\uD83C\\uDF42';\n        artGradient = 'linear-gradient(135deg, #431407 0%, #9a3412 35%, #ca8a04 75%, #eab308 100%)';\n        glow = 'rgba(234, 179, 8, 0.4)';\n    }\n    const inSeason = m >= 3 && m <= 11;\n    return {\n        key: key,\n        label: label,\n        emoji: emoji,\n        artGradient: artGradient,\n        glow: glow,\n        inIrrigationSeason: inSeason,\n        hint: inSeason ? 'Auto schedule: Mar\\u2013Nov' : 'Winter rest: auto off Dec\\u2013Feb'\n    };\n}\n/** Same rules as UI schedCountdown: time until next run epoch (rain-postponed slot from computeNextIrrigationSlot). */\nfunction fmtCountdownTo(targetMs, nowMs) {\n    if (targetMs == null || isNaN(targetMs)) return '—';\n    let sec = Math.floor((targetMs - nowMs) / 1000);\n    if (sec <= 0) return 'imminent';\n    const d = Math.floor(sec / 86400);\n    sec %= 86400;\n    const h = Math.floor(sec / 3600);\n    sec %= 3600;\n    const m = Math.floor(sec / 60);\n    const s = sec % 60;\n    if (d > 0) return d + 'd ' + h + 'h';\n    if (h > 0) return h + 'h ' + m + 'm';\n    if (m > 0) return m + 'm ' + s + 's';\n    return s + 's';\n}\nfunction fmtNextRunPlannedLine(ms) {\n    if (ms == null || isNaN(ms)) return '—';\n    try {\n        const d = new Date(ms);\n        return d.toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });\n    } catch (e) {\n        return '—';\n    }\n}\n/**\n * Next irrigation window: greedy forward scan over calendar days (horizon 120).\n * For each future local time (day + clock hour/min), skip if that calendar day is \"wet\",\n * weekday disabled, or outside Mar–Nov (automatic season). First eligible day wins.\n * This matches common rule-based irrigation practice (skip rain; wait for next suitable day).\n * Advanced systems add soil water balance / ET₀ − rain; we stay forecast-rule-based.\n */\nfunction computeNextIrrigationSlot(hour, minute, nowMs) {\n    const wdArr = flow.get('irrigation_weekdays_enabled');\n    if (Array.isArray(wdArr) && wdArr.length === 7 && !wdArr.some(function (x) { return !!x; })) {\n        return { ms: null, skippedCount: 0, skippedDates: [], statusLine: 'All weekdays disabled — enable at least one day above.' };\n    }\n    const w = flow.get('irrigation_weather_v1');\n    const daily = w && w.daily ? w.daily : [];\n    const skippedDates = [];\n    for (let add = 0; add < 120; add++) {\n        const d = new Date(nowMs);\n        d.setHours(0, 0, 0, 0);\n        d.setDate(d.getDate() + add);\n        const ds = localYmd(d);\n        const slot = new Date(d);\n        slot.setHours(Number(hour) || 0, Number(minute) || 0, 0, 0);\n        if (slot.getTime() <= nowMs) continue;\n        const row = daily.find(function (x) { return x.date === ds; });\n        const wet = row ? !!row.wet : false;\n        if (wet) {\n            skippedDates.push(ds);\n            continue;\n        }\n        if (!isIrrigationWeekdayEnabledForDate(d)) {\n            continue;\n        }\n        if (!isInIrrigationSeasonForDate(d)) {\n            continue;\n        }\n        let statusLine = '';\n        if (skippedDates.length === 0) {\n            statusLine = 'Next run targets the first upcoming dry day at your set time.';\n        } else {\n            statusLine = 'Forecast wet — postponed ' + skippedDates.length + ' day(s); next run on the next dry day at your set time.';\n        }\n        return { ms: slot.getTime(), skippedCount: skippedDates.length, skippedDates: skippedDates, statusLine: statusLine };\n    }\n    return { ms: null, skippedCount: skippedDates.length, skippedDates: skippedDates, statusLine: 'No eligible day in the next 120 days — check rain thresholds, weekdays, or season (auto Mar–Nov).' };\n}\nfunction computeNextRunMs(hour, minute, nowMs) {\n    const r = computeNextIrrigationSlot(hour, minute, nowMs);\n    return r.ms;\n}\nfunction buildWeatherUi(nowMs) {\n    const w = flow.get('irrigation_weather_v1');\n    if (!w || !w.daily || !w.daily.length) {\n        return {\n            hasData: false,\n            days: [],\n            attribution: 'Open-Meteo (CC BY 4.0)',\n            sourceName: '—',\n            fetchedAt: null,\n            detailUrl: 'https://open-meteo.com'\n        };\n    }\n    const days = w.daily.slice(0, 7).map(function (d) {\n        const barPct = Math.min(100, Math.round((Number(d.precipMm) || 0) * 20));\n        return {\n            date: d.date,\n            dayShort: (function () {\n                try {\n                    return new Date(d.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' });\n                } catch (e) {\n                    return d.date;\n                }\n            })(),\n            icon: wmoEmoji(d.wmo),\n            tmax: d.tmax,\n            tmin: d.tmin,\n            precipMm: d.precipMm,\n            precipProb: d.precipProb,\n            wet: !!d.wet,\n            barPct: barPct\n        };\n    });\n    return {\n        hasData: true,\n        days: days,\n        attribution: w.attribution || 'Weather data by Open-Meteo (CC BY 4.0)',\n        sourceName: w.sourceName || 'Open-Meteo',\n        fetchedAt: w.fetchedAt,\n        detailUrl: w.sourceUrl || 'https://open-meteo.com',\n        lat: w.lat,\n        lon: w.lon\n    };\n}\nfunction buildScheduleUi(nowMs) {\n    const en = flow.get('irrigation_scheduler_enabled');\n    const enabled = en !== false;\n    const hA = Number(flow.get('irrigation_sched_area_a_hour'));\n    const mA = Number(flow.get('irrigation_sched_area_a_minute'));\n    const hB = Number(flow.get('irrigation_sched_area_b_hour'));\n    const mB = Number(flow.get('irrigation_sched_area_b_minute'));\n    const hourA = isNaN(hA) ? 3 : hA;\n    const minA = isNaN(mA) ? 0 : mA;\n    const hourB = isNaN(hB) ? 5 : hB;\n    const minB = isNaN(mB) ? 0 : mB;\n    const rainMm = Number(flow.get('irrigation_rain_skip_mm'));\n    const rainProb = Number(flow.get('irrigation_rain_skip_prob'));\n    const rMm = isNaN(rainMm) ? 1 : rainMm;\n    const rPr = isNaN(rainProb) ? 70 : rainProb;\n    const slotA = enabled ? computeNextIrrigationSlot(hourA, minA, nowMs) : { ms: null, skippedCount: 0, statusLine: '', skippedDates: [] };\n    const slotB = enabled ? computeNextIrrigationSlot(hourB, minB, nowMs) : { ms: null, skippedCount: 0, statusLine: '', skippedDates: [] };\n    const nextA = slotA.ms;\n    const nextB = slotB.ms;\n    const today = localYmd(new Date(nowMs));\n    const wetToday = isDayWet(today);\n    const logicIntro = 'A day is “wet” when forecast precipitation ≥ ' + rMm + ' mm or max rain probability ≥ ' + rPr + '%. The next irrigation is the first future day at your clock time that is not wet (dry / “sunny enough” for our rule).';\n    const logicAlgorithm = 'Algorithm: greedy forward scan — walk from today up to 120 days; at each scheduled local time, skip wet days, unchecked weekdays, and winter months (automatic irrigation Mar–Nov only); the first eligible day is the next run. Advanced ET/soil-balance scheduling (e.g. FAO-56) can refine amounts; this flow uses forecast gates only.';\n    return {\n        enabled: enabled,\n        areaAHour: hourA,\n        areaAMin: minA,\n        areaBHour: hourB,\n        areaBMin: minB,\n        rainSkipMm: rMm,\n        rainSkipProb: rPr,\n        wetToday: wetToday,\n        wetTodayHint: wetToday ? 'Today’s forecast is wet — automatic start will skip until a dry day.' : 'Today’s forecast is dry at decision time (per daily flags).',\n        nextA: nextA,\n        nextB: nextB,\n        countdownA: fmtCountdownTo(nextA, nowMs),\n        countdownB: fmtCountdownTo(nextB, nowMs),\n        labelA: nextA ? new Date(nextA).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—',\n        labelB: nextB ? new Date(nextB).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—',\n        lawnDetail: enabled ? slotA.statusLine : 'Scheduler disabled.',\n        flowersDetail: enabled ? slotB.statusLine : 'Scheduler disabled.',\n        lawnSkipped: slotA.skippedCount,\n        flowersSkipped: slotB.skippedCount,\n        logicTitle: 'Rain-smart schedule',\n        nextLawnPlanned: enabled ? fmtNextRunPlannedLine(nextA) : 'Scheduler off',\n        nextFlowersPlanned: enabled ? fmtNextRunPlannedLine(nextB) : 'Scheduler off',\n        logicIntro: logicIntro,\n        logicAlgorithm: logicAlgorithm,\n        season: buildSeasonUi(nowMs),\n        weekdays: buildWeekdayScheduleUi(),\n        note: 'Lawn runs the full Lawn program; Flowers runs the Flowers program. Times are local to Node-RED.'\n    };\n}\n\nconst defaults = () => ({\n    POWER1: 'UNKNOWN', POWER2: 'UNKNOWN', POWER3: 'UNKNOWN', POWER4: 'UNKNOWN', POWER5: 'UNKNOWN',\n    POWER10: 'UNKNOWN', POWER11: 'UNKNOWN', POWER12: 'UNKNOWN', POWER13: 'UNKNOWN',\n    POWER14: 'UNKNOWN', POWER15: 'UNKNOWN', POWER16: 'UNKNOWN', POWER17: 'UNKNOWN',\n    pump: 'UNKNOWN',\n    lastUpdate: null\n});\n\nfunction norm(v) {\n    const u = String(v).toUpperCase();\n    if (u === 'ON' || u === 'TRUE' || u === '1') return 'ON';\n    if (u === 'OFF' || u === 'FALSE' || u === '0') return 'OFF';\n    return u;\n}\n\nfunction fmtDur(totalSec) {\n    const s = Math.max(0, Math.floor(Number(totalSec) || 0));\n    if (s < 60) return s + 's';\n    const m = Math.floor(s / 60);\n    const r = s % 60;\n    if (m < 60) return m + 'm ' + r + 's';\n    const h = Math.floor(m / 60);\n    return h + 'h ' + (m % 60) + 'm';\n}\n\nfunction fmtClock(ms) {\n    if (!ms) return '—';\n    try { return new Date(ms).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' }); } catch (e) { return '—'; }\n}\n\nfunction updateTimer(timers, key, prev, next) {\n    if (!timers[key]) {\n        timers[key] = { startedAt: null, lastEndIso: null, lastStartIso: null, lastDurationSec: null };\n    }\n    const t = timers[key];\n    const p = (prev === 'ON' || prev === 'OFF') ? prev : null;\n    const n = (next === 'ON' || next === 'OFF') ? next : null;\n    if (n === 'ON' && p !== 'ON') {\n        t.startedAt = Date.now();\n        t.lastStartIso = new Date(t.startedAt).toISOString();\n    }\n    if (n === 'OFF' && p === 'ON' && t.startedAt) {\n        const end = Date.now();\n        t.lastEndIso = new Date(end).toISOString();\n        t.lastDurationSec = Math.round((end - t.startedAt) / 1000);\n        t.startedAt = null;\n    }\n}\n\nfunction buildPayload(s, timers, now) {\n    const nowMs = now || Date.now();\n    const pumpUrl = flow.get('pump_web_url') || '';\n\n    const zoneRows = [\n        { k: 'POWER2', label: 'I1', icon: '🌱' },\n        { k: 'POWER3', label: 'I2', icon: '🌿' },\n        { k: 'POWER4', label: 'I3', icon: '🍃' },\n        { k: 'POWER5', label: 'I4', icon: '🌾' },\n        { k: 'POWER10', label: 'I5', icon: '🥬' },\n        { k: 'POWER11', label: 'I6', icon: '🌽' },\n        { k: 'POWER12', label: 'I7', icon: '🍅' },\n        { k: 'POWER13', label: 'I8', icon: '🫛' },\n        { k: 'POWER14', label: 'I9', icon: '🌻' },\n        { k: 'POWER15', label: 'I10', icon: '🪴' },\n        { k: 'POWER16', label: 'I11', icon: '🌳' },\n        { k: 'POWER17', label: 'I12', icon: '🏞️' }\n    ];\n    const zonesAreaA = ZONE_KEYS_AREA_A.map(k => {\n        const z = zoneRows.find(r => r.k === k);\n        const ex = zoneExtras(k);\n        return { ...z, state: s[k] || 'UNKNOWN', ...ex };\n    });\n    const zonesAreaB = ZONE_KEYS_AREA_B.map(k => {\n        const z = zoneRows.find(r => r.k === k);\n        const ex = zoneExtras(k);\n        return { ...z, state: s[k] || 'UNKNOWN', ...ex };\n    });\n\n    function zoneExtras(key) {\n        const st = s[key] || 'UNKNOWN';\n        const tk = timers[key] || {};\n        let zoneStarted = '';\n        let zoneEnded = '';\n        let zoneDuration = '';\n        if (st === 'ON' && tk.startedAt) {\n            const sec = Math.floor((nowMs - tk.startedAt) / 1000);\n            zoneStarted = fmtClock(tk.startedAt);\n            zoneEnded = '—';\n            zoneDuration = fmtDur(sec);\n        } else if (st === 'OFF') {\n            if (tk.lastStartIso && tk.lastEndIso && tk.lastDurationSec != null) {\n                zoneStarted = fmtClock(new Date(tk.lastStartIso).getTime());\n                zoneEnded = fmtClock(new Date(tk.lastEndIso).getTime());\n                zoneDuration = fmtDur(tk.lastDurationSec);\n            } else if (tk.lastDurationSec != null) {\n                zoneDuration = fmtDur(tk.lastDurationSec);\n            }\n        }\n        return { zoneStarted, zoneEnded, zoneDuration };\n    }\n\n    const tp = timers.pump || {};\n    const pumpSt = s.pump || 'UNKNOWN';\n    let pumpRun = '';\n    let pumpHist = '';\n    if (pumpSt === 'ON' && tp.startedAt) {\n        const sec = Math.floor((nowMs - tp.startedAt) / 1000);\n        pumpRun = 'Running ' + fmtDur(sec) + ' · started ' + fmtClock(tp.startedAt);\n    } else if (pumpSt === 'OFF' && tp.lastDurationSec != null && tp.lastStartIso && tp.lastEndIso) {\n        pumpHist = 'Last: ' + fmtClock(new Date(tp.lastStartIso).getTime()) + ' → ' + fmtClock(new Date(tp.lastEndIso).getTime()) + ' · ' + fmtDur(tp.lastDurationSec);\n    }\n\n    const wx = buildWeatherUi(nowMs);\n    const sch = buildScheduleUi(nowMs);\n    if (wx.hasData && wx.days && wx.days.length) {\n        const lawnY = sch.enabled && sch.nextA != null ? localYmd(new Date(sch.nextA)) : null;\n        const flowersY = sch.enabled && sch.nextB != null ? localYmd(new Date(sch.nextB)) : null;\n        wx.days = wx.days.map(function (day) {\n            const dayD = new Date(day.date + 'T12:00:00');\n            return {\n                date: day.date,\n                dayShort: day.dayShort,\n                icon: day.icon,\n                tmax: day.tmax,\n                tmin: day.tmin,\n                precipMm: day.precipMm,\n                precipProb: day.precipProb,\n                wet: day.wet,\n                barPct: day.barPct,\n                plannedLawn: lawnY != null && day.date === lawnY,\n                plannedFlowers: flowersY != null && day.date === flowersY,\n                irrigationOff: !isIrrigationWeekdayEnabledForDate(dayD),\n                seasonClosed: !isInIrrigationSeasonForDate(dayD)\n            };\n        });\n    }\n\n    return {\n        power24: s.POWER1 || 'UNKNOWN',\n        pump: pumpSt,\n        pumpRunLine: pumpRun,\n        pumpHistLine: pumpHist,\n        pumpWebUrl: pumpUrl,\n        zonesAreaA: zonesAreaA,\n        zonesAreaB: zonesAreaB,\n        eventLog: flow.get('irrigation_event_log_v1') || [],\n        lastUpdate: s.lastUpdate,\n        weatherUi: wx,\n        scheduleUi: sch\n    };\n}\n\nif (topic === '__weather_refresh__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nif (topic === '__init__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nif (topic === '__tick__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nif (topic.indexOf('tele/pompaApa/STATE') >= 0) {\n    try {\n        const o = typeof raw === 'object' ? raw : JSON.parse(String(raw));\n        const ip = o.IPAddress || (o.Wifi && (o.Wifi.IP || o.Wifi.IPAddress || o.Wifi.ip)) || '';\n        if (ip) flow.set('pump_web_url', 'http://' + ip + '/');\n    } catch (e) { /* ignore */ }\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nlet s = flow.get('irrigation_status_v1') || defaults();\nlet timers = flow.get('irrigation_zone_timers') || {};\n\nif (topic.indexOf('IrigationSystem') >= 0) {\n    const seg = topic.split('/');\n    const key = seg[seg.length - 1];\n    if (key && key.indexOf('POWER') === 0) {\n        const prev = norm(s[key]);\n        const next = norm(pl);\n        s[key] = next;\n        if (ZONE_KEYS.indexOf(key) >= 0) {\n            updateTimer(timers, key, prev, next);\n        }\n        if (prev !== next && (next === 'ON' || next === 'OFF')) {\n            if (key === 'POWER1') {\n                pushLog('⚡', next === 'ON' ? '24V power on' : '24V power off');\n            } else if (ZONE_KEYS.indexOf(key) >= 0) {\n                const lbl = POWER_TO_I[key] || key;\n                const ic = ZONE_KEY_TO_ICON[key] || '🌿';\n                pushLog(ic, next === 'ON' ? ('Start irrigation in ' + lbl) : ('Stop irrigation in ' + lbl));\n            }\n        }\n    }\n} else if (topic.indexOf('stat/pompaApa/POWER1') >= 0) {\n    const prev = norm(s.pump);\n    const next = norm(pl);\n    s.pump = next;\n    updateTimer(timers, 'pump', prev, next);\n    if (prev !== next && (next === 'ON' || next === 'OFF')) {\n        pushLog('💧', next === 'ON' ? 'Start pump' : 'Stop pump');\n    }\n}\n\ns.lastUpdate = new Date().toISOString();\nflow.set('irrigation_status_v1', s);\nflow.set('irrigation_zone_timers', timers);\nmsg.payload = buildPayload(s, timers, Date.now());\nreturn [msg, buildSmsOut(), buildTelegramTrigger()];\n",
+        "outputs": 3,
+        "noerr": 0,
+        "initialize": "if (flow.get('irrigation_sched_area_a_hour') == null) flow.set('irrigation_sched_area_a_hour', 3);\nif (flow.get('irrigation_sched_area_a_minute') == null) flow.set('irrigation_sched_area_a_minute', 0);\nif (flow.get('irrigation_sched_area_b_hour') == null) flow.set('irrigation_sched_area_b_hour', 5);\nif (flow.get('irrigation_sched_area_b_minute') == null) flow.set('irrigation_sched_area_b_minute', 0);\nif (flow.get('irrigation_rain_skip_mm') == null) flow.set('irrigation_rain_skip_mm', 1);\nif (flow.get('irrigation_rain_skip_prob') == null) flow.set('irrigation_rain_skip_prob', 70);\nif (flow.get('irrigation_lat') == null) flow.set('irrigation_lat', 47.0966);\nif (flow.get('irrigation_lon') == null) flow.set('irrigation_lon', 27.5632);\nif (flow.get('irrigation_location_name') == null) flow.set('irrigation_location_name', 'Lunca Cetățuii, Iași, RO');\nif (flow.get('irrigation_weekdays_enabled') == null) flow.set('irrigation_weekdays_enabled', [true, false, true, false, true, false, true]);\n",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 260,
+        "wires": [
+            [
+                "c6ef1e9fdaa90ed0"
+            ],
+            [
+                "7c98c51aeb65bc22"
+            ],
+            [
+                "6e392a0527d8b537"
+            ]
+        ]
+    },
+    {
+        "id": "6e392a0527d8b537",
+        "type": "function",
+        "z": "1e882bb57588dff2",
+        "name": "Irrigation alert → Telegram",
+        "func": "const line = msg.payload && msg.payload.irrigationTgAlert;\nif (!line) return null;\nlet chatIds = flow.get('telegram_chat_ids') || [];\nif (chatIds.length === 0) {\n    try {\n        const g = global.get('telegram_chat_ids');\n        if (g && g.length) chatIds = g;\n    } catch (e) {}\n}\nif (chatIds.length === 0) chatIds = [991635368];\nconst content = '🌊 Irrigation\\n\\n' + String(line);\nreturn chatIds.map(chatId => ({\n    topic: 'send',\n    payload: {\n        chatId: chatId,\n        type: 'message',\n        content: content\n    }\n}));",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 420,
+        "wires": [
+            [
+                "6533329a253a7e3c"
+            ]
+        ]
+    },
+    {
+        "id": "6533329a253a7e3c",
+        "type": "telegram sender",
+        "z": "1e882bb57588dff2",
+        "name": "Irrigation Telegram out",
+        "bot": "fcd48adffba5ec7c",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1000,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7c98c51aeb65bc22",
+        "type": "mqtt out",
+        "z": "1e882bb57588dff2",
+        "name": "SMS gateway (irrigation alerts)",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1170,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "fbc049d7179a9e0b",
+        "type": "function",
+        "z": "1e882bb57588dff2",
+        "name": "Daily irrigation scheduler",
+        "func": "if (flow.get('irrigation_sched_area_a_hour') == null) flow.set('irrigation_sched_area_a_hour', 3);\nif (flow.get('irrigation_sched_area_a_minute') == null) flow.set('irrigation_sched_area_a_minute', 0);\nif (flow.get('irrigation_sched_area_b_hour') == null) flow.set('irrigation_sched_area_b_hour', 5);\nif (flow.get('irrigation_sched_area_b_minute') == null) flow.set('irrigation_sched_area_b_minute', 0);\n\nif (flow.get('irrigation_weekdays_enabled') == null) flow.set('irrigation_weekdays_enabled', [true, false, true, false, true, false, true]);\n\nconst enabled = flow.get('irrigation_scheduler_enabled') !== false;\nif (!enabled) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'Scheduler off' });\n    return [null, null];\n}\n\nconst now = new Date();\nfunction isIrrigationWeekdayEnabledNow() {\n    const arr = flow.get('irrigation_weekdays_enabled');\n    if (!Array.isArray(arr) || arr.length !== 7) return true;\n    const idx = now.getDay();\n    const monFirst = idx === 0 ? 6 : idx - 1;\n    return !!arr[monFirst];\n}\nfunction isInIrrigationSeasonNow() {\n    const m = now.getMonth() + 1;\n    return m >= 3 && m <= 11;\n}\nconst ymd = now.getFullYear() + '-' + (now.getMonth() < 9 ? '0' : '') + (now.getMonth() + 1) + '-' + (now.getDate() < 10 ? '0' : '') + now.getDate();\nconst h = now.getHours();\nconst mi = now.getMinutes();\nconst s = now.getSeconds();\n\nif (s > 2) return [null, null];\n\nconst hA = Number(flow.get('irrigation_sched_area_a_hour'));\nconst mA = Number(flow.get('irrigation_sched_area_a_minute'));\nconst hB = Number(flow.get('irrigation_sched_area_b_hour'));\nconst mB = Number(flow.get('irrigation_sched_area_b_minute'));\nconst hourA = isNaN(hA) ? 3 : hA;\nconst minA = isNaN(mA) ? 0 : mA;\nconst hourB = isNaN(hB) ? 5 : hB;\nconst minB = isNaN(mB) ? 0 : mB;\n\nfunction isDayWet(dateStr) {\n    const w = flow.get('irrigation_weather_v1');\n    if (!w || !w.daily || !w.daily.length) return false;\n    const row = w.daily.find(function (x) { return x.date === dateStr; });\n    return row ? !!row.wet : false;\n}\n\nconst startMsg = { payload: 'ON', topic: 'topic' };\n\nif (h === hourA && mi === minA) {\n    const key = 'sched_fired_lawn_' + ymd;\n    if (flow.get(key)) return [null, null];\n    if (!isInIrrigationSeasonNow()) {\n        flow.set(key, true);\n        node.status({ fill: 'blue', shape: 'dot', text: 'Skip Lawn (winter)' });\n        return [null, null];\n    }\n    if (!isIrrigationWeekdayEnabledNow()) {\n        flow.set(key, true);\n        node.status({ fill: 'grey', shape: 'dot', text: 'Skip Lawn (day off)' });\n        return [null, null];\n    }\n    flow.set(key, true);\n    if (isDayWet(ymd)) {\n        node.status({ fill: 'yellow', shape: 'dot', text: 'Skip Lawn (rain)' });\n        return [null, null];\n    }\n    node.status({ fill: 'green', shape: 'dot', text: 'Start Lawn' });\n    return [startMsg, null];\n}\n\nif (h === hourB && mi === minB) {\n    const key = 'sched_fired_flowers_' + ymd;\n    if (flow.get(key)) return [null, null];\n    if (!isInIrrigationSeasonNow()) {\n        flow.set(key, true);\n        node.status({ fill: 'blue', shape: 'dot', text: 'Skip Flowers (winter)' });\n        return [null, null];\n    }\n    if (!isIrrigationWeekdayEnabledNow()) {\n        flow.set(key, true);\n        node.status({ fill: 'grey', shape: 'dot', text: 'Skip Flowers (day off)' });\n        return [null, null];\n    }\n    flow.set(key, true);\n    if (isDayWet(ymd)) {\n        node.status({ fill: 'yellow', shape: 'dot', text: 'Skip Flowers (rain)' });\n        return [null, null];\n    }\n    node.status({ fill: 'green', shape: 'dot', text: 'Start Flowers' });\n    return [null, startMsg];\n}\n\nreturn [null, null];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 580,
+        "wires": [
+            [
+                "3f001261d4e1330e"
+            ],
+            [
+                "b4ebc75705150c17"
+            ]
+        ]
+    },
+    {
+        "id": "5b4df32385982193",
+        "type": "inject",
+        "z": "1e882bb57588dff2",
+        "name": "Scheduler tick 60s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.5,
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 370,
+        "y": 580,
+        "wires": [
+            [
+                "fbc049d7179a9e0b"
+            ]
+        ]
+    },
+    {
+        "id": "a5b9f989503788de",
+        "type": "function",
+        "z": "1e882bb57588dff2",
+        "name": "Fetch Open-Meteo",
+        "func": "/* https is injected via node \"libs\" (sandbox has no require) */\nif (flow.get('irrigation_lat') == null) flow.set('irrigation_lat', 47.0966);\nif (flow.get('irrigation_lon') == null) flow.set('irrigation_lon', 27.5632);\nif (flow.get('irrigation_location_name') == null) flow.set('irrigation_location_name', 'Lunca Cetățuii, Iași, RO');\nif (flow.get('irrigation_rain_skip_mm') == null) flow.set('irrigation_rain_skip_mm', 1);\nif (flow.get('irrigation_rain_skip_prob') == null) flow.set('irrigation_rain_skip_prob', 70);\n\nconst lat = Number(flow.get('irrigation_lat'));\nconst lon = Number(flow.get('irrigation_lon'));\nconst rainMm = Number(flow.get('irrigation_rain_skip_mm'));\nconst probSkip = Number(flow.get('irrigation_rain_skip_prob'));\nconst locName = String(flow.get('irrigation_location_name') || 'Lunca Cetățuii, Iași, RO');\n\nconst url = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon) +\n    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max' +\n    '&forecast_days=8&timezone=auto';\n\nhttps.get(url, function (res) {\n    let body = '';\n    res.on('data', function (c) { body += c; });\n    res.on('end', function () {\n        const code = res.statusCode || 0;\n        if (code < 200 || code >= 300) {\n            node.error('Open-Meteo HTTP ' + code + ': ' + String(body).slice(0, 240));\n            node.status({ fill: 'red', shape: 'ring', text: 'HTTP ' + code });\n            return;\n        }\n        try {\n            const j = JSON.parse(body);\n            if (!j.daily || !j.daily.time || !j.daily.time.length) {\n                node.error('Open-Meteo: missing daily data in response');\n                node.status({ fill: 'red', shape: 'ring', text: 'Bad API shape' });\n                return;\n            }\n            const t = j.daily.time;\n            const daily = [];\n            for (let i = 0; i < t.length; i++) {\n                const pm = Number(j.daily.precipitation_sum[i] != null ? j.daily.precipitation_sum[i] : 0);\n                const pp = Number(j.daily.precipitation_probability_max[i] != null ? j.daily.precipitation_probability_max[i] : 0);\n                const wet = pm >= rainMm || pp >= probSkip;\n                daily.push({\n                    date: t[i],\n                    precipMm: Math.round(pm * 10) / 10,\n                    precipProb: Math.round(pp),\n                    wmo: j.daily.weather_code[i],\n                    tmax: Math.round(j.daily.temperature_2m_max[i]),\n                    tmin: Math.round(j.daily.temperature_2m_min[i]),\n                    wet: wet\n                });\n            }\n            flow.set('irrigation_weather_v1', {\n                fetchedAt: new Date().toISOString(),\n                sourceName: 'Open-Meteo · ' + locName,\n                sourceUrl: 'https://open-meteo.com',\n                attribution: 'Weather data by Open-Meteo.com (CC BY 4.0)',\n                apiHost: 'api.open-meteo.com',\n                lat: lat,\n                lon: lon,\n                daily: daily\n            });\n            node.send({ topic: '__weather_refresh__', payload: '' });\n            node.status({ fill: 'green', shape: 'dot', text: 'Weather OK' });\n        } catch (e) {\n            node.error('Open-Meteo: ' + e.message);\n            node.status({ fill: 'red', shape: 'ring', text: 'Parse error' });\n        }\n    });\n}).on('error', function (e) {\n    node.error(e.message);\n    node.status({ fill: 'red', shape: 'ring', text: 'HTTP error' });\n});\nreturn null;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "https",
+                "module": "https"
+            }
+        ],
+        "x": 730,
+        "y": 500,
+        "wires": [
+            [
+                "6fdd66e921dec2ac"
+            ]
+        ]
+    },
+    {
+        "id": "41c0ee05c66eaa40",
+        "type": "inject",
+        "z": "1e882bb57588dff2",
+        "name": "Weather every 6h",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "21600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 1.5,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 440,
+        "y": 480,
+        "wires": [
+            [
+                "a5b9f989503788de"
+            ]
+        ]
+    },
+    {
+        "id": "3f001261d4e1330e",
+        "type": "link out",
+        "z": "1e882bb57588dff2",
+        "name": "To Gate lawn (420)",
+        "mode": "link",
+        "links": [
+            "566bf071f4bf257c"
+        ],
+        "x": 860,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "f7c8a9b0e1d23456",
+        "type": "function",
+        "z": "1e882bb57588dff2",
+        "name": "Irrigation UI → weekdays + test",
+        "func": "const p = msg.payload;\nif (p && typeof p === 'object' && Array.isArray(p.irrigationWeekdays) && p.irrigationWeekdays.length === 7) {\n    flow.set('irrigation_weekdays_enabled', p.irrigationWeekdays.map(function (x) { return !!x; }));\n    return [{ topic: '__weather_refresh__', payload: '' }, null];\n}\nif (p && typeof p === 'object' && p.irrigationTest) {\n    return [null, msg];\n}\nreturn [null, null];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 300,
+        "wires": [
+            [
+                "6fdd66e921dec2ac"
+            ],
+            [
+                "e805c82417719485"
+            ]
+        ]
+    },
+    {
+        "id": "c6ef1e9fdaa90ed0",
+        "type": "ui-template",
+        "z": "1e882bb57588dff2",
+        "group": "ui_group_irrigation_status",
+        "name": "Irrigation status board",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<template>\n  <div v-if=\"msg.payload\" style=\"font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: linear-gradient(165deg, #0c4a6e 0%, #0f172a 45%, #1e1b4b 100%); border-radius: 16px; padding: 14px 12px 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); max-width: 720px; margin: 0 auto;\">\n  <div v-if=\"msg.payload?.weatherUi\" style=\"margin-bottom: 16px;\">\n    <div v-if=\"msg.payload?.scheduleUi?.weekdays?.length\" :style=\"irrigationDaysCardBase(msg.payload?.scheduleUi?.season)\" style=\"position: relative; margin-bottom: 12px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);\">\n      <div style=\"position: absolute; inset: 0; pointer-events: none; z-index: 0;\">\n        <div style=\"position: absolute; inset: 0; background: radial-gradient(ellipse 100% 70% at 85% 0%, rgba(255,255,255,0.4) 0%, transparent 50%); opacity: 0.85;\"></div>\n        <div style=\"position: absolute; inset: 0; background-image: repeating-linear-gradient(-18deg, transparent, transparent 7px, rgba(255,255,255,0.06) 7px, rgba(255,255,255,0.06) 8px);\"></div>\n        <div style=\"position: absolute; inset: 0; background: linear-gradient(165deg, rgba(15,23,42,0.2) 0%, rgba(15,23,42,0.65) 100%);\"></div>\n        <div style=\"position: absolute; top: -25%; right: -12%; width: 58%; padding-bottom: 58%; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.12);\"></div>\n        <div style=\"position: absolute; bottom: -18%; left: -8%; width: 42%; padding-bottom: 42%; border-radius: 50%; background: rgba(0,0,0,0.15);\"></div>\n      </div>\n      <div style=\"position: relative; z-index: 1; padding: 14px 12px 12px;\">\n        <div style=\"display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; flex-wrap: wrap;\">\n          <div style=\"font-weight: 800; font-size: 0.9rem; color: #f8fafc; letter-spacing: 0.03em; text-shadow: 0 2px 10px rgba(0,0,0,0.65);\">Irrigation days</div>\n          <div v-if=\"msg.payload?.scheduleUi?.season\" style=\"text-align: right; max-width: 58%;\">\n            <span style=\"font-size: 1.55rem; line-height: 1; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.55));\">{{ msg.payload.scheduleUi.season.emoji }}</span>\n            <div style=\"font-size: 0.62rem; font-weight: 800; color: rgba(255,255,255,0.96); text-transform: uppercase; letter-spacing: 0.07em; text-shadow: 0 1px 6px rgba(0,0,0,0.65); margin-top: 3px;\">{{ msg.payload.scheduleUi.season.label }}</div>\n            <div style=\"font-size: 0.52rem; font-weight: 600; color: rgba(226,232,240,0.95); line-height: 1.3; text-shadow: 0 1px 5px rgba(0,0,0,0.55); margin-top: 2px;\">{{ msg.payload.scheduleUi.season.hint }}</div>\n          </div>\n        </div>\n        <div style=\"font-size: 0.6rem; color: #e2e8f0; margin-bottom: 8px; line-height: 1.4; text-shadow: 0 1px 5px rgba(0,0,0,0.55);\">Check days when automatic Lawn/Flowers runs are allowed (rain skip still applies; auto only Mar–Nov). Default: every other day (Mon·Wed·Fri·Sun).</div>\n        <div style=\"display: flex; flex-wrap: wrap; gap: 8px; align-items: center;\">\n          <label v-for=\"(w, i) in msg.payload.scheduleUi.weekdays\" :key=\"'wd'+i\" style=\"display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; color: #f1f5f9; cursor: pointer; user-select: none; text-shadow: 0 1px 4px rgba(0,0,0,0.45);\">\n            <input type=\"checkbox\" :checked=\"w.enabled\" @change=\"onWeekdayChange(i, $event)\" style=\"accent-color: #38bdf8; width: 14px; height: 14px;\" />\n            {{ w.label }}\n          </label>\n        </div>\n      </div>\n    </div>\n    <div style=\"display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;\">\n      <div>\n        <div style=\"font-weight: 700; font-size: 0.95rem; color: #e0f2fe; letter-spacing: 0.03em;\">7-day forecast</div>\n        <div style=\"font-size: 0.62rem; color: #7dd3fc; margin-top: 4px; line-height: 1.35;\">Lawn / Flowers tags mark the next planned run (rain skip, weekdays, Mar–Nov season).</div>\n        <div style=\"font-size: 0.68rem; color: #64748b; margin-top: 4px; max-width: 520px; line-height: 1.4;\">\n          {{ msg.payload.weatherUi.sourceName }} · Last fetch: {{ fmtWeatherTime(msg.payload.weatherUi.fetchedAt) }}\n          <span v-if=\"msg.payload.weatherUi.lat != null\"> · {{ msg.payload.weatherUi.lat.toFixed(2) }}, {{ msg.payload.weatherUi.lon.toFixed(2) }}</span>\n          <br/><a :href=\"msg.payload.weatherUi.detailUrl\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color: #7dd3fc;\">{{ msg.payload.weatherUi.attribution }}</a>\n        </div>\n      </div>\n    </div>\n    <div v-if=\"msg.payload?.weatherUi?.hasData\" style=\"display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin;\">\n      <div v-for=\"(d, i) in (msg.payload?.weatherUi?.days || [])\" :key=\"'wx'+i\" :style=\"wxDayStyle(d)\" style=\"flex: 0 0 92px; border-radius: 12px; padding: 10px 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1);\">\n        <div style=\"font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;\">{{ d.dayShort }}</div>\n        <div style=\"font-size: 1.35rem; margin: 4px 0;\">{{ d.icon }}</div>\n        <div style=\"font-size: 0.72rem; color: #e2e8f0; font-weight: 600;\">{{ d.tmax }}° / {{ d.tmin }}°</div>\n        <div style=\"font-size: 0.62rem; color: #7dd3fc; margin-top: 4px;\">{{ d.precipMm }} mm</div>\n        <div style=\"font-size: 0.58rem; color: #94a3b8;\">{{ d.precipProb }}% rain</div>\n        <div style=\"height: 4px; border-radius: 2px; background: rgba(0,0,0,0.35); margin-top: 6px; overflow: hidden;\">\n          <div :style=\"{ height: '100%', width: d.barPct + '%', background: d.wet ? 'linear-gradient(90deg,#38bdf8,#0ea5e9)' : 'rgba(148,163,184,0.4)' }\"></div>\n        </div>\n        <div v-if=\"d.wet\" style=\"font-size: 0.58rem; color: #fbbf24; margin-top: 4px;\">Wet</div>\n        <div v-if=\"d.irrigationOff\" style=\"font-size: 0.55rem; color: #f87171; margin-top: 2px;\">Day off</div>\n<div v-if=\"d.seasonClosed\" style=\"font-size: 0.52rem; color: #93c5fd; margin-top: 2px;\">Winter break</div>\n        <div v-if=\"d.plannedLawn || d.plannedFlowers\" style=\"margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;\">\n          <span v-if=\"d.plannedLawn\" style=\"font-size: 0.56rem; font-weight: 700; color: #bae6fd; background: rgba(14,165,233,0.4); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(125,211,252,0.35);\">Lawn</span>\n          <span v-if=\"d.plannedFlowers\" style=\"font-size: 0.56rem; font-weight: 700; color: #c7d2fe; background: rgba(99,102,241,0.4); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(165,180,252,0.35);\">Flowers</span>\n        </div>\n      </div>\n    </div>\n    <div v-else style=\"font-size: 0.75rem; color: #64748b; padding: 8px;\">Loading weather… deploy & wait for first fetch.</div>\n  </div>\n\n  <div v-if=\"msg.payload.scheduleUi\" style=\"margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;\">\n    <div style=\"background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(30,27,75,0.5)); border-radius: 14px; padding: 12px; border: 1px solid rgba(125,211,252,0.25);\">\n      <div style=\"font-size: 0.72rem; font-weight: 700; color: #bae6fd; text-transform: uppercase; letter-spacing: 0.06em;\">Lawn — next run</div>\n      <div style=\"font-size: 1.1rem; font-weight: 700; color: #f0f9ff; margin-top: 6px;\">{{ schedCountdown(msg.payload.scheduleUi.nextA) }}</div>\n      <div style=\"font-size: 0.58rem; color: #64748b; margin-top: 4px;\">Until next eligible run (rain skip applied)</div>\n      <div style=\"font-size: 0.68rem; color: #94a3b8; margin-top: 4px;\">{{ msg.payload.scheduleUi.labelA }}</div>\n      <div style=\"font-size: 0.68rem; color: #86efac; margin-top: 8px; line-height: 1.45;\">{{ msg.payload.scheduleUi.lawnDetail }}</div>\n      <div v-if=\"msg.payload.scheduleUi.lawnSkipped > 0\" style=\"font-size: 0.58rem; color: #fbbf24; margin-top: 4px;\">Wet days skipped ahead: {{ msg.payload.scheduleUi.lawnSkipped }}</div>\n      <div style=\"font-size: 0.65rem; color: #64748b; margin-top: 6px;\">Default local time {{ pad2(msg.payload.scheduleUi.areaAHour) }}:{{ pad2(msg.payload.scheduleUi.areaAMin) }} · skip if rain ≥ {{ msg.payload.scheduleUi.rainSkipMm }} mm or prob ≥ {{ msg.payload.scheduleUi.rainSkipProb }}%</div>\n      <button type=\"button\" @click=\"sendTestRun('lawn')\" style=\"margin-top: 10px; width: 100%; cursor: pointer; font-size: 0.72rem; font-weight: 700; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(125,211,252,0.45); background: linear-gradient(180deg, rgba(56,189,248,0.35), rgba(14,165,233,0.2)); color: #e0f2fe;\">Trigger Irrigation Lawn</button>\n    </div>\n    <div style=\"background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(30,27,75,0.5)); border-radius: 14px; padding: 12px; border: 1px solid rgba(165,180,252,0.25);\">\n      <div style=\"font-size: 0.72rem; font-weight: 700; color: #c7d2fe; text-transform: uppercase; letter-spacing: 0.06em;\">Flowers — next run</div>\n      <div style=\"font-size: 1.1rem; font-weight: 700; color: #f5f3ff; margin-top: 6px;\">{{ schedCountdown(msg.payload.scheduleUi.nextB) }}</div>\n      <div style=\"font-size: 0.58rem; color: #64748b; margin-top: 4px;\">Until next eligible run (rain skip applied)</div>\n      <div style=\"font-size: 0.68rem; color: #94a3b8; margin-top: 4px;\">{{ msg.payload.scheduleUi.labelB }}</div>\n      <div style=\"font-size: 0.68rem; color: #c4b5fd; margin-top: 8px; line-height: 1.45;\">{{ msg.payload.scheduleUi.flowersDetail }}</div>\n      <div v-if=\"msg.payload.scheduleUi.flowersSkipped > 0\" style=\"font-size: 0.58rem; color: #fbbf24; margin-top: 4px;\">Wet days skipped ahead: {{ msg.payload.scheduleUi.flowersSkipped }}</div>\n      <div style=\"font-size: 0.65rem; color: #64748b; margin-top: 6px;\">Default local time {{ pad2(msg.payload.scheduleUi.areaBHour) }}:{{ pad2(msg.payload.scheduleUi.areaBMin) }} · skip if rain ≥ {{ msg.payload.scheduleUi.rainSkipMm }} mm or prob ≥ {{ msg.payload.scheduleUi.rainSkipProb }}%</div>\n      <button type=\"button\" @click=\"sendTestRun('flowers')\" style=\"margin-top: 10px; width: 100%; cursor: pointer; font-size: 0.72rem; font-weight: 700; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(165,180,252,0.45); background: linear-gradient(180deg, rgba(129,140,248,0.35), rgba(99,102,241,0.2)); color: #eef2ff;\">Trigger Irrigation Flowers</button>\n    </div>\n  </div>\n  <div style=\"font-size: 0.65rem; color: #475569; margin: -8px 0 12px 4px;\">{{ msg.payload.scheduleUi.note }}</div>\n\n  <div style=\"display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;\">\n    <div style=\"display: flex; align-items: center; gap: 10px;\">\n      <span style=\"font-size: 1.75rem; line-height: 1;\">🌊</span>\n      <div>\n        <div style=\"font-weight: 700; font-size: 1.1rem; color: #f8fafc; letter-spacing: 0.02em;\">Irrigation status</div>\n        <div style=\"font-size: 0.75rem; color: #94a3b8; margin-top: 2px;\">I1–I12 areas · pump · MQTT</div>\n      </div>\n    </div>\n    <div style=\"font-size: 0.72rem; color: #64748b; font-family: ui-monospace, monospace;\">{{ fmtTime(msg.payload.lastUpdate) }}</div>\n  </div>\n\n  <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;\">\n    <div style=\"background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1);\">\n      <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 6px;\">\n        <span style=\"font-size: 1.35rem;\">⚡</span>\n        <span style=\"font-weight: 600; color: #e2e8f0; font-size: 0.9rem;\">24V power</span>\n      </div>\n      <div :style=\"badgeStyle(msg.payload.power24)\" style=\"display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;\">{{ msg.payload.power24 }}</div>\n    </div>\n    <div style=\"background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1);\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;\">\n        <div style=\"display: flex; align-items: center; gap: 8px;\">\n          <span style=\"font-size: 1.35rem;\">💧</span>\n          <span style=\"font-weight: 600; color: #e2e8f0; font-size: 0.9rem;\">Pump</span>\n        </div>\n        <a v-if=\"msg.payload.pumpWebUrl\" :href=\"msg.payload.pumpWebUrl\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"font-size: 0.72rem; color: #38bdf8; text-decoration: underline;\">Tasmota ↗</a>\n      </div>\n      <div :style=\"badgeStyle(msg.payload.pump)\" style=\"display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;\">{{ msg.payload.pump }}</div>\n      <div v-if=\"msg.payload.pumpRunLine\" style=\"margin-top: 8px; font-size: 0.72rem; color: #86efac; line-height: 1.35;\">{{ msg.payload.pumpRunLine }}</div>\n      <div v-else-if=\"msg.payload.pumpHistLine\" style=\"margin-top: 8px; font-size: 0.72rem; color: #94a3b8; line-height: 1.35;\">{{ msg.payload.pumpHistLine }}</div>\n    </div>\n  </div>\n\n  <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px 4px;\">Area A — I1–I10</div>\n  <div style=\"display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; margin-bottom: 14px;\">\n    <div v-for=\"(z, i) in msg.payload.zonesAreaA\" :key=\"'a'+i\" style=\"background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 10px 12px; border: 1px solid rgba(255,255,255,0.07); min-height: 118px;\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 6px;\">\n        <span style=\"font-size: 1.25rem; line-height: 1;\" :title=\"z.label\">{{ z.icon }}</span>\n        <span :style=\"badgeStyle(z.state)\" style=\"padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 700;\">{{ z.state }}</span>\n      </div>\n      <div style=\"margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #cbd5e1;\">{{ z.label }}</div>\n      <div style=\"margin-top: 8px; font-size: 0.64rem; color: #94a3b8; line-height: 1.45;\">\n        <div><span style=\"color:#64748b;\">Started</span> {{ z.zoneStarted || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Ended</span> {{ z.zoneEnded || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Duration</span> <span :style=\"z.state === 'ON' ? { color: '#86efac' } : { color: '#e2e8f0' }\">{{ z.zoneDuration || '—' }}</span></div>\n      </div>\n    </div>\n  </div>\n  <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px 4px;\">Area B — I11 & I12</div>\n  <div style=\"display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px;\">\n    <div v-for=\"(z, i) in msg.payload.zonesAreaB\" :key=\"'b'+i\" style=\"background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 10px 12px; border: 1px solid rgba(255,255,255,0.07); min-height: 118px;\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 6px;\">\n        <span style=\"font-size: 1.25rem; line-height: 1;\" :title=\"z.label\">{{ z.icon }}</span>\n        <span :style=\"badgeStyle(z.state)\" style=\"padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 700;\">{{ z.state }}</span>\n      </div>\n      <div style=\"margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #cbd5e1;\">{{ z.label }}</div>\n      <div style=\"margin-top: 8px; font-size: 0.64rem; color: #94a3b8; line-height: 1.45;\">\n        <div><span style=\"color:#64748b;\">Started</span> {{ z.zoneStarted || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Ended</span> {{ z.zoneEnded || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Duration</span> <span :style=\"z.state === 'ON' ? { color: '#86efac' } : { color: '#e2e8f0' }\">{{ z.zoneDuration || '—' }}</span></div>\n      </div>\n    </div>\n  </div>\n\n  <div v-if=\"msg.payload.scheduleUi\" style=\"margin-top: 10px; margin-bottom: 14px;\">\n    <div style=\"background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(30,27,75,0.55)); border-radius: 14px; padding: 14px 14px 12px; border: 1px solid rgba(52,211,153,0.35); box-shadow: 0 12px 32px rgba(0,0,0,0.2);\">\n      <div style=\"display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;\">\n        <span style=\"font-size: 1.5rem; line-height: 1;\">🌤️</span>\n        <div style=\"flex: 1; min-width: 0;\">\n          <div style=\"font-weight: 800; font-size: 0.95rem; color: #a7f3d0; letter-spacing: 0.02em;\">{{ msg.payload.scheduleUi.logicTitle }}</div>\n          <div style=\"font-size: 0.68rem; color: #64748b; margin-top: 4px; line-height: 1.4;\">{{ msg.payload.scheduleUi.wetTodayHint }}</div>\n        </div>\n      </div>\n      <div style=\"margin-top: 10px; padding: 11px 12px; background: rgba(0,0,0,0.22); border-radius: 10px; border: 1px solid rgba(52,211,153,0.28);\">\n        <div style=\"font-size: 0.62rem; font-weight: 700; color: #6ee7b7; text-transform: uppercase; letter-spacing: 0.06em;\">Next irrigation planned</div>\n        <div style=\"font-size: 0.78rem; color: #ecfdf5; margin-top: 8px; line-height: 1.55;\">\n          <div><span style=\"color:#bae6fd;font-weight:600;\">Lawn</span> — {{ msg.payload.scheduleUi.nextLawnPlanned }}</div>\n          <div style=\"margin-top: 5px;\"><span style=\"color:#c7d2fe;font-weight:600;\">Flowers</span> — {{ msg.payload.scheduleUi.nextFlowersPlanned }}</div>\n        </div>\n      </div>\n      <div style=\"font-size: 0.72rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 10px; margin-top: 12px;\">{{ msg.payload.scheduleUi.logicIntro }}</div>\n      <div style=\"font-size: 0.68rem; color: #94a3b8; line-height: 1.52; padding: 10px 11px; background: rgba(0,0,0,0.28); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);\">{{ msg.payload.scheduleUi.logicAlgorithm }}</div>\n    </div>\n  </div>\n\n  <div style=\"margin-top: 16px;\">\n    <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 8px 4px;\">Event log (last 25)</div>\n    <div style=\"max-height: 320px; overflow-y: auto; font-size: 0.7rem; border-radius: 10px; padding: 8px 10px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08);\">\n      <div v-if=\"msg.payload.eventLog && msg.payload.eventLog.length\" style=\"display: flex; flex-direction: column; gap: 0;\">\n        <div v-for=\"(e, i) in msg.payload.eventLog\" :key=\"i\" style=\"display: flex; gap: 8px; align-items: baseline; padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.06);\">\n          <span style=\"flex-shrink: 0; font-size: 1rem; line-height: 1.2;\">{{ e.icon }}</span>\n          <span style=\"color: #64748b; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 0.65rem; white-space: nowrap;\">{{ fmtLogTime(e.ts) }}</span>\n          <span style=\"color: #cbd5e1; line-height: 1.35;\">{{ e.line }}</span>\n        </div>\n      </div>\n      <div v-else style=\"color: #64748b; padding: 8px 4px;\">No state changes yet.</div>\n    </div>\n  </div>\n</div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { schedTick: 0, schedTimer: null };\n  },\n  mounted() {\n    this.schedTimer = setInterval(() => { this.schedTick = Date.now(); }, 1000);\n  },\n  beforeUnmount() {\n    if (this.schedTimer) { clearInterval(this.schedTimer); this.schedTimer = null; }\n  },\n  beforeDestroy() {\n    if (this.schedTimer) { clearInterval(this.schedTimer); this.schedTimer = null; }\n  },\n  watch: {\n    msg: {\n      deep: true,\n      handler() { /* nrdb: nested payload refresh */ }\n    }\n  },\n  methods: {\n    onWeekdayChange(i, ev) {\n      const wd = this.msg && this.msg.payload && this.msg.payload.scheduleUi && this.msg.payload.scheduleUi.weekdays;\n      if (!wd || !wd.length) return;\n      const list = wd.map(function (w) { return !!w.enabled; });\n      list[i] = ev.target.checked;\n      const fn = this.send;\n      if (typeof fn === 'function') fn({ payload: { irrigationWeekdays: list } });\n    },\n    sendTestRun(kind) {\n      const fn = this.send;\n      if (typeof fn === 'function') {\n        fn({ payload: { irrigationTest: kind } });\n      }\n    },\n    schedCountdown(targetMs) {\n      void this.schedTick;\n      const t = targetMs == null || targetMs === '' ? NaN : Number(targetMs);\n      if (isNaN(t)) return '—';\n      const nowMs = Date.now();\n      let sec = Math.floor((t - nowMs) / 1000);\n      if (sec <= 0) return 'imminent';\n      const d = Math.floor(sec / 86400);\n      sec %= 86400;\n      const h = Math.floor(sec / 3600);\n      sec %= 3600;\n      const m = Math.floor(sec / 60);\n      const s = sec % 60;\n      if (d > 0) return d + 'd ' + h + 'h';\n      if (h > 0) return h + 'h ' + m + 'm';\n      if (m > 0) return m + 'm ' + s + 's';\n      return s + 's';\n    },\n    pad2(n) {\n      const x = Number(n) || 0;\n      return x < 10 ? '0' + x : String(x);\n    },\n    fmtWeatherTime(iso) {\n      if (!iso) return '—';\n      try {\n        return new Date(iso).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });\n      } catch (e) { return iso; }\n    },\n    irrigationDaysCardBase(season) {\n      if (!season) {\n        return {\n          background: 'rgba(15,23,42,0.82)',\n          boxShadow: '0 10px 32px rgba(0,0,0,0.4)'\n        };\n      }\n      return {\n        background: season.artGradient,\n        boxShadow: '0 10px 36px ' + (season.glow || 'rgba(0,0,0,0.4)')\n      };\n    },\n    seasonArtStyle(season) {\n      if (!season) return {};\n      return {\n        background: season.artGradient,\n        boxShadow: '0 4px 22px ' + (season.glow || 'rgba(0,0,0,0.35)')\n      };\n    },\n    wxDayStyle(d) {\n      const wet = d && d.wet;\n      let base = wet ? { background: 'rgba(30,58,138,0.35)' } : { background: 'rgba(255,255,255,0.06)' };\n      if (d && d.irrigationOff) {\n        base = Object.assign({}, base, { opacity: 0.55, border: '1px dashed rgba(248,113,113,0.4)' });\n      }\n      if (d && d.seasonClosed) {\n        base = Object.assign({}, base, { opacity: 0.5, border: '1px dashed rgba(147,197,253,0.45)' });\n      }\n      return base;\n    },\n    fmtTime(iso) {\n      if (!iso) return '—';\n      try {\n        const d = new Date(iso);\n        return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });\n      } catch (e) { return iso; }\n    },\n    fmtLogTime(iso) {\n      if (!iso) return '—';\n      try {\n        const d = new Date(iso);\n        return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });\n      } catch (e) { return iso; }\n    },\n    badgeStyle(state) {\n      const s = String(state || '').toUpperCase();\n      if (s === 'ON') return { background: '#059669', color: '#fff' };\n      if (s === 'OFF') return { background: '#475569', color: '#e2e8f0' };\n      return { background: '#78350f', color: '#fde68a' };\n    }\n  }\n}\n</script>",
+        "storeOutMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1000,
+        "y": 260,
+        "wires": [
+            [
+                "f7c8a9b0e1d23456"
+            ]
+        ]
+    },
+    {
+        "id": "e805c82417719485",
+        "type": "function",
+        "z": "1e882bb57588dff2",
+        "name": "Trigger irrigation → Gate lawn/flowers",
+        "func": "const p = msg.payload;\nlet which = null;\nif (p && typeof p === 'object' && p.irrigationTest) {\n    which = String(p.irrigationTest).toLowerCase();\n}\nconst start = { payload: 'ON', topic: 'topic' };\nif (which === 'lawn') return [start, null];\nif (which === 'flowers') return [null, start];\nreturn [null, null];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 320,
+        "wires": [
+            [
+                "0d7795cfd1d3beab"
+            ],
+            [
+                "c76db5353e06e491"
+            ]
+        ]
+    },
+    {
+        "id": "0d7795cfd1d3beab",
+        "type": "link out",
+        "z": "1e882bb57588dff2",
+        "name": "Test → Gate lawn (420)",
+        "mode": "link",
+        "links": [
+            "566bf071f4bf257c"
+        ],
+        "x": 1385,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "c76db5353e06e491",
+        "type": "link out",
+        "z": "1e882bb57588dff2",
+        "name": "Test → Gate Flowers (420)",
+        "mode": "link",
+        "links": [
+            "b2721f7bd5a4594b"
+        ],
+        "x": 1405,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "b4ebc75705150c17",
+        "type": "link out",
+        "z": "1e882bb57588dff2",
+        "name": "To Gate Flowers (420)",
+        "mode": "link",
+        "links": [
+            "b2721f7bd5a4594b"
+        ],
+        "x": 860,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "0286dac0d37fd97a",
+        "type": "inject",
+        "z": "1e882bb57588dff2",
+        "name": "Weather on deploy",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.5,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 440,
+        "y": 440,
+        "wires": [
+            [
+                "a5b9f989503788de"
+            ]
+        ]
+    },
+    {
+        "id": "73850d9f081d4c01",
+        "type": "mqtt-broker",
+        "name": "mqtt local",
+        "broker": "192.168.2.4",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "fcd48adffba5ec7c",
+        "type": "telegram bot",
+        "botname": "LuncaCetatuiiAutomationBot_bot",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": "300",
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": "6667",
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "",
+        "localbotport": "8443",
+        "publicbotport": "8443",
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "mqtt_broker_local",
+        "type": "mqtt-broker",
+        "name": "Local Broker",
+        "broker": "192.168.2.4",
+        "port": "1883",
+        "clientid": "node-red-dashboard",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "ui_group_irrigation_status",
+        "type": "ui-group",
+        "name": "Overview",
+        "page": "ui_page_irrigation_status",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
     },
     {
         "id": "ui_page_irrigation_status",
@@ -40,431 +566,57 @@
                 "cols": "12"
             }
         ],
-        "order": 6,
+        "order": 7,
         "className": "",
         "visible": "true",
         "disabled": "false"
     },
     {
-        "id": "ui_group_irrigation_status",
-        "type": "ui-group",
-        "name": "Overview",
-        "page": "ui_page_irrigation_status",
-        "width": "12",
-        "height": "1",
-        "order": 1,
-        "showTitle": true,
-        "className": "",
-        "visible": "true",
-        "disabled": "false",
-        "groupType": "default"
-    },
-    {
-        "id": "irr421_mqtt_irrigation",
-        "type": "mqtt in",
-        "z": "tab_dashboard",
-        "name": "IrigationSystem stat",
-        "topic": "stat/IrigationSystem/#",
-        "qos": "1",
-        "datatype": "auto-detect",
-        "broker": "73850d9f081d4c01",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 140,
-        "y": 140,
-        "wires": [
-            [
-                "irr421_func_merge"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_mqtt_pump",
-        "type": "mqtt in",
-        "z": "tab_dashboard",
-        "name": "Pump stat",
-        "topic": "stat/pompaApa/POWER1",
-        "qos": "1",
-        "datatype": "auto-detect",
-        "broker": "73850d9f081d4c01",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 140,
-        "y": 200,
-        "wires": [
-            [
-                "irr421_func_merge"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_mqtt_pump_tele",
-        "type": "mqtt in",
-        "z": "tab_dashboard",
-        "name": "Pump tele STATE",
-        "topic": "tele/pompaApa/STATE",
-        "qos": "0",
-        "datatype": "json",
-        "broker": "73850d9f081d4c01",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 140,
-        "y": 260,
-        "wires": [
-            [
-                "irr421_func_merge"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_inject_tick",
-        "type": "inject",
-        "z": "tab_dashboard",
-        "name": "Tick 1s",
-        "props": [
-            {
-                "p": "payload"
-            }
+        "id": "b89dd587275b51bf",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
         ],
-        "repeat": "1",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "__tick__",
-        "payload": "",
-        "payloadType": "str",
-        "x": 140,
-        "y": 320,
-        "wires": [
-            [
-                "irr421_func_merge"
-            ]
-        ]
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
     },
     {
-        "id": "irr421_inject_init",
-        "type": "inject",
-        "z": "tab_dashboard",
-        "name": "UI init",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.4,
-        "topic": "__init__",
-        "payload": "",
-        "payloadType": "str",
-        "x": 140,
-        "y": 380,
-        "wires": [
-            [
-                "irr421_func_merge",
-                "irr421_func_openmeteo_fetch"
-            ]
-        ]
+        "id": "39a2cf2c0af73875",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
     },
     {
-        "id": "irr421_func_merge",
-        "type": "function",
-        "z": "tab_dashboard",
-        "name": "Merge status → UI payload",
-        "func": "const topic = msg.topic || '';\nconst raw = msg.payload;\nfunction payloadToPowerString(r) {\n    if (r === null || r === undefined || r === '') return 'UNKNOWN';\n    if (Buffer.isBuffer(r)) return r.toString().trim();\n    if (typeof r === 'object') {\n        if (r.POWER !== undefined) return String(r.POWER).trim();\n        if (r.POWER1 !== undefined) return String(r.POWER1).trim();\n        for (const k of Object.keys(r)) {\n            if (/^POWER\\d+$/i.test(k) && r[k] !== undefined) return String(r[k]).trim();\n        }\n    }\n    return String(r).trim();\n}\nfunction resolveTelegramChatIds() {\n    const fromFlow = flow.get('telegram_chat_ids') || [];\n    if (fromFlow.length) return fromFlow;\n    try {\n        const g = global.get('telegram_chat_ids');\n        if (g && g.length) return g;\n    } catch (e) {}\n    return [991635368];\n}\nconst pl = payloadToPowerString(raw);\n\nconst ZONE_KEYS = ['POWER2', 'POWER3', 'POWER4', 'POWER5', 'POWER10', 'POWER11', 'POWER12', 'POWER13', 'POWER14', 'POWER15', 'POWER16', 'POWER17'];\n\nconst POWER_TO_I = { POWER2: 'I1', POWER3: 'I2', POWER4: 'I3', POWER5: 'I4', POWER10: 'I5', POWER11: 'I6', POWER12: 'I7', POWER13: 'I8', POWER14: 'I9', POWER15: 'I10', POWER16: 'I11', POWER17: 'I12' };\nconst ZONE_KEYS_AREA_A = ['POWER2', 'POWER3', 'POWER4', 'POWER5', 'POWER10', 'POWER11', 'POWER12', 'POWER13', 'POWER14', 'POWER15'];\nconst ZONE_KEYS_AREA_B = ['POWER16', 'POWER17'];\nconst ZONE_KEY_TO_ICON = { POWER2: '🌱', POWER3: '🌿', POWER4: '🍃', POWER5: '🌾', POWER10: '🥬', POWER11: '🌽', POWER12: '🍅', POWER13: '🫛', POWER14: '🌻', POWER15: '🪴', POWER16: '🌳', POWER17: '🏞️' };\nconst LOG_MAX = 25;\nlet smsLine = null;\nfunction pushLog(icon, line) {\n    const arr = flow.get('irrigation_event_log_v1') || [];\n    arr.unshift({ ts: new Date().toISOString(), icon: icon || '📋', line: String(line || '') });\n    while (arr.length > LOG_MAX) arr.pop();\n    flow.set('irrigation_event_log_v1', arr);\n    smsLine = String(line || '');\n}\n\nfunction buildSmsOut() {\n    let to = String(flow.get('irrigation_sms_to') || '').replace(/\\D/g, '');\n    if (!to || to.length < 8) {\n        to = String(flow.get('sms_phone') || '').replace(/\\D/g, '');\n    }\n    if (!to || to.length < 8 || !smsLine) return null;\n    const text = ('Irrigation: ' + smsLine).substring(0, 160);\n    return { topic: 'sms/gateway/command/send', payload: JSON.stringify({ to: to, text: text }) };\n}\n\nfunction buildTelegramTrigger() {\n    if (!smsLine) return null;\n    const ids = resolveTelegramChatIds();\n    if (!ids.length) return null;\n    return { payload: { irrigationTgAlert: smsLine } };\n}\n\nfunction pad2(n) { return (n < 10 ? '0' : '') + n; }\nfunction localYmd(d) {\n    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());\n}\nfunction wmoEmoji(code) {\n    const c = Number(code) || 0;\n    if (c === 0) return '☀️';\n    if (c <= 3) return '🌤️';\n    if (c <= 48) return '☁️';\n    if (c <= 67) return '🌧️';\n    if (c <= 77) return '🌨️';\n    if (c <= 82) return '🌧️';\n    return '⛈️';\n}\nfunction isDayWet(dateStr) {\n    const w = flow.get('irrigation_weather_v1');\n    if (!w || !w.daily || !w.daily.length) return false;\n    const row = w.daily.find(function (x) { return x.date === dateStr; });\n    return row ? !!row.wet : false;\n}\n/** Same rules as UI schedCountdown: time until next run epoch (rain-postponed slot from computeNextIrrigationSlot). */\nfunction fmtCountdownTo(targetMs, nowMs) {\n    if (targetMs == null || isNaN(targetMs)) return '—';\n    let sec = Math.floor((targetMs - nowMs) / 1000);\n    if (sec <= 0) return 'imminent';\n    const d = Math.floor(sec / 86400);\n    sec %= 86400;\n    const h = Math.floor(sec / 3600);\n    sec %= 3600;\n    const m = Math.floor(sec / 60);\n    const s = sec % 60;\n    if (d > 0) return d + 'd ' + h + 'h';\n    if (h > 0) return h + 'h ' + m + 'm';\n    if (m > 0) return m + 'm ' + s + 's';\n    return s + 's';\n}\nfunction fmtNextRunPlannedLine(ms) {\n    if (ms == null || isNaN(ms)) return '—';\n    try {\n        const d = new Date(ms);\n        return d.toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });\n    } catch (e) {\n        return '—';\n    }\n}\n/**\n * Next irrigation window: greedy forward scan over calendar days (horizon 14).\n * For each future local time (day + clock hour/min), skip if that calendar day is \"wet\"\n * (same rule as runtime: precip ≥ threshold OR prob ≥ threshold). First non-wet day wins.\n * This matches common rule-based irrigation practice (skip rain; wait for next suitable day).\n * Advanced systems add soil water balance / ET₀ − rain; we stay forecast-rule-based.\n */\nfunction computeNextIrrigationSlot(hour, minute, nowMs) {\n    const w = flow.get('irrigation_weather_v1');\n    const daily = w && w.daily ? w.daily : [];\n    const skippedDates = [];\n    for (let add = 0; add < 14; add++) {\n        const d = new Date(nowMs);\n        d.setHours(0, 0, 0, 0);\n        d.setDate(d.getDate() + add);\n        const ds = localYmd(d);\n        const slot = new Date(d);\n        slot.setHours(Number(hour) || 0, Number(minute) || 0, 0, 0);\n        if (slot.getTime() <= nowMs) continue;\n        const row = daily.find(function (x) { return x.date === ds; });\n        const wet = row ? !!row.wet : false;\n        if (wet) {\n            skippedDates.push(ds);\n            continue;\n        }\n        let statusLine = '';\n        if (skippedDates.length === 0) {\n            statusLine = 'Next run targets the first upcoming dry day at your set time.';\n        } else {\n            statusLine = 'Forecast wet — postponed ' + skippedDates.length + ' day(s); next run on the next dry day at your set time.';\n        }\n        return { ms: slot.getTime(), skippedCount: skippedDates.length, skippedDates: skippedDates, statusLine: statusLine };\n    }\n    return { ms: null, skippedCount: skippedDates.length, skippedDates: skippedDates, statusLine: 'No dry day within 14-day forecast — check thresholds or weather fetch.' };\n}\nfunction computeNextRunMs(hour, minute, nowMs) {\n    const r = computeNextIrrigationSlot(hour, minute, nowMs);\n    return r.ms;\n}\nfunction buildWeatherUi(nowMs) {\n    const w = flow.get('irrigation_weather_v1');\n    if (!w || !w.daily || !w.daily.length) {\n        return {\n            hasData: false,\n            days: [],\n            attribution: 'Open-Meteo (CC BY 4.0)',\n            sourceName: '—',\n            fetchedAt: null,\n            detailUrl: 'https://open-meteo.com'\n        };\n    }\n    const days = w.daily.slice(0, 7).map(function (d) {\n        const barPct = Math.min(100, Math.round((Number(d.precipMm) || 0) * 20));\n        return {\n            date: d.date,\n            dayShort: (function () {\n                try {\n                    return new Date(d.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' });\n                } catch (e) {\n                    return d.date;\n                }\n            })(),\n            icon: wmoEmoji(d.wmo),\n            tmax: d.tmax,\n            tmin: d.tmin,\n            precipMm: d.precipMm,\n            precipProb: d.precipProb,\n            wet: !!d.wet,\n            barPct: barPct\n        };\n    });\n    return {\n        hasData: true,\n        days: days,\n        attribution: w.attribution || 'Weather data by Open-Meteo (CC BY 4.0)',\n        sourceName: w.sourceName || 'Open-Meteo',\n        fetchedAt: w.fetchedAt,\n        detailUrl: w.sourceUrl || 'https://open-meteo.com',\n        lat: w.lat,\n        lon: w.lon\n    };\n}\nfunction buildScheduleUi(nowMs) {\n    const en = flow.get('irrigation_scheduler_enabled');\n    const enabled = en !== false;\n    const hA = Number(flow.get('irrigation_sched_area_a_hour'));\n    const mA = Number(flow.get('irrigation_sched_area_a_minute'));\n    const hB = Number(flow.get('irrigation_sched_area_b_hour'));\n    const mB = Number(flow.get('irrigation_sched_area_b_minute'));\n    const hourA = isNaN(hA) ? 3 : hA;\n    const minA = isNaN(mA) ? 0 : mA;\n    const hourB = isNaN(hB) ? 5 : hB;\n    const minB = isNaN(mB) ? 0 : mB;\n    const rainMm = Number(flow.get('irrigation_rain_skip_mm'));\n    const rainProb = Number(flow.get('irrigation_rain_skip_prob'));\n    const rMm = isNaN(rainMm) ? 1 : rainMm;\n    const rPr = isNaN(rainProb) ? 70 : rainProb;\n    const slotA = enabled ? computeNextIrrigationSlot(hourA, minA, nowMs) : { ms: null, skippedCount: 0, statusLine: '', skippedDates: [] };\n    const slotB = enabled ? computeNextIrrigationSlot(hourB, minB, nowMs) : { ms: null, skippedCount: 0, statusLine: '', skippedDates: [] };\n    const nextA = slotA.ms;\n    const nextB = slotB.ms;\n    const today = localYmd(new Date(nowMs));\n    const wetToday = isDayWet(today);\n    const logicIntro = 'A day is “wet” when forecast precipitation ≥ ' + rMm + ' mm or max rain probability ≥ ' + rPr + '%. The next irrigation is the first future day at your clock time that is not wet (dry / “sunny enough” for our rule).';\n    const logicAlgorithm = 'Algorithm: greedy forward scan — walk from today up to 14 days; at each scheduled local time, skip wet days; the first dry day is the next run. This follows common rule-based irrigation (skip incoming rain; irrigate on the next suitable day). Advanced ET/soil-balance scheduling (e.g. FAO-56) can refine amounts; this flow uses forecast gates only.';\n    return {\n        enabled: enabled,\n        areaAHour: hourA,\n        areaAMin: minA,\n        areaBHour: hourB,\n        areaBMin: minB,\n        rainSkipMm: rMm,\n        rainSkipProb: rPr,\n        wetToday: wetToday,\n        wetTodayHint: wetToday ? 'Today’s forecast is wet — automatic start will skip until a dry day.' : 'Today’s forecast is dry at decision time (per daily flags).',\n        nextA: nextA,\n        nextB: nextB,\n        countdownA: fmtCountdownTo(nextA, nowMs),\n        countdownB: fmtCountdownTo(nextB, nowMs),\n        labelA: nextA ? new Date(nextA).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—',\n        labelB: nextB ? new Date(nextB).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—',\n        lawnDetail: enabled ? slotA.statusLine : 'Scheduler disabled.',\n        flowersDetail: enabled ? slotB.statusLine : 'Scheduler disabled.',\n        lawnSkipped: slotA.skippedCount,\n        flowersSkipped: slotB.skippedCount,\n        logicTitle: 'Rain-smart schedule',\n        nextLawnPlanned: enabled ? fmtNextRunPlannedLine(nextA) : 'Scheduler off',\n        nextFlowersPlanned: enabled ? fmtNextRunPlannedLine(nextB) : 'Scheduler off',\n        logicIntro: logicIntro,\n        logicAlgorithm: logicAlgorithm,\n        note: 'Lawn runs the full Lawn program; Flowers runs the Flowers program. Times are local to Node-RED.'\n    };\n}\n\nconst defaults = () => ({\n    POWER1: 'UNKNOWN', POWER2: 'UNKNOWN', POWER3: 'UNKNOWN', POWER4: 'UNKNOWN', POWER5: 'UNKNOWN',\n    POWER10: 'UNKNOWN', POWER11: 'UNKNOWN', POWER12: 'UNKNOWN', POWER13: 'UNKNOWN',\n    POWER14: 'UNKNOWN', POWER15: 'UNKNOWN', POWER16: 'UNKNOWN', POWER17: 'UNKNOWN',\n    pump: 'UNKNOWN',\n    lastUpdate: null\n});\n\nfunction norm(v) {\n    const u = String(v).toUpperCase();\n    if (u === 'ON' || u === 'TRUE' || u === '1') return 'ON';\n    if (u === 'OFF' || u === 'FALSE' || u === '0') return 'OFF';\n    return u;\n}\n\nfunction fmtDur(totalSec) {\n    const s = Math.max(0, Math.floor(Number(totalSec) || 0));\n    if (s < 60) return s + 's';\n    const m = Math.floor(s / 60);\n    const r = s % 60;\n    if (m < 60) return m + 'm ' + r + 's';\n    const h = Math.floor(m / 60);\n    return h + 'h ' + (m % 60) + 'm';\n}\n\nfunction fmtClock(ms) {\n    if (!ms) return '—';\n    try { return new Date(ms).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' }); } catch (e) { return '—'; }\n}\n\nfunction updateTimer(timers, key, prev, next) {\n    if (!timers[key]) {\n        timers[key] = { startedAt: null, lastEndIso: null, lastStartIso: null, lastDurationSec: null };\n    }\n    const t = timers[key];\n    const p = (prev === 'ON' || prev === 'OFF') ? prev : null;\n    const n = (next === 'ON' || next === 'OFF') ? next : null;\n    if (n === 'ON' && p !== 'ON') {\n        t.startedAt = Date.now();\n        t.lastStartIso = new Date(t.startedAt).toISOString();\n    }\n    if (n === 'OFF' && p === 'ON' && t.startedAt) {\n        const end = Date.now();\n        t.lastEndIso = new Date(end).toISOString();\n        t.lastDurationSec = Math.round((end - t.startedAt) / 1000);\n        t.startedAt = null;\n    }\n}\n\nfunction buildPayload(s, timers, now) {\n    const nowMs = now || Date.now();\n    const pumpUrl = flow.get('pump_web_url') || '';\n\n    const zoneRows = [\n        { k: 'POWER2', label: 'I1', icon: '🌱' },\n        { k: 'POWER3', label: 'I2', icon: '🌿' },\n        { k: 'POWER4', label: 'I3', icon: '🍃' },\n        { k: 'POWER5', label: 'I4', icon: '🌾' },\n        { k: 'POWER10', label: 'I5', icon: '🥬' },\n        { k: 'POWER11', label: 'I6', icon: '🌽' },\n        { k: 'POWER12', label: 'I7', icon: '🍅' },\n        { k: 'POWER13', label: 'I8', icon: '🫛' },\n        { k: 'POWER14', label: 'I9', icon: '🌻' },\n        { k: 'POWER15', label: 'I10', icon: '🪴' },\n        { k: 'POWER16', label: 'I11', icon: '🌳' },\n        { k: 'POWER17', label: 'I12', icon: '🏞️' }\n    ];\n    const zonesAreaA = ZONE_KEYS_AREA_A.map(k => {\n        const z = zoneRows.find(r => r.k === k);\n        const ex = zoneExtras(k);\n        return { ...z, state: s[k] || 'UNKNOWN', ...ex };\n    });\n    const zonesAreaB = ZONE_KEYS_AREA_B.map(k => {\n        const z = zoneRows.find(r => r.k === k);\n        const ex = zoneExtras(k);\n        return { ...z, state: s[k] || 'UNKNOWN', ...ex };\n    });\n\n    function zoneExtras(key) {\n        const st = s[key] || 'UNKNOWN';\n        const tk = timers[key] || {};\n        let zoneStarted = '';\n        let zoneEnded = '';\n        let zoneDuration = '';\n        if (st === 'ON' && tk.startedAt) {\n            const sec = Math.floor((nowMs - tk.startedAt) / 1000);\n            zoneStarted = fmtClock(tk.startedAt);\n            zoneEnded = '—';\n            zoneDuration = fmtDur(sec);\n        } else if (st === 'OFF') {\n            if (tk.lastStartIso && tk.lastEndIso && tk.lastDurationSec != null) {\n                zoneStarted = fmtClock(new Date(tk.lastStartIso).getTime());\n                zoneEnded = fmtClock(new Date(tk.lastEndIso).getTime());\n                zoneDuration = fmtDur(tk.lastDurationSec);\n            } else if (tk.lastDurationSec != null) {\n                zoneDuration = fmtDur(tk.lastDurationSec);\n            }\n        }\n        return { zoneStarted, zoneEnded, zoneDuration };\n    }\n\n    const tp = timers.pump || {};\n    const pumpSt = s.pump || 'UNKNOWN';\n    let pumpRun = '';\n    let pumpHist = '';\n    if (pumpSt === 'ON' && tp.startedAt) {\n        const sec = Math.floor((nowMs - tp.startedAt) / 1000);\n        pumpRun = 'Running ' + fmtDur(sec) + ' · started ' + fmtClock(tp.startedAt);\n    } else if (pumpSt === 'OFF' && tp.lastDurationSec != null && tp.lastStartIso && tp.lastEndIso) {\n        pumpHist = 'Last: ' + fmtClock(new Date(tp.lastStartIso).getTime()) + ' → ' + fmtClock(new Date(tp.lastEndIso).getTime()) + ' · ' + fmtDur(tp.lastDurationSec);\n    }\n\n    const wx = buildWeatherUi(nowMs);\n    const sch = buildScheduleUi(nowMs);\n    if (wx.hasData && wx.days && wx.days.length) {\n        const lawnY = sch.enabled && sch.nextA != null ? localYmd(new Date(sch.nextA)) : null;\n        const flowersY = sch.enabled && sch.nextB != null ? localYmd(new Date(sch.nextB)) : null;\n        wx.days = wx.days.map(function (day) {\n            return {\n                date: day.date,\n                dayShort: day.dayShort,\n                icon: day.icon,\n                tmax: day.tmax,\n                tmin: day.tmin,\n                precipMm: day.precipMm,\n                precipProb: day.precipProb,\n                wet: day.wet,\n                barPct: day.barPct,\n                plannedLawn: lawnY != null && day.date === lawnY,\n                plannedFlowers: flowersY != null && day.date === flowersY\n            };\n        });\n    }\n\n    return {\n        power24: s.POWER1 || 'UNKNOWN',\n        pump: pumpSt,\n        pumpRunLine: pumpRun,\n        pumpHistLine: pumpHist,\n        pumpWebUrl: pumpUrl,\n        zonesAreaA: zonesAreaA,\n        zonesAreaB: zonesAreaB,\n        eventLog: flow.get('irrigation_event_log_v1') || [],\n        lastUpdate: s.lastUpdate,\n        weatherUi: wx,\n        scheduleUi: sch\n    };\n}\n\nif (topic === '__weather_refresh__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nif (topic === '__init__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nif (topic === '__tick__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nif (topic.indexOf('tele/pompaApa/STATE') >= 0) {\n    try {\n        const o = typeof raw === 'object' ? raw : JSON.parse(String(raw));\n        const ip = o.IPAddress || (o.Wifi && (o.Wifi.IP || o.Wifi.IPAddress || o.Wifi.ip)) || '';\n        if (ip) flow.set('pump_web_url', 'http://' + ip + '/');\n    } catch (e) { /* ignore */ }\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return [msg, null, null];\n}\n\nlet s = flow.get('irrigation_status_v1') || defaults();\nlet timers = flow.get('irrigation_zone_timers') || {};\n\nif (topic.indexOf('IrigationSystem') >= 0) {\n    const seg = topic.split('/');\n    const key = seg[seg.length - 1];\n    if (key && key.indexOf('POWER') === 0) {\n        const prev = norm(s[key]);\n        const next = norm(pl);\n        s[key] = next;\n        if (ZONE_KEYS.indexOf(key) >= 0) {\n            updateTimer(timers, key, prev, next);\n        }\n        if (prev !== next && (next === 'ON' || next === 'OFF')) {\n            if (key === 'POWER1') {\n                pushLog('⚡', next === 'ON' ? '24V power on' : '24V power off');\n            } else if (ZONE_KEYS.indexOf(key) >= 0) {\n                const lbl = POWER_TO_I[key] || key;\n                const ic = ZONE_KEY_TO_ICON[key] || '🌿';\n                pushLog(ic, next === 'ON' ? ('Start irrigation in ' + lbl) : ('Stop irrigation in ' + lbl));\n            }\n        }\n    }\n} else if (topic.indexOf('stat/pompaApa/POWER1') >= 0) {\n    const prev = norm(s.pump);\n    const next = norm(pl);\n    s.pump = next;\n    updateTimer(timers, 'pump', prev, next);\n    if (prev !== next && (next === 'ON' || next === 'OFF')) {\n        pushLog('💧', next === 'ON' ? 'Start pump' : 'Stop pump');\n    }\n}\n\ns.lastUpdate = new Date().toISOString();\nflow.set('irrigation_status_v1', s);\nflow.set('irrigation_zone_timers', timers);\nmsg.payload = buildPayload(s, timers, Date.now());\nreturn [msg, buildSmsOut(), buildTelegramTrigger()];\n",
-        "outputs": 3,
-        "noerr": 0,
-        "initialize": "if (flow.get('irrigation_sched_area_a_hour') == null) flow.set('irrigation_sched_area_a_hour', 3);\nif (flow.get('irrigation_sched_area_a_minute') == null) flow.set('irrigation_sched_area_a_minute', 0);\nif (flow.get('irrigation_sched_area_b_hour') == null) flow.set('irrigation_sched_area_b_hour', 5);\nif (flow.get('irrigation_sched_area_b_minute') == null) flow.set('irrigation_sched_area_b_minute', 0);\nif (flow.get('irrigation_rain_skip_mm') == null) flow.set('irrigation_rain_skip_mm', 1);\nif (flow.get('irrigation_rain_skip_prob') == null) flow.set('irrigation_rain_skip_prob', 70);\nif (flow.get('irrigation_lat') == null) flow.set('irrigation_lat', 47.0966);\nif (flow.get('irrigation_lon') == null) flow.set('irrigation_lon', 27.5632);\nif (flow.get('irrigation_location_name') == null) flow.set('irrigation_location_name', 'Lunca Cetățuii, Iași, RO');\n",
-        "finalize": "",
-        "libs": [],
-        "x": 440,
-        "y": 240,
-        "wires": [
-            [
-                "irr421_ui_template"
-            ],
-            [
-                "irr421_mqtt_sms_gateway"
-            ],
-            [
-                "irr421_func_telegram_irrigation"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_func_telegram_irrigation",
-        "type": "function",
-        "z": "tab_dashboard",
-        "name": "Irrigation alert → Telegram",
-        "func": "const line = msg.payload && msg.payload.irrigationTgAlert;\nif (!line) return null;\nlet chatIds = flow.get('telegram_chat_ids') || [];\nif (chatIds.length === 0) {\n    try {\n        const g = global.get('telegram_chat_ids');\n        if (g && g.length) chatIds = g;\n    } catch (e) {}\n}\nif (chatIds.length === 0) chatIds = [991635368];\nconst content = '🌊 Irrigation\\n\\n' + String(line);\nreturn chatIds.map(chatId => ({\n    topic: 'send',\n    payload: {\n        chatId: chatId,\n        type: 'message',\n        content: content\n    }\n}));",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 440,
-        "y": 400,
-        "wires": [
-            [
-                "irr421_telegram_sender"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_telegram_sender",
-        "type": "telegram sender",
-        "z": "tab_dashboard",
-        "name": "Irrigation Telegram out",
-        "bot": "LuncaCetatuiiAutomationBot_bot",
-        "haserroroutput": false,
-        "outputs": 1,
-        "x": 700,
-        "y": 400,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "irr421_mqtt_sms_gateway",
-        "type": "mqtt out",
-        "z": "tab_dashboard",
-        "name": "SMS gateway (irrigation alerts)",
-        "topic": "",
-        "qos": "1",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "mqtt_broker_local",
-        "x": 440,
-        "y": 320,
-        "wires": []
-    },
-    {
-        "id": "irr421_func_scheduler",
-        "type": "function",
-        "z": "tab_dashboard",
-        "name": "Daily irrigation scheduler",
-        "func": "if (flow.get('irrigation_sched_area_a_hour') == null) flow.set('irrigation_sched_area_a_hour', 3);\nif (flow.get('irrigation_sched_area_a_minute') == null) flow.set('irrigation_sched_area_a_minute', 0);\nif (flow.get('irrigation_sched_area_b_hour') == null) flow.set('irrigation_sched_area_b_hour', 5);\nif (flow.get('irrigation_sched_area_b_minute') == null) flow.set('irrigation_sched_area_b_minute', 0);\n\nconst enabled = flow.get('irrigation_scheduler_enabled') !== false;\nif (!enabled) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'Scheduler off' });\n    return [null, null];\n}\n\nconst now = new Date();\nconst ymd = now.getFullYear() + '-' + (now.getMonth() < 9 ? '0' : '') + (now.getMonth() + 1) + '-' + (now.getDate() < 10 ? '0' : '') + now.getDate();\nconst h = now.getHours();\nconst mi = now.getMinutes();\nconst s = now.getSeconds();\n\nif (s > 2) return [null, null];\n\nconst hA = Number(flow.get('irrigation_sched_area_a_hour'));\nconst mA = Number(flow.get('irrigation_sched_area_a_minute'));\nconst hB = Number(flow.get('irrigation_sched_area_b_hour'));\nconst mB = Number(flow.get('irrigation_sched_area_b_minute'));\nconst hourA = isNaN(hA) ? 3 : hA;\nconst minA = isNaN(mA) ? 0 : mA;\nconst hourB = isNaN(hB) ? 5 : hB;\nconst minB = isNaN(mB) ? 0 : mB;\n\nfunction isDayWet(dateStr) {\n    const w = flow.get('irrigation_weather_v1');\n    if (!w || !w.daily || !w.daily.length) return false;\n    const row = w.daily.find(function (x) { return x.date === dateStr; });\n    return row ? !!row.wet : false;\n}\n\nconst startMsg = { payload: 'ON', topic: 'topic' };\n\nif (h === hourA && mi === minA) {\n    const key = 'sched_fired_lawn_' + ymd;\n    if (flow.get(key)) return [null, null];\n    flow.set(key, true);\n    if (isDayWet(ymd)) {\n        node.status({ fill: 'yellow', shape: 'dot', text: 'Skip Lawn (rain)' });\n        return [null, null];\n    }\n    node.status({ fill: 'green', shape: 'dot', text: 'Start Lawn' });\n    return [startMsg, null];\n}\n\nif (h === hourB && mi === minB) {\n    const key = 'sched_fired_flowers_' + ymd;\n    if (flow.get(key)) return [null, null];\n    flow.set(key, true);\n    if (isDayWet(ymd)) {\n        node.status({ fill: 'yellow', shape: 'dot', text: 'Skip Flowers (rain)' });\n        return [null, null];\n    }\n    node.status({ fill: 'green', shape: 'dot', text: 'Start Flowers' });\n    return [null, startMsg];\n}\n\nreturn [null, null];\n",
-        "outputs": 2,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 300,
-        "y": 560,
-        "wires": [
-            [
-                "irr421_link_out_sched_lawn"
-            ],
-            [
-                "irr421_link_out_sched_flowers"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_inject_minute_sched",
-        "type": "inject",
-        "z": "tab_dashboard",
-        "name": "Scheduler tick 60s",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "60",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.5,
-        "topic": "",
-        "payload": "",
-        "payloadType": "str",
-        "x": 140,
-        "y": 560,
-        "wires": [
-            [
-                "irr421_func_scheduler"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_func_openmeteo_fetch",
-        "type": "function",
-        "z": "tab_dashboard",
-        "name": "Fetch Open-Meteo",
-        "func": "/* https is injected via node \"libs\" (sandbox has no require) */\nif (flow.get('irrigation_lat') == null) flow.set('irrigation_lat', 47.0966);\nif (flow.get('irrigation_lon') == null) flow.set('irrigation_lon', 27.5632);\nif (flow.get('irrigation_location_name') == null) flow.set('irrigation_location_name', 'Lunca Cetățuii, Iași, RO');\nif (flow.get('irrigation_rain_skip_mm') == null) flow.set('irrigation_rain_skip_mm', 1);\nif (flow.get('irrigation_rain_skip_prob') == null) flow.set('irrigation_rain_skip_prob', 70);\n\nconst lat = Number(flow.get('irrigation_lat'));\nconst lon = Number(flow.get('irrigation_lon'));\nconst rainMm = Number(flow.get('irrigation_rain_skip_mm'));\nconst probSkip = Number(flow.get('irrigation_rain_skip_prob'));\nconst locName = String(flow.get('irrigation_location_name') || 'Lunca Cetățuii, Iași, RO');\n\nconst url = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon) +\n    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max' +\n    '&forecast_days=8&timezone=auto';\n\nhttps.get(url, function (res) {\n    let body = '';\n    res.on('data', function (c) { body += c; });\n    res.on('end', function () {\n        const code = res.statusCode || 0;\n        if (code < 200 || code >= 300) {\n            node.error('Open-Meteo HTTP ' + code + ': ' + String(body).slice(0, 240));\n            node.status({ fill: 'red', shape: 'ring', text: 'HTTP ' + code });\n            return;\n        }\n        try {\n            const j = JSON.parse(body);\n            if (!j.daily || !j.daily.time || !j.daily.time.length) {\n                node.error('Open-Meteo: missing daily data in response');\n                node.status({ fill: 'red', shape: 'ring', text: 'Bad API shape' });\n                return;\n            }\n            const t = j.daily.time;\n            const daily = [];\n            for (let i = 0; i < t.length; i++) {\n                const pm = Number(j.daily.precipitation_sum[i] != null ? j.daily.precipitation_sum[i] : 0);\n                const pp = Number(j.daily.precipitation_probability_max[i] != null ? j.daily.precipitation_probability_max[i] : 0);\n                const wet = pm >= rainMm || pp >= probSkip;\n                daily.push({\n                    date: t[i],\n                    precipMm: Math.round(pm * 10) / 10,\n                    precipProb: Math.round(pp),\n                    wmo: j.daily.weather_code[i],\n                    tmax: Math.round(j.daily.temperature_2m_max[i]),\n                    tmin: Math.round(j.daily.temperature_2m_min[i]),\n                    wet: wet\n                });\n            }\n            flow.set('irrigation_weather_v1', {\n                fetchedAt: new Date().toISOString(),\n                sourceName: 'Open-Meteo · ' + locName,\n                sourceUrl: 'https://open-meteo.com',\n                attribution: 'Weather data by Open-Meteo.com (CC BY 4.0)',\n                apiHost: 'api.open-meteo.com',\n                lat: lat,\n                lon: lon,\n                daily: daily\n            });\n            node.send({ topic: '__weather_refresh__', payload: '' });\n            node.status({ fill: 'green', shape: 'dot', text: 'Weather OK' });\n        } catch (e) {\n            node.error('Open-Meteo: ' + e.message);\n            node.status({ fill: 'red', shape: 'ring', text: 'Parse error' });\n        }\n    });\n}).on('error', function (e) {\n    node.error(e.message);\n    node.status({ fill: 'red', shape: 'ring', text: 'HTTP error' });\n});\nreturn null;\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [
-            {
-                "var": "https",
-                "module": "https"
-            }
-        ],
-        "x": 300,
-        "y": 460,
-        "wires": [
-            [
-                "irr421_func_merge"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_inject_weather_6h",
-        "type": "inject",
-        "z": "tab_dashboard",
-        "name": "Weather every 6h",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "21600",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 1.5,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 140,
-        "y": 460,
-        "wires": [
-            [
-                "irr421_func_openmeteo_fetch"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_link_out_sched_lawn",
-        "type": "link out",
-        "z": "tab_dashboard",
-        "name": "To Gate lawn (420)",
-        "mode": "link",
-        "links": [
-            "irr420_link_in_sched_lawn"
-        ],
-        "x": 560,
-        "y": 520,
-        "wires": []
-    },
-    {
-        "id": "irr421_ui_template",
-        "type": "ui-template",
-        "z": "tab_dashboard",
-        "group": "ui_group_irrigation_status",
-        "name": "Irrigation status board",
-        "order": 1,
-        "width": 0,
-        "height": 0,
-        "format": "<template>\n  <div v-if=\"msg.payload\" style=\"font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: linear-gradient(165deg, #0c4a6e 0%, #0f172a 45%, #1e1b4b 100%); border-radius: 16px; padding: 14px 12px 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); max-width: 720px; margin: 0 auto;\">\n  <div v-if=\"msg.payload?.weatherUi\" style=\"margin-bottom: 16px;\">\n    <div style=\"display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;\">\n      <div>\n        <div style=\"font-weight: 700; font-size: 0.95rem; color: #e0f2fe; letter-spacing: 0.03em;\">7-day forecast</div>\n        <div style=\"font-size: 0.62rem; color: #7dd3fc; margin-top: 4px; line-height: 1.35;\">Lawn / Flowers tags mark the calendar day of the next planned run (rain skip applied).</div>\n        <div style=\"font-size: 0.68rem; color: #64748b; margin-top: 4px; max-width: 520px; line-height: 1.4;\">\n          {{ msg.payload.weatherUi.sourceName }} · Last fetch: {{ fmtWeatherTime(msg.payload.weatherUi.fetchedAt) }}\n          <span v-if=\"msg.payload.weatherUi.lat != null\"> · {{ msg.payload.weatherUi.lat.toFixed(2) }}, {{ msg.payload.weatherUi.lon.toFixed(2) }}</span>\n          <br/><a :href=\"msg.payload.weatherUi.detailUrl\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color: #7dd3fc;\">{{ msg.payload.weatherUi.attribution }}</a>\n        </div>\n      </div>\n    </div>\n    <div v-if=\"msg.payload?.weatherUi?.hasData\" style=\"display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin;\">\n      <div v-for=\"(d, i) in (msg.payload?.weatherUi?.days || [])\" :key=\"'wx'+i\" :style=\"wxDayStyle(d)\" style=\"flex: 0 0 92px; border-radius: 12px; padding: 10px 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1);\">\n        <div style=\"font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;\">{{ d.dayShort }}</div>\n        <div style=\"font-size: 1.35rem; margin: 4px 0;\">{{ d.icon }}</div>\n        <div style=\"font-size: 0.72rem; color: #e2e8f0; font-weight: 600;\">{{ d.tmax }}° / {{ d.tmin }}°</div>\n        <div style=\"font-size: 0.62rem; color: #7dd3fc; margin-top: 4px;\">{{ d.precipMm }} mm</div>\n        <div style=\"font-size: 0.58rem; color: #94a3b8;\">{{ d.precipProb }}% rain</div>\n        <div style=\"height: 4px; border-radius: 2px; background: rgba(0,0,0,0.35); margin-top: 6px; overflow: hidden;\">\n          <div :style=\"{ height: '100%', width: d.barPct + '%', background: d.wet ? 'linear-gradient(90deg,#38bdf8,#0ea5e9)' : 'rgba(148,163,184,0.4)' }\"></div>\n        </div>\n        <div v-if=\"d.wet\" style=\"font-size: 0.58rem; color: #fbbf24; margin-top: 4px;\">Wet</div>\n        <div v-if=\"d.plannedLawn || d.plannedFlowers\" style=\"margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;\">\n          <span v-if=\"d.plannedLawn\" style=\"font-size: 0.56rem; font-weight: 700; color: #bae6fd; background: rgba(14,165,233,0.4); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(125,211,252,0.35);\">Lawn</span>\n          <span v-if=\"d.plannedFlowers\" style=\"font-size: 0.56rem; font-weight: 700; color: #c7d2fe; background: rgba(99,102,241,0.4); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(165,180,252,0.35);\">Flowers</span>\n        </div>\n      </div>\n    </div>\n    <div v-else style=\"font-size: 0.75rem; color: #64748b; padding: 8px;\">Loading weather… deploy & wait for first fetch.</div>\n  </div>\n\n  <div v-if=\"msg.payload.scheduleUi\" style=\"margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;\">\n    <div style=\"background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(30,27,75,0.5)); border-radius: 14px; padding: 12px; border: 1px solid rgba(125,211,252,0.25);\">\n      <div style=\"font-size: 0.72rem; font-weight: 700; color: #bae6fd; text-transform: uppercase; letter-spacing: 0.06em;\">Lawn — next run</div>\n      <div style=\"font-size: 1.1rem; font-weight: 700; color: #f0f9ff; margin-top: 6px;\">{{ schedCountdown(msg.payload.scheduleUi.nextA) }}</div>\n      <div style=\"font-size: 0.58rem; color: #64748b; margin-top: 4px;\">Until next eligible run (rain skip applied)</div>\n      <div style=\"font-size: 0.68rem; color: #94a3b8; margin-top: 4px;\">{{ msg.payload.scheduleUi.labelA }}</div>\n      <div style=\"font-size: 0.68rem; color: #86efac; margin-top: 8px; line-height: 1.45;\">{{ msg.payload.scheduleUi.lawnDetail }}</div>\n      <div v-if=\"msg.payload.scheduleUi.lawnSkipped > 0\" style=\"font-size: 0.58rem; color: #fbbf24; margin-top: 4px;\">Wet days skipped ahead: {{ msg.payload.scheduleUi.lawnSkipped }}</div>\n      <div style=\"font-size: 0.65rem; color: #64748b; margin-top: 6px;\">Default local time {{ pad2(msg.payload.scheduleUi.areaAHour) }}:{{ pad2(msg.payload.scheduleUi.areaAMin) }} · skip if rain ≥ {{ msg.payload.scheduleUi.rainSkipMm }} mm or prob ≥ {{ msg.payload.scheduleUi.rainSkipProb }}%</div>\n      <button type=\"button\" @click=\"sendTestRun('lawn')\" style=\"margin-top: 10px; width: 100%; cursor: pointer; font-size: 0.72rem; font-weight: 700; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(125,211,252,0.45); background: linear-gradient(180deg, rgba(56,189,248,0.35), rgba(14,165,233,0.2)); color: #e0f2fe;\">Trigger Irrigation Lawn</button>\n    </div>\n    <div style=\"background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(30,27,75,0.5)); border-radius: 14px; padding: 12px; border: 1px solid rgba(165,180,252,0.25);\">\n      <div style=\"font-size: 0.72rem; font-weight: 700; color: #c7d2fe; text-transform: uppercase; letter-spacing: 0.06em;\">Flowers — next run</div>\n      <div style=\"font-size: 1.1rem; font-weight: 700; color: #f5f3ff; margin-top: 6px;\">{{ schedCountdown(msg.payload.scheduleUi.nextB) }}</div>\n      <div style=\"font-size: 0.58rem; color: #64748b; margin-top: 4px;\">Until next eligible run (rain skip applied)</div>\n      <div style=\"font-size: 0.68rem; color: #94a3b8; margin-top: 4px;\">{{ msg.payload.scheduleUi.labelB }}</div>\n      <div style=\"font-size: 0.68rem; color: #c4b5fd; margin-top: 8px; line-height: 1.45;\">{{ msg.payload.scheduleUi.flowersDetail }}</div>\n      <div v-if=\"msg.payload.scheduleUi.flowersSkipped > 0\" style=\"font-size: 0.58rem; color: #fbbf24; margin-top: 4px;\">Wet days skipped ahead: {{ msg.payload.scheduleUi.flowersSkipped }}</div>\n      <div style=\"font-size: 0.65rem; color: #64748b; margin-top: 6px;\">Default local time {{ pad2(msg.payload.scheduleUi.areaBHour) }}:{{ pad2(msg.payload.scheduleUi.areaBMin) }} · skip if rain ≥ {{ msg.payload.scheduleUi.rainSkipMm }} mm or prob ≥ {{ msg.payload.scheduleUi.rainSkipProb }}%</div>\n      <button type=\"button\" @click=\"sendTestRun('flowers')\" style=\"margin-top: 10px; width: 100%; cursor: pointer; font-size: 0.72rem; font-weight: 700; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(165,180,252,0.45); background: linear-gradient(180deg, rgba(129,140,248,0.35), rgba(99,102,241,0.2)); color: #eef2ff;\">Trigger Irrigation Flowers</button>\n    </div>\n  </div>\n  <div style=\"font-size: 0.65rem; color: #475569; margin: -8px 0 12px 4px;\">{{ msg.payload.scheduleUi.note }}</div>\n\n  <div style=\"display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;\">\n    <div style=\"display: flex; align-items: center; gap: 10px;\">\n      <span style=\"font-size: 1.75rem; line-height: 1;\">🌊</span>\n      <div>\n        <div style=\"font-weight: 700; font-size: 1.1rem; color: #f8fafc; letter-spacing: 0.02em;\">Irrigation status</div>\n        <div style=\"font-size: 0.75rem; color: #94a3b8; margin-top: 2px;\">I1–I12 areas · pump · MQTT</div>\n      </div>\n    </div>\n    <div style=\"font-size: 0.72rem; color: #64748b; font-family: ui-monospace, monospace;\">{{ fmtTime(msg.payload.lastUpdate) }}</div>\n  </div>\n\n  <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;\">\n    <div style=\"background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1);\">\n      <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 6px;\">\n        <span style=\"font-size: 1.35rem;\">⚡</span>\n        <span style=\"font-weight: 600; color: #e2e8f0; font-size: 0.9rem;\">24V power</span>\n      </div>\n      <div :style=\"badgeStyle(msg.payload.power24)\" style=\"display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;\">{{ msg.payload.power24 }}</div>\n    </div>\n    <div style=\"background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1);\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;\">\n        <div style=\"display: flex; align-items: center; gap: 8px;\">\n          <span style=\"font-size: 1.35rem;\">💧</span>\n          <span style=\"font-weight: 600; color: #e2e8f0; font-size: 0.9rem;\">Pump</span>\n        </div>\n        <a v-if=\"msg.payload.pumpWebUrl\" :href=\"msg.payload.pumpWebUrl\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"font-size: 0.72rem; color: #38bdf8; text-decoration: underline;\">Tasmota ↗</a>\n      </div>\n      <div :style=\"badgeStyle(msg.payload.pump)\" style=\"display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;\">{{ msg.payload.pump }}</div>\n      <div v-if=\"msg.payload.pumpRunLine\" style=\"margin-top: 8px; font-size: 0.72rem; color: #86efac; line-height: 1.35;\">{{ msg.payload.pumpRunLine }}</div>\n      <div v-else-if=\"msg.payload.pumpHistLine\" style=\"margin-top: 8px; font-size: 0.72rem; color: #94a3b8; line-height: 1.35;\">{{ msg.payload.pumpHistLine }}</div>\n    </div>\n  </div>\n\n  <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px 4px;\">Area A — I1–I10</div>\n  <div style=\"display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; margin-bottom: 14px;\">\n    <div v-for=\"(z, i) in msg.payload.zonesAreaA\" :key=\"'a'+i\" style=\"background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 10px 12px; border: 1px solid rgba(255,255,255,0.07); min-height: 118px;\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 6px;\">\n        <span style=\"font-size: 1.25rem; line-height: 1;\" :title=\"z.label\">{{ z.icon }}</span>\n        <span :style=\"badgeStyle(z.state)\" style=\"padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 700;\">{{ z.state }}</span>\n      </div>\n      <div style=\"margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #cbd5e1;\">{{ z.label }}</div>\n      <div style=\"margin-top: 8px; font-size: 0.64rem; color: #94a3b8; line-height: 1.45;\">\n        <div><span style=\"color:#64748b;\">Started</span> {{ z.zoneStarted || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Ended</span> {{ z.zoneEnded || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Duration</span> <span :style=\"z.state === 'ON' ? { color: '#86efac' } : { color: '#e2e8f0' }\">{{ z.zoneDuration || '—' }}</span></div>\n      </div>\n    </div>\n  </div>\n  <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px 4px;\">Area B — I11 & I12</div>\n  <div style=\"display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px;\">\n    <div v-for=\"(z, i) in msg.payload.zonesAreaB\" :key=\"'b'+i\" style=\"background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 10px 12px; border: 1px solid rgba(255,255,255,0.07); min-height: 118px;\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 6px;\">\n        <span style=\"font-size: 1.25rem; line-height: 1;\" :title=\"z.label\">{{ z.icon }}</span>\n        <span :style=\"badgeStyle(z.state)\" style=\"padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 700;\">{{ z.state }}</span>\n      </div>\n      <div style=\"margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #cbd5e1;\">{{ z.label }}</div>\n      <div style=\"margin-top: 8px; font-size: 0.64rem; color: #94a3b8; line-height: 1.45;\">\n        <div><span style=\"color:#64748b;\">Started</span> {{ z.zoneStarted || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Ended</span> {{ z.zoneEnded || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Duration</span> <span :style=\"z.state === 'ON' ? { color: '#86efac' } : { color: '#e2e8f0' }\">{{ z.zoneDuration || '—' }}</span></div>\n      </div>\n    </div>\n  </div>\n\n  <div v-if=\"msg.payload.scheduleUi\" style=\"margin-top: 10px; margin-bottom: 14px;\">\n    <div style=\"background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(30,27,75,0.55)); border-radius: 14px; padding: 14px 14px 12px; border: 1px solid rgba(52,211,153,0.35); box-shadow: 0 12px 32px rgba(0,0,0,0.2);\">\n      <div style=\"display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;\">\n        <span style=\"font-size: 1.5rem; line-height: 1;\">🌤️</span>\n        <div style=\"flex: 1; min-width: 0;\">\n          <div style=\"font-weight: 800; font-size: 0.95rem; color: #a7f3d0; letter-spacing: 0.02em;\">{{ msg.payload.scheduleUi.logicTitle }}</div>\n          <div style=\"font-size: 0.68rem; color: #64748b; margin-top: 4px; line-height: 1.4;\">{{ msg.payload.scheduleUi.wetTodayHint }}</div>\n        </div>\n      </div>\n      <div style=\"margin-top: 10px; padding: 11px 12px; background: rgba(0,0,0,0.22); border-radius: 10px; border: 1px solid rgba(52,211,153,0.28);\">\n        <div style=\"font-size: 0.62rem; font-weight: 700; color: #6ee7b7; text-transform: uppercase; letter-spacing: 0.06em;\">Next irrigation planned</div>\n        <div style=\"font-size: 0.78rem; color: #ecfdf5; margin-top: 8px; line-height: 1.55;\">\n          <div><span style=\"color:#bae6fd;font-weight:600;\">Lawn</span> — {{ msg.payload.scheduleUi.nextLawnPlanned }}</div>\n          <div style=\"margin-top: 5px;\"><span style=\"color:#c7d2fe;font-weight:600;\">Flowers</span> — {{ msg.payload.scheduleUi.nextFlowersPlanned }}</div>\n        </div>\n      </div>\n      <div style=\"font-size: 0.72rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 10px; margin-top: 12px;\">{{ msg.payload.scheduleUi.logicIntro }}</div>\n      <div style=\"font-size: 0.68rem; color: #94a3b8; line-height: 1.52; padding: 10px 11px; background: rgba(0,0,0,0.28); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);\">{{ msg.payload.scheduleUi.logicAlgorithm }}</div>\n    </div>\n  </div>\n\n  <div style=\"margin-top: 16px;\">\n    <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 8px 4px;\">Event log (last 25)</div>\n    <div style=\"max-height: 320px; overflow-y: auto; font-size: 0.7rem; border-radius: 10px; padding: 8px 10px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08);\">\n      <div v-if=\"msg.payload.eventLog && msg.payload.eventLog.length\" style=\"display: flex; flex-direction: column; gap: 0;\">\n        <div v-for=\"(e, i) in msg.payload.eventLog\" :key=\"i\" style=\"display: flex; gap: 8px; align-items: baseline; padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.06);\">\n          <span style=\"flex-shrink: 0; font-size: 1rem; line-height: 1.2;\">{{ e.icon }}</span>\n          <span style=\"color: #64748b; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 0.65rem; white-space: nowrap;\">{{ fmtLogTime(e.ts) }}</span>\n          <span style=\"color: #cbd5e1; line-height: 1.35;\">{{ e.line }}</span>\n        </div>\n      </div>\n      <div v-else style=\"color: #64748b; padding: 8px 4px;\">No state changes yet.</div>\n    </div>\n  </div>\n</div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { schedTick: 0, schedTimer: null };\n  },\n  mounted() {\n    this.schedTimer = setInterval(() => { this.schedTick = Date.now(); }, 1000);\n  },\n  beforeUnmount() {\n    if (this.schedTimer) { clearInterval(this.schedTimer); this.schedTimer = null; }\n  },\n  beforeDestroy() {\n    if (this.schedTimer) { clearInterval(this.schedTimer); this.schedTimer = null; }\n  },\n  watch: {\n    msg: {\n      deep: true,\n      handler() { /* nrdb: nested payload refresh */ }\n    }\n  },\n  methods: {\n    sendTestRun(kind) {\n      const fn = this.send;\n      if (typeof fn === 'function') {\n        fn({ payload: { irrigationTest: kind } });\n      }\n    },\n    schedCountdown(targetMs) {\n      void this.schedTick;\n      const t = targetMs == null || targetMs === '' ? NaN : Number(targetMs);\n      if (isNaN(t)) return '—';\n      const nowMs = Date.now();\n      let sec = Math.floor((t - nowMs) / 1000);\n      if (sec <= 0) return 'imminent';\n      const d = Math.floor(sec / 86400);\n      sec %= 86400;\n      const h = Math.floor(sec / 3600);\n      sec %= 3600;\n      const m = Math.floor(sec / 60);\n      const s = sec % 60;\n      if (d > 0) return d + 'd ' + h + 'h';\n      if (h > 0) return h + 'h ' + m + 'm';\n      if (m > 0) return m + 'm ' + s + 's';\n      return s + 's';\n    },\n    pad2(n) {\n      const x = Number(n) || 0;\n      return x < 10 ? '0' + x : String(x);\n    },\n    fmtWeatherTime(iso) {\n      if (!iso) return '—';\n      try {\n        return new Date(iso).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });\n      } catch (e) { return iso; }\n    },\n    wxDayStyle(d) {\n      return d && d.wet ? { background: 'rgba(30,58,138,0.35)' } : { background: 'rgba(255,255,255,0.06)' };\n    },\n    fmtTime(iso) {\n      if (!iso) return '—';\n      try {\n        const d = new Date(iso);\n        return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });\n      } catch (e) { return iso; }\n    },\n    fmtLogTime(iso) {\n      if (!iso) return '—';\n      try {\n        const d = new Date(iso);\n        return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });\n      } catch (e) { return iso; }\n    },\n    badgeStyle(state) {\n      const s = String(state || '').toUpperCase();\n      if (s === 'ON') return { background: '#059669', color: '#fff' };\n      if (s === 'OFF') return { background: '#475569', color: '#e2e8f0' };\n      return { background: '#78350f', color: '#fde68a' };\n    }\n  }\n}\n</script>",
-        "storeOutMessages": true,
-        "fwdInMessages": true,
-        "resendOnRefresh": true,
-        "templateScope": "local",
-        "className": "",
-        "x": 700,
-        "y": 240,
-        "wires": [
-            [
-                "irr421_func_test_program"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_func_test_program",
-        "type": "function",
-        "z": "tab_dashboard",
-        "name": "Trigger irrigation → Gate lawn/flowers",
-        "func": "const p = msg.payload;\nlet which = null;\nif (p && typeof p === 'object' && p.irrigationTest) {\n    which = String(p.irrigationTest).toLowerCase();\n}\nconst start = { payload: 'ON', topic: 'topic' };\nif (which === 'lawn') return [start, null];\nif (which === 'flowers') return [null, start];\nreturn [null, null];\n",
-        "outputs": 2,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 520,
-        "y": 300,
-        "wires": [
-            [
-                "irr421_link_out_test_lawn"
-            ],
-            [
-                "irr421_link_out_test_flowers"
-            ]
-        ]
-    },
-    {
-        "id": "irr421_link_out_test_lawn",
-        "type": "link out",
-        "z": "tab_dashboard",
-        "name": "Test → Gate lawn (420)",
-        "mode": "link",
-        "links": [
-            "irr420_link_in_sched_lawn"
-        ],
-        "x": 760,
-        "y": 280,
-        "wires": []
-    },
-    {
-        "id": "irr421_link_out_test_flowers",
-        "type": "link out",
-        "z": "tab_dashboard",
-        "name": "Test → Gate Flowers (420)",
-        "mode": "link",
-        "links": [
-            "irr420_link_in_sched_flowers"
-        ],
-        "x": 760,
-        "y": 320,
-        "wires": []
-    },
-    {
-        "id": "irr421_link_out_sched_flowers",
-        "type": "link out",
-        "z": "tab_dashboard",
-        "name": "To Gate Flowers (420)",
-        "mode": "link",
-        "links": [
-            "irr420_link_in_sched_flowers"
-        ],
-        "x": 560,
-        "y": 580,
-        "wires": []
-    },
-    {
-        "id": "irr421_inject_deploy_weather",
-        "type": "inject",
-        "z": "tab_dashboard",
-        "name": "Weather on deploy",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.5,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 140,
-        "y": 420,
-        "wires": [
-            [
-                "irr421_func_openmeteo_fetch"
-            ]
-        ]
+        "id": "b35e66aedc560a73",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-telegrambot": "17.0.5",
+            "@flowfuse/node-red-dashboard": "1.30.2"
+        }
     }
 ]

@@ -138,7 +138,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Pump Drain",
-        "func": "node.warn(`[${msg.requestId}] Activating drain water (10s pulse)`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power2',\n        payload: 'ON' \n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💧 Draining water (10 seconds)...',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
+        "func": "node.warn(`[${msg.requestId}] Activating drain water (10s pulse)`);\n\nreturn [\n    { \n        topic: 'cmnd/pompaApa/Power2',\n        payload: '1'\n    },\n    {\n        payload: {\n            chatId: msg.chatId,\n            type: 'message',\n            content: '💧 Draining water (10 seconds)...',\n            options: {\n                parse_mode: 'Markdown'\n            }\n        }\n    }\n];",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
@@ -148,10 +148,35 @@
         "y": 240,
         "wires": [
             [
-                "water_pump_mqtt_out"
+                "water_pump_telegram_drain_trigger"
             ],
             [
                 "water_pump_telegram_out"
+            ]
+        ]
+    },
+    {
+        "id": "water_pump_telegram_drain_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "Drain 10s Pulse",
+        "op1": "ON",
+        "op2": "OFF",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "10",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 800,
+        "y": 220,
+        "wires": [
+            [
+                "water_pump_mqtt_out"
             ]
         ]
     },

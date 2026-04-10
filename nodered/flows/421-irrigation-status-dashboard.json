@@ -1,0 +1,215 @@
+[
+    {
+        "id": "irr421_comment_0001",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ 421 IRRIGATION STATUS (mobile UI) ═══════════════",
+        "info": "## Irrigation status dashboard\n\n**Flow:** 421-irrigation-status-dashboard.json\n\n### MQTT\n- `stat/IrigationSystem/#` — zones + 24V\n- `stat/pompaApa/POWER1` — pump relay (timers)\n- `tele/pompaApa/STATE` — Tasmota JSON → **pump web link** (`http://<IP>/`)\n- 1s inject — refresh **running** elapsed times\n\n### Timers\nFlow context stores start/end/duration per zone and pump (OFF→ON / ON→OFF edges).\nEach zone card shows **Started**, **Ended**, **Duration** (running elapsed while ON; last completed run while OFF).\n\n### Event log\nUp to **25** recent state changes (newest first): pump, zones, 24V — timestamp + icon + text.",
+        "x": 60,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "ui_page_irrigation_status",
+        "type": "ui-page",
+        "name": "Irrigation Status",
+        "ui": "b89dd587275b51bf",
+        "path": "/irrigation-status",
+        "icon": "monitoring",
+        "layout": "grid",
+        "theme": "39a2cf2c0af73875",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 6,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_irrigation_status",
+        "type": "ui-group",
+        "name": "Overview",
+        "page": "ui_page_irrigation_status",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "irr421_mqtt_irrigation",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "IrigationSystem stat",
+        "topic": "stat/IrigationSystem/#",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "73850d9f081d4c01",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 140,
+        "wires": [
+            [
+                "irr421_func_merge"
+            ]
+        ]
+    },
+    {
+        "id": "irr421_mqtt_pump",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Pump stat",
+        "topic": "stat/pompaApa/POWER1",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "73850d9f081d4c01",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 200,
+        "wires": [
+            [
+                "irr421_func_merge"
+            ]
+        ]
+    },
+    {
+        "id": "irr421_mqtt_pump_tele",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Pump tele STATE",
+        "topic": "tele/pompaApa/STATE",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "73850d9f081d4c01",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 260,
+        "wires": [
+            [
+                "irr421_func_merge"
+            ]
+        ]
+    },
+    {
+        "id": "irr421_inject_tick",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Tick 1s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "__tick__",
+        "payload": "",
+        "payloadType": "str",
+        "x": 140,
+        "y": 320,
+        "wires": [
+            [
+                "irr421_func_merge"
+            ]
+        ]
+    },
+    {
+        "id": "irr421_inject_init",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "UI init",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.4,
+        "topic": "__init__",
+        "payload": "",
+        "payloadType": "str",
+        "x": 140,
+        "y": 380,
+        "wires": [
+            [
+                "irr421_func_merge"
+            ]
+        ]
+    },
+    {
+        "id": "irr421_func_merge",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Merge status → UI payload",
+        "func": "const topic = msg.topic || '';\nconst raw = msg.payload;\nconst pl = (raw === null || raw === undefined || raw === '') ? 'UNKNOWN' : String(raw).trim();\n\nconst ZONE_KEYS = ['POWER2', 'POWER3', 'POWER4', 'POWER5', 'POWER10', 'POWER11', 'POWER12', 'POWER13', 'POWER14', 'POWER15', 'POWER16', 'POWER17'];\n\nconst POWER_TO_ZONE = { POWER2: 'Zone 1', POWER3: 'Zone 2', POWER4: 'Zone 3', POWER5: 'Zone 4', POWER10: 'Zone 5', POWER11: 'Zone 6', POWER12: 'Zone 7', POWER13: 'Zone 8', POWER14: 'Zone 9', POWER15: 'Zone 10', POWER16: 'Zone 11', POWER17: 'Zone 12' };\nconst ZONE_KEY_TO_ICON = { POWER2: '🌱', POWER3: '🌿', POWER4: '🍃', POWER5: '🌾', POWER10: '🥬', POWER11: '🌽', POWER12: '🍅', POWER13: '🫛', POWER14: '🌻', POWER15: '🪴', POWER16: '🌳', POWER17: '🏞️' };\nconst LOG_MAX = 25;\nfunction pushLog(icon, line) {\n    const arr = flow.get('irrigation_event_log_v1') || [];\n    arr.unshift({ ts: new Date().toISOString(), icon: icon || '📋', line: String(line || '') });\n    while (arr.length > LOG_MAX) arr.pop();\n    flow.set('irrigation_event_log_v1', arr);\n}\n\nconst defaults = () => ({\n    POWER1: 'UNKNOWN', POWER2: 'UNKNOWN', POWER3: 'UNKNOWN', POWER4: 'UNKNOWN', POWER5: 'UNKNOWN',\n    POWER10: 'UNKNOWN', POWER11: 'UNKNOWN', POWER12: 'UNKNOWN', POWER13: 'UNKNOWN',\n    POWER14: 'UNKNOWN', POWER15: 'UNKNOWN', POWER16: 'UNKNOWN', POWER17: 'UNKNOWN',\n    pump: 'UNKNOWN',\n    lastUpdate: null\n});\n\nfunction norm(v) {\n    const u = String(v).toUpperCase();\n    if (u === 'ON' || u === 'TRUE' || u === '1') return 'ON';\n    if (u === 'OFF' || u === 'FALSE' || u === '0') return 'OFF';\n    return u;\n}\n\nfunction fmtDur(totalSec) {\n    const s = Math.max(0, Math.floor(Number(totalSec) || 0));\n    if (s < 60) return s + 's';\n    const m = Math.floor(s / 60);\n    const r = s % 60;\n    if (m < 60) return m + 'm ' + r + 's';\n    const h = Math.floor(m / 60);\n    return h + 'h ' + (m % 60) + 'm';\n}\n\nfunction fmtClock(ms) {\n    if (!ms) return '—';\n    try { return new Date(ms).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' }); } catch (e) { return '—'; }\n}\n\nfunction updateTimer(timers, key, prev, next) {\n    if (!timers[key]) {\n        timers[key] = { startedAt: null, lastEndIso: null, lastStartIso: null, lastDurationSec: null };\n    }\n    const t = timers[key];\n    const p = (prev === 'ON' || prev === 'OFF') ? prev : null;\n    const n = (next === 'ON' || next === 'OFF') ? next : null;\n    if (n === 'ON' && p !== 'ON') {\n        t.startedAt = Date.now();\n        t.lastStartIso = new Date(t.startedAt).toISOString();\n    }\n    if (n === 'OFF' && p === 'ON' && t.startedAt) {\n        const end = Date.now();\n        t.lastEndIso = new Date(end).toISOString();\n        t.lastDurationSec = Math.round((end - t.startedAt) / 1000);\n        t.startedAt = null;\n    }\n}\n\nfunction buildPayload(s, timers, now) {\n    const nowMs = now || Date.now();\n    const pumpUrl = flow.get('pump_web_url') || '';\n\n    const zoneRows = [\n        { k: 'POWER2', label: 'Zone 1', icon: '🌱' },\n        { k: 'POWER3', label: 'Zone 2', icon: '🌿' },\n        { k: 'POWER4', label: 'Zone 3', icon: '🍃' },\n        { k: 'POWER5', label: 'Zone 4', icon: '🌾' },\n        { k: 'POWER10', label: 'Zone 5', icon: '🥬' },\n        { k: 'POWER11', label: 'Zone 6', icon: '🌽' },\n        { k: 'POWER12', label: 'Zone 7', icon: '🍅' },\n        { k: 'POWER13', label: 'Zone 8', icon: '🫛' },\n        { k: 'POWER14', label: 'Zone 9', icon: '🌻' },\n        { k: 'POWER15', label: 'Zone 10', icon: '🪴' },\n        { k: 'POWER16', label: 'Zone 11', icon: '🌳' },\n        { k: 'POWER17', label: 'Zone 12', icon: '🏞️' }\n    ];\n\n    function zoneExtras(key) {\n        const st = s[key] || 'UNKNOWN';\n        const tk = timers[key] || {};\n        let zoneStarted = '';\n        let zoneEnded = '';\n        let zoneDuration = '';\n        if (st === 'ON' && tk.startedAt) {\n            const sec = Math.floor((nowMs - tk.startedAt) / 1000);\n            zoneStarted = fmtClock(tk.startedAt);\n            zoneEnded = '—';\n            zoneDuration = fmtDur(sec);\n        } else if (st === 'OFF') {\n            if (tk.lastStartIso && tk.lastEndIso && tk.lastDurationSec != null) {\n                zoneStarted = fmtClock(new Date(tk.lastStartIso).getTime());\n                zoneEnded = fmtClock(new Date(tk.lastEndIso).getTime());\n                zoneDuration = fmtDur(tk.lastDurationSec);\n            } else if (tk.lastDurationSec != null) {\n                zoneDuration = fmtDur(tk.lastDurationSec);\n            }\n        }\n        return { zoneStarted, zoneEnded, zoneDuration };\n    }\n\n    const tp = timers.pump || {};\n    const pumpSt = s.pump || 'UNKNOWN';\n    let pumpRun = '';\n    let pumpHist = '';\n    if (pumpSt === 'ON' && tp.startedAt) {\n        const sec = Math.floor((nowMs - tp.startedAt) / 1000);\n        pumpRun = 'Running ' + fmtDur(sec) + ' · started ' + fmtClock(tp.startedAt);\n    } else if (pumpSt === 'OFF' && tp.lastDurationSec != null && tp.lastStartIso && tp.lastEndIso) {\n        pumpHist = 'Last: ' + fmtClock(new Date(tp.lastStartIso).getTime()) + ' → ' + fmtClock(new Date(tp.lastEndIso).getTime()) + ' · ' + fmtDur(tp.lastDurationSec);\n    }\n\n    return {\n        power24: s.POWER1 || 'UNKNOWN',\n        pump: pumpSt,\n        pumpRunLine: pumpRun,\n        pumpHistLine: pumpHist,\n        pumpWebUrl: pumpUrl,\n        zones: zoneRows.map(z => {\n            const ex = zoneExtras(z.k);\n            return { ...z, state: s[z.k] || 'UNKNOWN', ...ex };\n        }),\n        eventLog: flow.get('irrigation_event_log_v1') || [],\n        lastUpdate: s.lastUpdate\n    };\n}\n\nif (topic === '__init__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return msg;\n}\n\nif (topic === '__tick__') {\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return msg;\n}\n\nif (topic.indexOf('tele/pompaApa/STATE') >= 0) {\n    try {\n        const o = typeof raw === 'object' ? raw : JSON.parse(String(raw));\n        const ip = o.IPAddress || (o.Wifi && (o.Wifi.IP || o.Wifi.IPAddress || o.Wifi.ip)) || '';\n        if (ip) flow.set('pump_web_url', 'http://' + ip + '/');\n    } catch (e) { /* ignore */ }\n    const s = flow.get('irrigation_status_v1') || defaults();\n    const timers = flow.get('irrigation_zone_timers') || {};\n    msg.payload = buildPayload(s, timers, Date.now());\n    return msg;\n}\n\nlet s = flow.get('irrigation_status_v1') || defaults();\nlet timers = flow.get('irrigation_zone_timers') || {};\n\nif (topic.indexOf('IrigationSystem') >= 0) {\n    const seg = topic.split('/');\n    const key = seg[seg.length - 1];\n    if (key && key.indexOf('POWER') === 0) {\n        const prev = norm(s[key]);\n        const next = norm(pl);\n        s[key] = next;\n        if (ZONE_KEYS.indexOf(key) >= 0) {\n            updateTimer(timers, key, prev, next);\n        }\n        if (prev !== next && (next === 'ON' || next === 'OFF')) {\n            if (key === 'POWER1') {\n                pushLog('⚡', next === 'ON' ? '24V power on' : '24V power off');\n            } else if (ZONE_KEYS.indexOf(key) >= 0) {\n                const lbl = POWER_TO_ZONE[key] || key;\n                const ic = ZONE_KEY_TO_ICON[key] || '🌿';\n                pushLog(ic, next === 'ON' ? ('Start irrigation in ' + lbl) : ('Stop irrigation in ' + lbl));\n            }\n        }\n    }\n} else if (topic.indexOf('stat/pompaApa/POWER1') >= 0) {\n    const prev = norm(s.pump);\n    const next = norm(pl);\n    s.pump = next;\n    updateTimer(timers, 'pump', prev, next);\n    if (prev !== next && (next === 'ON' || next === 'OFF')) {\n        pushLog('💧', next === 'ON' ? 'Start pump' : 'Stop pump');\n    }\n}\n\ns.lastUpdate = new Date().toISOString();\nflow.set('irrigation_status_v1', s);\nflow.set('irrigation_zone_timers', timers);\nmsg.payload = buildPayload(s, timers, Date.now());\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 240,
+        "wires": [
+            [
+                "irr421_ui_template"
+            ]
+        ]
+    },
+    {
+        "id": "irr421_ui_template",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_irrigation_status",
+        "name": "Irrigation status board",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<div v-if=\"msg.payload\" style=\"font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: linear-gradient(165deg, #0c4a6e 0%, #0f172a 45%, #1e1b4b 100%); border-radius: 16px; padding: 14px 12px 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); max-width: 720px; margin: 0 auto;\">\n  <div style=\"display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;\">\n    <div style=\"display: flex; align-items: center; gap: 10px;\">\n      <span style=\"font-size: 1.75rem; line-height: 1;\">🌊</span>\n      <div>\n        <div style=\"font-weight: 700; font-size: 1.1rem; color: #f8fafc; letter-spacing: 0.02em;\">Irrigation status</div>\n        <div style=\"font-size: 0.75rem; color: #94a3b8; margin-top: 2px;\">Zones + pump · timers from MQTT</div>\n      </div>\n    </div>\n    <div style=\"font-size: 0.72rem; color: #64748b; font-family: ui-monospace, monospace;\">{{ fmtTime(msg.payload.lastUpdate) }}</div>\n  </div>\n\n  <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;\">\n    <div style=\"background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1);\">\n      <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 6px;\">\n        <span style=\"font-size: 1.35rem;\">⚡</span>\n        <span style=\"font-weight: 600; color: #e2e8f0; font-size: 0.9rem;\">24V power</span>\n      </div>\n      <div :style=\"badgeStyle(msg.payload.power24)\" style=\"display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;\">{{ msg.payload.power24 }}</div>\n    </div>\n    <div style=\"background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1);\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;\">\n        <div style=\"display: flex; align-items: center; gap: 8px;\">\n          <span style=\"font-size: 1.35rem;\">💧</span>\n          <span style=\"font-weight: 600; color: #e2e8f0; font-size: 0.9rem;\">Pump</span>\n        </div>\n        <a v-if=\"msg.payload.pumpWebUrl\" :href=\"msg.payload.pumpWebUrl\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"font-size: 0.72rem; color: #38bdf8; text-decoration: underline;\">Tasmota ↗</a>\n      </div>\n      <div :style=\"badgeStyle(msg.payload.pump)\" style=\"display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;\">{{ msg.payload.pump }}</div>\n      <div v-if=\"msg.payload.pumpRunLine\" style=\"margin-top: 8px; font-size: 0.72rem; color: #86efac; line-height: 1.35;\">{{ msg.payload.pumpRunLine }}</div>\n      <div v-else-if=\"msg.payload.pumpHistLine\" style=\"margin-top: 8px; font-size: 0.72rem; color: #94a3b8; line-height: 1.35;\">{{ msg.payload.pumpHistLine }}</div>\n    </div>\n  </div>\n\n  <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px 4px;\">Zones</div>\n  <div style=\"display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px;\">\n    <div v-for=\"(z, i) in msg.payload.zones\" :key=\"i\" style=\"background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 10px 12px; border: 1px solid rgba(255,255,255,0.07); min-height: 118px;\">\n      <div style=\"display: flex; align-items: center; justify-content: space-between; gap: 6px;\">\n        <span style=\"font-size: 1.25rem; line-height: 1;\" :title=\"z.label\">{{ z.icon }}</span>\n        <span :style=\"badgeStyle(z.state)\" style=\"padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 700;\">{{ z.state }}</span>\n      </div>\n      <div style=\"margin-top: 6px; font-size: 0.82rem; font-weight: 600; color: #cbd5e1;\">{{ z.label }}</div>\n      <div style=\"margin-top: 8px; font-size: 0.64rem; color: #94a3b8; line-height: 1.45;\">\n        <div><span style=\"color:#64748b;\">Started</span> {{ z.zoneStarted || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Ended</span> {{ z.zoneEnded || '—' }}</div>\n        <div><span style=\"color:#64748b;\">Duration</span> <span :style=\"z.state === 'ON' ? { color: '#86efac' } : { color: '#e2e8f0' }\">{{ z.zoneDuration || '—' }}</span></div>\n      </div>\n    </div>\n  </div>\n\n  <div style=\"margin-top: 16px;\">\n    <div style=\"font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 8px 4px;\">Event log (last 25)</div>\n    <div style=\"max-height: 320px; overflow-y: auto; font-size: 0.7rem; border-radius: 10px; padding: 8px 10px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08);\">\n      <div v-if=\"msg.payload.eventLog && msg.payload.eventLog.length\" style=\"display: flex; flex-direction: column; gap: 0;\">\n        <div v-for=\"(e, i) in msg.payload.eventLog\" :key=\"i\" style=\"display: flex; gap: 8px; align-items: baseline; padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.06);\">\n          <span style=\"flex-shrink: 0; font-size: 1rem; line-height: 1.2;\">{{ e.icon }}</span>\n          <span style=\"color: #64748b; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 0.65rem; white-space: nowrap;\">{{ fmtLogTime(e.ts) }}</span>\n          <span style=\"color: #cbd5e1; line-height: 1.35;\">{{ e.line }}</span>\n        </div>\n      </div>\n      <div v-else style=\"color: #64748b; padding: 8px 4px;\">No state changes yet.</div>\n    </div>\n  </div>\n</div>\n\n<script>\nexport default {\n  methods: {\n    fmtTime(iso) {\n      if (!iso) return '—';\n      try {\n        const d = new Date(iso);\n        return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });\n      } catch (e) { return iso; }\n    },\n    fmtLogTime(iso) {\n      if (!iso) return '—';\n      try {\n        const d = new Date(iso);\n        return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });\n      } catch (e) { return iso; }\n    },\n    badgeStyle(state) {\n      const s = String(state || '').toUpperCase();\n      if (s === 'ON') return { background: '#059669', color: '#fff' };\n      if (s === 'OFF') return { background: '#475569', color: '#e2e8f0' };\n      return { background: '#78350f', color: '#fde68a' };\n    }\n  }\n}\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 700,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    }
+]

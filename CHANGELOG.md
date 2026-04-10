@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.5] - 2026-04-10
+
+### Added - Irrigation status (421) rain-smart UI & triggers
+
+- **Open-Meteo** forecast integration; **wet/dry** day logic for **next scheduled** Lawn/Flowers run and countdown.
+- **Rain-smart schedule** card, forecast **day markers**, live countdown from next-run epoch.
+- **Trigger Irrigation Lawn / Flowers** buttons → same gate entry as the daily scheduler (via link nodes to **420**); **420** link-in nodes updated to include test link outs.
+- **Source files**: `_irr421_merge_func.js`, `_irr421_openmeteo.js`, `_irr421_scheduler.js`, `_patch421.py` under `nodered/flows/` for maintenance.
+
 ## [3.10.4] - 2026-04-10
 
 ### Changed - Irrigation status dashboard (421) notifications

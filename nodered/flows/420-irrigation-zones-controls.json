@@ -4347,7 +4347,7 @@
         "id": "c51a5cdc8046bb29",
         "type": "run-gate",
         "z": "b3b5bbeab11d67eb",
-        "name": "",
+        "name": "Gate lawn",
         "program": "78e05c6d467c7326",
         "x": 800,
         "y": 3647,
@@ -4355,6 +4355,23 @@
             [
                 "7abc88669dbec970",
                 "2f2bbabae1e74a9d"
+            ]
+        ]
+    },
+    {
+        "id": "irr420_link_in_sched_lawn",
+        "type": "link in",
+        "z": "b3b5bbeab11d67eb",
+        "name": "To Gate lawn (421 scheduler)",
+        "links": [
+            "irr421_link_out_sched_lawn",
+            "irr421_link_out_test_lawn"
+        ],
+        "x": 720,
+        "y": 3647,
+        "wires": [
+            [
+                "c51a5cdc8046bb29"
             ]
         ]
     },
@@ -5324,6 +5341,109 @@
         "wires": [
             [
                 "33780971f401840a"
+            ]
+        ]
+    },
+    {
+        "id": "f8e4c2b1a0d9e7f6",
+        "type": "program",
+        "name": "Flowers"
+    },
+    {
+        "id": "e7f8a9b0c1d2e3f4",
+        "type": "timerctl out",
+        "z": "b3b5bbeab11d67eb",
+        "name": "",
+        "program": "f8e4c2b1a0d9e7f6",
+        "block": false,
+        "pauseCmd": "pause",
+        "resumeCmd": "resume",
+        "decrementCmd": "decrement",
+        "incrementCmd": "increment",
+        "adjustCmd": "adjust",
+        "skipCmd": "skip",
+        "scaleCmd": "scale",
+        "x": 540,
+        "y": 2960,
+        "wires": []
+    },
+    {
+        "id": "a1b2c3d4e5f67890",
+        "type": "run-gate",
+        "z": "b3b5bbeab11d67eb",
+        "name": "Gate Flowers",
+        "program": "f8e4c2b1a0d9e7f6",
+        "x": 800,
+        "y": 3747,
+        "wires": [
+            [
+                "7abc88669dbec970",
+                "b2c3d4e5f6789012"
+            ]
+        ]
+    },
+    {
+        "id": "b2c3d4e5f6789012",
+        "type": "delay",
+        "z": "b3b5bbeab11d67eb",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "4",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1044,
+        "y": 3747,
+        "wires": [
+            [
+                "c3d4e5f678901234"
+            ]
+        ]
+    },
+    {
+        "id": "c3d4e5f678901234",
+        "type": "zone-timer",
+        "z": "b3b5bbeab11d67eb",
+        "name": "",
+        "zonename": "I2",
+        "zonenametype": "str",
+        "duration": "10m",
+        "durationtype": "str",
+        "program": "f8e4c2b1a0d9e7f6",
+        "onval": "ON",
+        "onvaltype": "str",
+        "offval": "OFF",
+        "offvaltype": "str",
+        "x": 1044,
+        "y": 3810,
+        "wires": [
+            [
+                "920e9e525caa058e",
+                "d4b080088bdb116f"
+            ]
+        ]
+    },
+    {
+        "id": "irr420_link_in_sched_flowers",
+        "type": "link in",
+        "z": "b3b5bbeab11d67eb",
+        "name": "To Gate Flowers (421 scheduler)",
+        "links": [
+            "irr421_link_out_sched_flowers",
+            "irr421_link_out_test_flowers"
+        ],
+        "x": 720,
+        "y": 3747,
+        "wires": [
+            [
+                "a1b2c3d4e5f67890"
             ]
         ]
     }

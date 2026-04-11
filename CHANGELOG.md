@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.1] - 2026-04-11
+
+### Fixed - Irrigation status dashboard (421)
+
+- **Scheduler:** Removed the `seconds ≤ 2` guard that blocked the daily scheduler from ever firing (60s inject is not aligned to the start of each minute). Per-day dedup keys unchanged.
+- **Dashboard UI:** Vue SFC order corrected so `<style>` sits **after** `</template>` (styles were not applied when the stylesheet was inside the template). Added **inline** dark shell + **horizontal flex** for weekday toggles and the 7-day forecast strip so layout survives strict sanitization.
+- **Tests:** `nodered/tests/irrigation-scheduler.test.cjs` loads the scheduler from the flow JSON and asserts lawn/flowers, weekday skip, rain skip, and winter behavior.
+
+### Changed - Irrigation status dashboard (421)
+
+- Responsive layout, namespaced `.irrigation-dash` theme CSS, and card styling for forecast, schedule, pump/zones, logic, and event log.
+
 ## [3.10.6] - 2026-04-11
 
 ### Changed - Irrigation status dashboard (421) schedule UI & season

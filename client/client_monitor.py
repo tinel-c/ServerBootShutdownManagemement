@@ -78,6 +78,15 @@ except ImportError:
 class SystemTrayIcon:
     """System tray icon manager with status indicators"""
     
+    # RGB status colors (broker + server); distinct from wake on/off geometry
+    _STATUS_RGB = {
+        "red": (215, 55, 55),
+        "gray": (125, 125, 130),
+        "green": (38, 168, 72),
+        "orange": (220, 125, 32),
+        "yellow": (208, 188, 42),
+    }
+    
     def __init__(self, monitor):
         """Initialize system tray icon"""
         self.monitor = monitor
@@ -86,27 +95,8 @@ class SystemTrayIcon:
         self.server_status = "unknown"  # online, offline, unknown
         self.recent_requests = deque(maxlen=5)  # Last 5 requests
         
-    def create_icon_image(self, color):
-        """Create a colored icon image"""
-        # Create a 64x64 image with a circle
-        width = 64
-        height = 64
-        image = Image.new('RGB', (width, height), color='white')
-        draw = ImageDraw.Draw(image)
-        
-        # Draw circle
-        margin = 8
-        draw.ellipse(
-            [margin, margin, width - margin, height - margin],
-            fill=color,
-            outline='black',
-            width=2
-        )
-        
-        return image
-    
     def get_icon_color(self):
-        """Get icon color based on status"""
+        """Get icon color key based on broker + server status"""
         if self.status == "error":
             return 'red'
         elif self.status == "disconnected":
@@ -118,14 +108,47 @@ class SystemTrayIcon:
         else:
             return 'yellow'  # connected but server status unknown
     
+    def create_tray_image(self):
+        """
+        Build 64x64 tray image: solid disk = wake intent ON (may participate in wake);
+        ring (hollow) = wake intent OFF. Color still reflects broker + server state.
+        """
+        width = height = 64
+        image = Image.new('RGB', (width, height), color=(255, 255, 255))
+        draw = ImageDraw.Draw(image)
+        key = self.get_icon_color()
+        rgb = self._STATUS_RGB.get(key, (160, 160, 160))
+        wake = self.monitor.wake_server
+        margin = 8
+        outer = [margin, margin, width - margin, height - margin]
+        
+        if wake:
+            draw.ellipse(outer, fill=rgb, outline=(25, 25, 28), width=2)
+            # Small marker: wake intent ON (solid = may participate in wake)
+            dot_r = 5
+            cx, cy = width - margin - 10, height - margin - 10
+            draw.ellipse(
+                [cx - dot_r, cy - dot_r, cx + dot_r, cy + dot_r],
+                fill=(255, 255, 255),
+                outline=(30, 30, 35),
+                width=1,
+            )
+        else:
+            # Donut ring: wake intent OFF (hollow — not contributing wake from this PC)
+            draw.ellipse(outer, fill=rgb, outline=(25, 25, 28), width=2)
+            inner_margin = 18
+            inner = [inner_margin, inner_margin, width - inner_margin, height - inner_margin]
+            draw.ellipse(inner, fill=(252, 252, 254), outline=(200, 200, 208), width=1)
+        
+        return image
+    
     def update_icon(self):
         """Update the tray icon"""
         if self.icon:
-            color = self.get_icon_color()
-            # Only recreate image if color changed or not yet set
-            if not hasattr(self, '_last_color') or self._last_color != color:
-                self.icon.icon = self.create_icon_image(color)
-                self._last_color = color
+            key = (self.status, self.server_status, self.monitor.wake_server)
+            if not hasattr(self, '_last_icon_key') or self._last_icon_key != key:
+                self.icon.icon = self.create_tray_image()
+                self._last_icon_key = key
             self.icon.title = self.get_tooltip()
     
     def get_tooltip(self):
@@ -159,6 +182,8 @@ class SystemTrayIcon:
         # Server status
         srv_text = f"Srv: {self.server_status.upper()}"
         lines.append(srv_text)
+        
+        lines.append(f"Wake: {'ON' if self.monitor.wake_server else 'OFF'}")
         
         # Countdown
         if hasattr(self.monitor, 'next_heartbeat') and self.monitor.next_heartbeat > 0:
@@ -248,6 +273,25 @@ class SystemTrayIcon:
         # Could implement a GUI window here in the future
         logger.info("Status requested from system tray")
     
+    def on_toggle_wake_server(self, icon, item):
+        """Toggle local reminder: whether you intend this PC to participate in server wake automation."""
+        self.monitor.wake_server = not self.monitor.wake_server
+        self.monitor._save_wake_server_preference()
+        logger.info(f"Wake server preference: {self.monitor.wake_server}")
+        if not self.monitor.wake_server:
+            try:
+                icon.notify(
+                    'Saved on this PC only. Use the server management dashboard to disable automated boot if needed.',
+                    'Wake server on connect: off'
+                )
+            except Exception as e:
+                logger.debug(f"Tray notification failed: {e}")
+        try:
+            icon.update_menu()
+        except Exception:
+            pass
+        self.update_icon()
+    
     def on_check_updates(self, icon, item):
         """Check for updates manually"""
         try:
@@ -271,6 +315,11 @@ class SystemTrayIcon:
         menu_items = [
             item('Status', self.on_show_status),
             item('View Log', self.on_show_log),
+            item(
+                'Wake server on connect',
+                self.on_toggle_wake_server,
+                checked=lambda i: self.monitor.wake_server,
+            ),
         ]
         
         # Add update check option if auto-updater is available
@@ -286,8 +335,7 @@ class SystemTrayIcon:
     
     def run(self):
         """Run the system tray icon"""
-        color = self.get_icon_color()
-        image = self.create_icon_image(color)
+        image = self.create_tray_image()
         
         self.icon = pystray.Icon(
             "ClientServerBootShutdownManagement",
@@ -307,6 +355,11 @@ class ClientMonitor:
         """Initialize the client monitor"""
         self.config = self._load_config()
         self.client_id = self._get_client_id()
+        self._user_settings_path = (
+            Path(os.getenv('LOCALAPPDATA', '.')) / 'ClientMonitor' / 'user_settings.json'
+        )
+        self.wake_server = True
+        self._load_wake_server_preference()
         self.mqtt_client = None
         self.running = False
         self.heartbeat_thread = None
@@ -334,6 +387,26 @@ class ClientMonitor:
                 logger.warning(f"Could not initialize auto-updater: {e}")
         
         logger.info(f"Client Monitor initialized for: {self.client_id}")
+    
+    def _load_wake_server_preference(self):
+        """Load persistent local preference (tray/reminder); not sent to MQTT or Node-RED."""
+        try:
+            if self._user_settings_path.exists():
+                with open(self._user_settings_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                if isinstance(data.get('wake_server'), bool):
+                    self.wake_server = data['wake_server']
+        except Exception as e:
+            logger.warning(f"Could not load user settings from {self._user_settings_path}: {e}")
+    
+    def _save_wake_server_preference(self):
+        """Persist wake_server toggle under %LOCALAPPDATA%\\ClientMonitor\\."""
+        try:
+            self._user_settings_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self._user_settings_path, 'w', encoding='utf-8') as f:
+                json.dump({'wake_server': self.wake_server}, f, indent=2)
+        except Exception as e:
+            logger.error(f"Could not save user settings to {self._user_settings_path}: {e}")
     
     def _load_config(self):
         """Load configuration from YAML and environment"""
@@ -535,7 +608,7 @@ class ClientMonitor:
             "hostname": socket.gethostname(),
             "client_id": self.client_id,
             "timestamp": datetime.now().isoformat(),
-            "ip_address": self._get_ip_address()
+            "ip_address": self._get_ip_address(),
         }
         
         payload = json.dumps(message)
@@ -564,7 +637,7 @@ class ClientMonitor:
             "client_id": self.client_id,
             "hostname": socket.gethostname(),
             "timestamp": datetime.now().isoformat(),
-            "uptime": self._get_uptime()
+            "uptime": self._get_uptime(),
         }
         
         payload = json.dumps(message)

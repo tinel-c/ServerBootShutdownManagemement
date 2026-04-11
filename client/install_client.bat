@@ -51,6 +51,7 @@ echo.
 REM Copy files
 echo [3/6] Copying application files...
 copy /Y "%~dp0client_monitor.py" "%INSTALL_DIR%\" >nul
+if exist "%~dp0auto_updater.py" copy /Y "%~dp0auto_updater.py" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0uninstall_client.bat" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0requirements_client.txt" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0config\client_config.yaml" "%INSTALL_DIR%\config\" >nul

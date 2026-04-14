@@ -6,19 +6,14 @@ The Gate Automation system provides comprehensive control and monitoring for the
 
 ### Hardware
 
-The gate controller uses a **[Tasmota](https://tasmota.github.io/docs/)** device - open-source firmware running on ESP8266/ESP32 hardware. Tasmota provides:
-- MQTT communication
-- Web UI for configuration
-- Flexible GPIO control
-- Over-the-air (OTA) updates
-- Rules engine for automation
+The **main gate** controller runs **[PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)** firmware on an ESP8266 4-relay board (keypad, MQTT, mains failover, coil protection). The **gate actuator is Relay 3** (`MainGate/CMD/Relay3` / `MainGate/STAT/Relay3` and recurrent status on `MainGate/STAT/reccurentStatusRelay3`).
 
-**See**: [Tasmota Gate Integration Guide](TASMOTA_GATE_INTEGRATION.md) for detailed Tasmota configuration.
+**See**: [Tasmota Gate Integration Guide](TASMOTA_GATE_INTEGRATION.md) for MQTT topic details (including optional Tasmota-based setups).
 
 ## Features
 
 ### Main Gate Control
-- **Open/Close Switch** - Toggle relay 2 to open/close the main gate
+- **Open/Close Switch** - Toggle relay 3 to open/close the main gate
 - **1-Second Pulse** - Automatic pulse to prevent continuous relay activation
 - **Status Feedback** - Real-time relay state display
 - **Command Logging** - All commands logged to flow context
@@ -54,16 +49,16 @@ Gate Automation (200-299)
 
 #### Commands (Dashboard → Gate Controller)
 ```
-MainGate/CMD/Relay2          # Open/close command (ON/OFF)
+MainGate/CMD/Relay3          # Open/close command (ON/OFF) — main gate actuator
 ```
 
 #### Status (Gate Controller → Dashboard)
 ```
-MainGate/STAT/Relay2                    # Relay 2 state
+MainGate/STAT/Relay3                    # Relay 3 state (main gate)
 MainGate/STAT/eventPower                # Power status events
 MainGate/STAT/reccurentStatusRelay1     # Relay 1 recurring status
 MainGate/STAT/reccurentStatusRelay2     # Relay 2 recurring status
-MainGate/STAT/reccurentStatusRelay3     # Relay 3 recurring status
+MainGate/STAT/reccurentStatusRelay3     # Relay 3 recurring status (main gate)
 MainGate/STAT/reccurentStatusRelay4     # Relay 4 recurring status
 MainGate/STAT/reccurentStatusMains      # Mains power status
 MainGate/STAT/reccurentStatusKeypad     # Keypad connectivity
@@ -147,7 +142,7 @@ File: nodered/flows/211-main-gate-status.json
 
 **MQTT Command (manual):**
 ```bash
-mosquitto_pub -h 192.168.2.4 -t "MainGate/CMD/Relay2" -m "ON"
+mosquitto_pub -h 192.168.2.4 -t "MainGate/CMD/Relay3" -m "ON"
 ```
 
 ### Monitoring Status
@@ -243,7 +238,7 @@ Edit `gate_main_switch` node properties:
    ```bash
    mosquitto_sub -h 192.168.2.4 -t 'MainGate/CMD/#' -v
    ```
-2. Gate controller subscribed to `MainGate/CMD/Relay2`
+2. Gate controller subscribed to `MainGate/CMD/Relay3`
 3. Check Node-RED debug panel for errors
 4. Verify trigger node sends 1-second pulse
 

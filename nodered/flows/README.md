@@ -422,6 +422,14 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 ---
 
+### Gate automation (200–212)
+
+**Files:** `200-gate-base-config.json`, `210-main-gate-controls.json`, `211-main-gate-status.json`, `212-gate-telegram.json` (optional). Import order and layout: see [docs/GATE_IMPORT_INSTRUCTIONS.md](../../docs/GATE_IMPORT_INSTRUCTIONS.md).
+
+**Main gate device:** [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry) (ESP8266). Main gate open uses **`MainGate/CMD/Relay3`** (Relay 3 is the gate actuator; status on `MainGate/STAT/Relay3` and `MainGate/STAT/reccurentStatusRelay3`).
+
+---
+
 ### 90-log-console.json
 **System Log Console**
 

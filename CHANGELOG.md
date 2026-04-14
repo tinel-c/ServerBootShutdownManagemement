@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.3] - 2026-04-14
+
+### Changed - Main gate MQTT (Node-RED flows 210–212)
+
+- **Main gate actuator** aligned with **[PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)** firmware: commands and status use **`MainGate/CMD/Relay3`**, **`MainGate/STAT/Relay3`**, and **`MainGate/STAT/reccurentStatusRelay3`** (previously Relay 2).
+- **Flows**: `210-main-gate-controls.json`, `211-main-gate-status.json`, `212-gate-telegram.json`; **514** SMS `GATE_OPEN` / `GATE`; **50** `/commands` help text for main gate.
+- **Documentation**: `docs/GATE_AUTOMATION.md`, `docs/GATE_IMPORT_INSTRUCTIONS.md`, `docs/TASMOTA_GATE_INTEGRATION.md` (PlatformIO section + Tasmota legacy), `docs/TELEGRAM_INTERFACE.md`, `nodered/flows/README.md` (gate automation subsection).
+
 ## [3.11.1] - 2026-04-11
 
 ### Fixed - Irrigation status dashboard (421)

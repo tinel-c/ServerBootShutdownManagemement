@@ -37,7 +37,7 @@ The Telegram interface allows remote control and monitoring of servers, gates, l
 ### 🚪 Gate Automation
 | Command | Description |
 |---------|-------------|
-| `/gate_open` | Open main gate (pulse) |
+| `/gate_open` | Open main gate (pulse via `MainGate/CMD/Relay3`; device: [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)) |
 | `/gate_status` | Get comprehensive gate status |
 | `/sliding_open` | Open sliding gate |
 | `/sliding_close` | Close sliding gate |

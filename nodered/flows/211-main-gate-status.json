@@ -4,7 +4,7 @@
         "type": "comment",
         "z": "gate_main_tab",
         "name": "═══════════════ POWER STATUS & SMS ALERTS ═══════════════",
-        "info": "## Main Gate Status\n\nMonitors and displays all gate controller status:\n- Power status (battery/mains)\n- Relay 1-4 states\n- Mains power availability\n- Keypad connectivity\n- Timestamp of last update\n\n### MQTT Topics:\n- MainGate/STAT/eventPower\n- MainGate/STAT/reccurentStatusRelay1-4\n- MainGate/STAT/reccurentStatusMains\n- MainGate/STAT/reccurentStatusKeypad\n\n### SMS Alerts:\nSends SMS notification on power status changes.",
+        "info": "## Main Gate Status\n\nMonitors and displays all gate controller status:\n- Power status (battery/mains)\n- Relay 1-4 states (Relay 3 = main gate actuator per [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry))\n- Mains power availability\n- Keypad connectivity\n- Timestamp of last update\n\n### MQTT Topics:\n- MainGate/STAT/eventPower\n- MainGate/STAT/reccurentStatusRelay1-4\n- MainGate/STAT/reccurentStatusMains\n- MainGate/STAT/reccurentStatusKeypad\n\n### SMS Alerts:\nSends SMS notification on power status changes.",
         "x": 370,
         "y": 380,
         "wires": []
@@ -317,7 +317,7 @@
         "width": "0",
         "height": "0",
         "name": "",
-        "label": "Relay 3",
+        "label": "Relay 3 (main gate)",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,

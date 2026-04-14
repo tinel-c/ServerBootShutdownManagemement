@@ -2,13 +2,40 @@
 
 ## Overview
 
-The main gate automation uses a [Tasmota](https://tasmota.github.io/docs/) device as the gate controller. Tasmota is open-source firmware for ESP8266/ESP32 devices that provides MQTT control, web UI, and extensive customization options.
+This document covers MQTT integration for the **main gate** controller. The **current production device** runs custom ESP8266 firmware; Tasmota is documented below as an **alternate** stack you may still use for reference or migration.
 
-## Device Configuration
+## Main gate device (ESP8266 / PlatformIO)
 
-### Current MQTT Topics
+The deployed controller is built from **[PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)** (ESP8266 4-relay board: keypad, MQTT, mains-aware WiFi/MQTT recovery, coil protection on the gate relay). Topic layout matches that repository’s MQTT quick reference.
 
-Your Tasmota device is configured with custom topics:
+**Main gate actuator:** **Relay 3** (not Relay 2).
+
+**Commands (Node-RED → device):**
+```
+MainGate/CMD/Relay3
+```
+
+**Direct and recurrent status (device → Node-RED):**
+```
+MainGate/STAT/Relay3                    # Gate relay state
+MainGate/STAT/reccurentStatusRelay3       # Gate relay (recurrent)
+MainGate/STAT/eventPower                # Power status events
+MainGate/STAT/reccurentStatusRelay1     # Relay 1 recurring status
+MainGate/STAT/reccurentStatusRelay2     # Relay 2 recurring status
+MainGate/STAT/reccurentStatusRelay4     # Relay 4 recurring status
+MainGate/STAT/reccurentStatusMains      # Mains power status
+MainGate/STAT/reccurentStatusKeypad     # Keypad connectivity
+MainGate/STAT/heartbeat                 # Seconds online (see firmware)
+MainGate/STAT/message                   # Debug messages
+```
+
+For full command/status lists and behavior, use the repository README: [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry).
+
+## Tasmota (alternate / legacy)
+
+The main gate automation can also use a [Tasmota](https://tasmota.github.io/docs/) device. Tasmota is open-source firmware for ESP8266/ESP32 devices that provides MQTT control, web UI, and extensive customization options. Historical setups often mapped the **main gate** to **Relay 2** on Tasmota; Node-RED flows in this repo are aligned with the **PlatformIO** device above (**Relay 3**).
+
+### Tasmota-oriented MQTT topics (if using Tasmota)
 
 **Commands (Node-RED → Tasmota):**
 ```

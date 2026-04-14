@@ -4,6 +4,8 @@
 
 The gate automation consists of **3 separate JSON files** that all import into a **single "Gate Management" tab** in Node-RED.
 
+The **main gate** device firmware is **[PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)** (ESP8266). Node-RED publishes opens to **`MainGate/CMD/Relay3`** (Relay 3 is the gate actuator).
+
 ## Files to Import
 
 ```
@@ -54,7 +56,7 @@ File: nodered/flows/210-main-gate-controls.json
 ✅ Control nodes added to **same "Gate Management" tab**
 
 **Contains:**
-- Relay 2 control switch
+- Relay 3 control switch (main gate)
 - 1-second pulse trigger
 - Command formatting
 - MQTT publishing
@@ -129,7 +131,7 @@ Gate Management Tab
 ├── ═══════════════ BASE CONFIGURATION ═══════════════
 │   └── [Context init nodes]
 │
-├── ═══════════════ MAIN GATE CONTROL - Relay 2 ═══════════════
+├── ═══════════════ MAIN GATE CONTROL - Relay 3 ═══════════════
 │   └── [Control switch and command nodes]
 │
 ├── ═══════════════ POWER STATUS & SMS ALERTS ═══════════════
@@ -155,7 +157,7 @@ You should see **4 UI groups:**
    - Power status display
 
 3. **Relay Status**
-   - Relay 1, 2, 3, 4
+   - Relay 1, 2, 3 (main gate), 4
    - Mains Power
    - Keypad
 
@@ -231,7 +233,7 @@ To change:
 
 1. Go to http://localhost:1880/dashboard/gates
 2. Toggle "Deschide Poarta" switch
-3. Should send command to `MainGate/CMD/Relay2`
+3. Should send command to `MainGate/CMD/Relay3`
 
 **Monitor MQTT:**
 ```bash
@@ -242,7 +244,7 @@ mosquitto_sub -h 192.168.2.4 -t 'MainGate/CMD/#' -v
 
 Publish test status:
 ```bash
-mosquitto_pub -h 192.168.2.4 -t 'MainGate/STAT/Relay2' -m 'ON'
+mosquitto_pub -h 192.168.2.4 -t 'MainGate/STAT/Relay3' -m 'ON'
 mosquitto_pub -h 192.168.2.4 -t 'MainGate/STAT/eventPower' -m 'MAINS'
 ```
 

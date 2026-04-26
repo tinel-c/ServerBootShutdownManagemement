@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.5] - 2026-04-26
+
+### Changed - device firmware (submodule layout)
+
+- **SMS gateway** firmware is now a **separate repository** — [tinel-c/esp32-sms-gateway](https://github.com/tinel-c/esp32-sms-gateway) — and included in this monorepo as a submodule at **`device/esp32-sms-gateway`** (replace former inline `device/sms-gateway/`). Same sources; paths in docs and OTA updated.
+- New specification: [docs/developer/DEVICE_SUBMODULES.md](docs/developer/DEVICE_SUBMODULES.md) for adding future device repos as submodules. [device/README.md](device/README.md) lists both device submodules and clone commands. [RELEASE_NOTES_v3.11.5.md](RELEASE_NOTES_v3.11.5.md).
+
 ## [3.11.4] - 2026-04-26
 
 ### Fixed - SMS gateway (ESP32) MQTT recovery

@@ -1,3 +1,6 @@
 [submodule "device/PlatformIO_ESP8266_Main_Entry"]
 	path = device/PlatformIO_ESP8266_Main_Entry
 	url = https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry.git
+[submodule "device/esp32-sms-gateway"]
+	path = device/esp32-sms-gateway
+	url = https://github.com/tinel-c/esp32-sms-gateway.git

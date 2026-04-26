@@ -195,6 +195,7 @@ The SMS Gateway's embedded C++ firmware actively tracks "heartbeat" messages fro
 #### B. Alerting Escalation
 - **Primary Alert**: Change in connection state is published to MQTT.
 - **Critical Alert**: On connection loss, the SMS Gateway sends an **Emergency SMS** to the pre-configured hardware number via its built-in GSM modem.
+- **Link recovery (firmware)**: The gateway keeps its WiFi state aligned with the ESP32 stack on every main-loop iteration and resets the MQTT TCP client before each connect attempt, so it can **reconnect to the broker after power or network outages** without a full hardware power cycle (see **SMS Gateway: WiFi / MQTT link recovery** in [MQTT_PROTOCOL.md](MQTT_PROTOCOL.md)).
 - **Benefit**: Provides out-of-band alerting when the primary internet connection or server is down.
 
 #### C. Management Dashboard (Node-RED)

@@ -215,8 +215,8 @@ Create a Node-RED flow to send SMS from automation:
 The device includes robust self-recovery mechanisms:
 
 ### Automatic Reconnection
-- **WiFi**: Automatically reconnects with up to 3 attempts
-- **MQTT**: Automatically reconnects with up to 5 attempts
+- **WiFi**: A periodic reconnection path runs (see `WIFI_RECONNECT_ATTEMPTS` and `WIFI_CHECK_INTERVAL` in `include/config.h`). The firmware also **syncs the internal WiFi-connected flag to `WiFi.status()` every main-loop iteration**, so if the ESP32 stack **auto-reconnects** after the AP or power returns, MQTT recovery is not blocked while waiting for the next slow timer tick.
+- **MQTT**: Automatically reconnects with up to 5 failed attempts per alert cycle, with **rate limiting** between tries. Before each connect, the firmware **resets the underlying TCP client** (drops stale sessions after long outages) so the device can reach the broker again without a full reboot.
 - **GSM**: Modem is reinitialized on startup
 
 ### Reset Detection
@@ -231,7 +231,8 @@ When WiFi or MQTT fails, the device can send SMS alerts:
   - **Device comes online** - SMS notification after successful initialization
   - WiFi connection fails on boot
   - WiFi reconnection attempts exhausted
-  - MQTT connection attempts exhausted
+  - MQTT connection attempts exhausted (repeated in cycles; counter resets to limit spam)
+  - **MQTT recovers after an outage** - optional **“MQTT connection restored”** SMS when reconnecting after at least one failed connect in that recovery (omitted on a clean first MQTT connect at boot)
   - Device resets (if MQTT unavailable)
 
 **Device Online Notification:**

@@ -539,6 +539,26 @@ bool setup_wifi() {
 }
 
 /**
+ * Keep wifiConnected in sync with the WiFi stack (e.g. ESP32 auto-reconnect after AP/router power returns).
+ * Without this, wifiConnected can stay false until the next slow periodic check, so the MQTT path never runs
+ * and the device spams "MQTT broker unavailable" until a full reboot.
+ */
+void syncWifiLinkState() {
+    if (WiFi.status() == WL_CONNECTED) {
+        if (!wifiConnected) {
+            Serial.println("[WiFi] Reconnected (link / auto-reconnect)!");
+            wifiConnected = true;
+            wifiReconnectAttempts = 0;
+        }
+    } else {
+        if (wifiConnected) {
+            Serial.println("[WiFi] WARNING: Link lost (sync)!");
+            wifiConnected = false;
+        }
+    }
+}
+
+/**
  * Check and reconnect WiFi if needed
  */
 bool checkAndReconnectWiFi() {
@@ -804,6 +824,8 @@ bool reconnectMQTT() {
     }
     lastMqttAttempt = millis();
     
+    int mqttAttemptCountBeforeThisTry = mqttReconnectAttempts;
+    
     Serial.print("[MQTT] Attempting connection");
     if (mqttReconnectAttempts > 0) {
         Serial.print(" (attempt ");
@@ -813,6 +835,12 @@ bool reconnectMQTT() {
         Serial.print(")");
     }
     Serial.println("...");
+    
+    // Drop any stale TCP session so connect() can succeed after a brownout or long broker outage
+    // (otherwise WiFi can be "up" but PubSubClient keeps failing until reboot).
+    mqttClient.disconnect();
+    espClient.stop();
+    delay(50);
     
     // Attempt to connect with credentials
     bool connected = false;
@@ -857,8 +885,8 @@ bool reconnectMQTT() {
         // Publish initial status
         publishTimestamp(MQTT_TOPIC_STATUS);
         
-        // Notify via SMS if reconnected after failure
-        if (isEmergencySMSEnabled() && gsmInitialized) {
+        // Notify via SMS when recovering after at least one failed connect (skip on clean first connect at boot)
+        if (mqttAttemptCountBeforeThisTry > 0 && isEmergencySMSEnabled() && gsmInitialized) {
             String message = "SMS Gateway: MQTT connection restored. Device back online.";
             sendSMS(getEmergencyPhoneNumber(), message);
         }
@@ -1252,6 +1280,9 @@ void setup() {
 void loop() {
     // Feed watchdog
     esp_task_wdt_reset();
+    
+    // Match WiFi flags to the stack as soon as the link is back (not only on the 60s WiFi check)
+    syncWifiLinkState();
     
     // Check WiFi connection
     unsigned long now = millis();

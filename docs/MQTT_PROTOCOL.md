@@ -572,6 +572,16 @@ ISO8601 timestamp string
 
 ---
 
+### SMS Gateway: WiFi / MQTT link recovery (firmware)
+
+The ESP32 device keeps MQTT **in the same “connected” state as the user-visible WiFi link**:
+
+- The firmware updates its internal WiFi-connected flag from **`WiFi.status()` on every main-loop pass**, not only on the slower periodic WiFi check. That way, when the stack **auto-reconnects** after a router or power outage, **MQTT reconnection runs immediately** instead of being skipped until a full device reboot.
+- On each **MQTT** connect attempt, the firmware **closes the previous TCP session** (disconnect + stop on the `WiFiClient`) so a half-open socket from a long brownout does not block a new connection to the broker.
+- **Emergency SMS** for MQTT exhaustion can still fire in repeated cycles; when the broker is back, the device recovers and may send a **“MQTT connection restored”** text only if that success follows **at least one failed connect** in the same recovery (not on a clean first connect at cold boot).
+
+---
+
 ### OTA Update Command
 
 **Topic:** `sms/gateway/command/ota`

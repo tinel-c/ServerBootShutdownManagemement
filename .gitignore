@@ -27,6 +27,7 @@ wheels/
 .env
 config/.env
 device/**/include/passwords.h
+device/**/src/password.h
 device/**/.env
 
 # IDE

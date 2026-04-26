@@ -7,15 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.11.4] - 2026-04-26
 
-### Fixed - SMS gateway firmware (ESP32) MQTT recovery
+### Fixed - SMS gateway (ESP32) MQTT recovery
 
-- **WiFi/MQTT desync after outages**: The main loop now syncs the internal WiFi “connected” flag to `WiFi.status()` every iteration so ESP32 **auto-reconnect** unblocks MQTT immediately (previously the flag could lag by up to the 60s WiFi check, so MQTT reconnection never ran and emergency SMS repeated).
-- **Stale TCP after brownouts**: Each MQTT connect attempt **drops the old TCP session** (`disconnect` + `stop` on the WiFi client) so the broker is reachable again without a full device reboot.
-- **Emergency SMS copy**: The **“MQTT connection restored”** SMS is only sent when recovery follows at least one failed connect attempt, not on a clean first connect at boot.
-
-### Documentation
-
-- Updated `device/sms-gateway/README.md` (self-recovery), `docs/MQTT_PROTOCOL.md` (SMS gateway connectivity behavior), `docs/ARCHITECTURE.md` (watchdog / link recovery), and `RELEASE_NOTES_v3.11.4.md`.
+- Sync WiFi flag to `WiFi.status()` every loop; reset TCP before `mqttClient.connect()`; “MQTT restored” SMS only after a failed connect in that recovery. Docs: README, `MQTT_PROTOCOL`, `ARCHITECTURE`.
 
 ## [3.11.3] - 2026-04-14
 

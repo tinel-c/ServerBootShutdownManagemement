@@ -4,9 +4,9 @@
 
 The Comprehensive Automation Platform uses a centralized architecture where all control, monitoring, and management logic resides on a single Ubuntu VM. It acts as a unified brain for servers, courtyard hardware, and house-wide automation, orchestrating complex workflows based on various inputs and sensor data.
 
-![Platform Architecture](architecture_diagram_v4.svg)
+![Platform Architecture](architecture_diagram_v4.png)
 
-*PNG export for presentations: [architecture_diagram_v4.png](architecture_diagram_v4.png)*
+*SVG source: [architecture_diagram_v4.svg](architecture_diagram_v4.svg)*
 
 ## Components
 

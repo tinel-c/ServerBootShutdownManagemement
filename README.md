@@ -1,6 +1,37 @@
 # Comprehensive Home & Server Automation Platform
 
-A unified automation ecosystem for managing servers (Dell T310, HP DL360p), courtyard devices, and house-wide automation through Node-RED, MQTT, and intelligent workflows.
+**One MQTT hub for your homelab and your home.**
+
+This project started as a way to remotely boot and shut down two Proxmox servers (Dell T310 and HP DL360p) without walking to the basement. It grew into a full **home and server automation platform**: the same Ubuntu automation server that powers your servers also runs the courtyard gates, garden irrigation, lights, SMS alerts, Telegram commands, and live solar energy monitoring.
+
+Everything talks over **MQTT**. Node-RED provides dashboards and logic. Python systemd services handle hardware control, Modbus polling, and health checks. You operate it from a browser, Telegram, or SMS — and the system can act on its own when clients connect, solar surplus appears, or a device stops reporting.
+
+## What It Does
+
+| Area | What you get |
+|------|----------------|
+| **Servers** | Wake-on-LAN / IPMI / iLO boot, graceful Proxmox shutdown, live status, HealthChecks.io |
+| **Smart power** | Windows client presence → auto boot when needed, grace-period shutdown when everyone leaves |
+| **Energy** | Victron Cerbo GX + Huawei SUN2000 → MQTT dashboards, Telegram, PV headroom automation |
+| **Home & courtyard** | Gates, irrigation (rain-smart), garden lights, water pump, aquarium, cameras |
+| **Alerts** | Telegram bot, ESP32 SMS gateway, device watchdog (2 min) when telemetry stops |
+
+Typical setup: an **Ubuntu automation server** on your LAN (e.g. `192.168.2.4`) running Node-RED, Mosquitto, and the Python publishers in this repo. Managed servers and IoT devices connect over Ethernet or WiFi; energy inverters are polled via Modbus.
+
+## How It Works
+
+```
+You (Dashboard / Telegram / SMS)  ──►  Node-RED  ──►  Mosquitto MQTT  ──►  Python services
+                                              ▲                              │
+                                              │                              ▼
+                                         Dashboard ◄── MQTT ◄── Servers · Victron · Huawei · ESP32 · Clients
+```
+
+1. **Commands** flow in through the dashboard or bots → MQTT → listeners that execute WoL, iLO, Proxmox shutdown, or device actions.
+2. **Telemetry** flows back from publishers and devices → MQTT → Node-RED UI, Telegram alerts, and automation rules (e.g. discretionary loads when PV exceeds consumption).
+3. **Domains** are modular Node-RED flows (`100` servers, `200` gates, `400` irrigation, `800` energy, …) sharing one broker and one Telegram interface.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the full picture.
 
 ## Features
 
@@ -49,7 +80,7 @@ A unified automation ecosystem for managing servers (Dell T310, HP DL360p), cour
 
 *Scalable vector source: [docs/architecture_diagram_v4.svg](docs/architecture_diagram_v4.svg)*
 
-The system serves as a **centralized automation hub** running Node-RED (native installation), Mosquitto MQTT broker, and Python management scripts. It coordinates interactions between servers, courtyard hardware, residential automation devices, and **dual energy integrations** (Victron Cerbo GX + Huawei SUN2000).
+The diagram above shows the same hub-and-spoke model: one automation server, many domains, all over MQTT. Energy integrations (Victron + Huawei) sit alongside server management and courtyard/home IoT.
 
 ### Multi-Domain Automation System
 

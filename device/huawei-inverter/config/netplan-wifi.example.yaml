@@ -1,0 +1,19 @@
+# Netplan snippet for USB WiFi → SUN2000 inverter AP
+# Merge into /etc/netplan/ on the automation server (192.168.2.4).
+# Replace interface name, SSID, and password from device/huawei-inverter/config/.env
+#
+# Apply: sudo netplan generate && sudo netplan apply
+#
+# Keeps main LAN (enp1s0 @ 192.168.2.4) as primary; WiFi is optional (metric 600).
+
+network:
+  version: 2
+  wifis:
+    wlxec750caf06b1:
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 600
+      optional: true
+      access-points:
+        "SUN2000-HV2310027721":
+          password: "YOUR_AP_PASSWORD"

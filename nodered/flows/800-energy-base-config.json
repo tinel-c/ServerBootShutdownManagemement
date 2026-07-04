@@ -37,6 +37,53 @@
         "disabled": "false"
     },
     {
+        "id": "ui_group_huawei_energy",
+        "type": "ui-group",
+        "name": "Huawei Solar",
+        "page": "ui_page_energy",
+        "width": "12",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "huawei_context_init_inject",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Initialize Huawei State",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 180,
+        "wires": [
+            [
+                "huawei_context_init_function"
+            ]
+        ]
+    },
+    {
+        "id": "huawei_context_init_function",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Init huawei_energy_state",
+        "func": "if (!global.get('huawei_energy_state')) {\n    global.set('huawei_energy_state', {\n        timestamp: null,\n        source: 'huawei_modbus',\n        device: { model: null, serial: null, rated_power_w: null },\n        pv: { string1_voltage_v: null, string1_current_a: null, string2_voltage_v: null, string2_current_a: null, input_power_w: null },\n        inverter: { active_power_w: null, grid_frequency_hz: null, daily_yield_kwh: null },\n        lastReportedMs: null,\n        receivedAtMs: null\n    });\n    node.warn('Initialized huawei_energy_state in global context');\n}\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 180,
+        "wires": []
+    },
+    {
         "id": "victron_context_init_inject",
         "type": "inject",
         "z": "tab_dashboard",

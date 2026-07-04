@@ -1,0 +1,117 @@
+[
+    {
+        "id": "huawei_energy_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 HUAWEI ENERGY STATUS DASHBOARD \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
+        "info": "## Huawei Energy Status Dashboard\n\n**Flow 821** \u2014 SUN2000 live metrics and 7-day chart.\n\nMQTT: `energy/huawei/status`\nGlobal: `huawei_energy_state`",
+        "x": 320,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_huawei_status",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Huawei Status",
+        "topic": "energy/huawei/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 620,
+        "wires": [
+            [
+                "func_huawei_process_status"
+            ]
+        ]
+    },
+    {
+        "id": "func_huawei_process_status",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Process Huawei Status",
+        "func": "const data = msg.payload;\nif (!data || typeof data !== 'object' || !data.timestamp) {\n    node.warn('Invalid Huawei status payload');\n    return null;\n}\n\nconst receivedMs = Date.now();\nlet reportMs;\ntry { reportMs = new Date(data.timestamp).getTime(); } catch (e) { reportMs = receivedMs; }\n\nflow.set('last_huawei_status', data);\n\nconst WEEK_MS = 7 * 24 * 60 * 60 * 1000;\nconst BUCKET_MS = 15 * 60 * 1000;\nconst point = {\n    t: reportMs,\n    active: data.inverter?.active_power_w,\n    dc: data.pv?.input_power_w,\n    yield: data.inverter?.daily_yield_kwh\n};\nlet hist = flow.get('huawei_week_history') || [];\nconst bucket = Math.floor(reportMs / BUCKET_MS) * BUCKET_MS;\nif (hist.length && hist[hist.length - 1].bucket === bucket) {\n    hist[hist.length - 1] = { bucket, ...point };\n} else {\n    hist.push({ bucket, ...point });\n}\nconst cutoff = Date.now() - WEEK_MS;\nhist = hist.filter(h => h.t >= cutoff);\nflow.set('huawei_week_history', hist);\ndata.week_chart = hist;\n\nglobal.set('huawei_energy_state', {\n    ...data,\n    lastReportedMs: reportMs,\n    receivedAtMs: receivedMs\n});\n\nconst metaKey = 'huawei_energy_metadata';\nlet meta = flow.get(metaKey) || { lastReportedMs: null };\nmeta.lastReportedMs = reportMs;\nflow.set(metaKey, meta);\nmsg.payload = data;\nmsg.metadata = meta;\n\nconst ap = data.inverter?.active_power_w;\nnode.status({ fill: 'green', shape: 'dot', text: `PV ${ap != null ? ap : '?'} W` });\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 620,
+        "wires": [
+            [
+                "template_huawei_energy_dashboard"
+            ]
+        ]
+    },
+    {
+        "id": "inject_huawei_refresh",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Refresh dashboard",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 2,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 700,
+        "wires": [
+            [
+                "func_huawei_refresh_dashboard"
+            ]
+        ]
+    },
+    {
+        "id": "func_huawei_refresh_dashboard",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Refresh dashboard state",
+        "func": "const last = flow.get('last_huawei_status');\nif (!last) return null;\nreturn {\n    payload: { ...last, week_chart: flow.get('huawei_week_history') || [] },\n    metadata: flow.get('huawei_energy_metadata') || {}\n};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 700,
+        "wires": [
+            [
+                "template_huawei_energy_dashboard"
+            ]
+        ]
+    },
+    {
+        "id": "template_huawei_energy_dashboard",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_huawei_energy",
+        "name": "Huawei Energy Dashboard",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<div class=\"huawei-dash\" style=\"font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#e2e8f0;background:linear-gradient(155deg,#0f172a 0%,#7c2d12 25%,#0f172a 65%,#1e1b4b 100%);border-radius:16px;padding:clamp(12px,2vw,20px);box-shadow:0 24px 48px -12px rgba(0,0,0,0.55);border:1px solid rgba(251,146,60,0.3);width:100%;box-sizing:border-box;\">\n  <div style=\"display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;\">\n    <div>\n      <div style=\"font-size:0.75em;text-transform:uppercase;letter-spacing:0.12em;color:#fb923c;font-weight:600;\">Huawei SUN2000</div>\n      <div style=\"font-size:1.35em;font-weight:700;color:#f8fafc;margin-top:4px;\">{{ deviceModel }}</div>\n      <div style=\"font-size:0.85em;color:#94a3b8;margin-top:4px;\">S/N {{ deviceSerial }}</div>\n    </div>\n    <div style=\"padding:8px 14px;border-radius:8px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:0.85em;\">\n      Updated <span style=\"font-variant-numeric:tabular-nums;font-weight:700;color:#e2e8f0;\">{{ updateElapsed }}</span> ago\n    </div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;\">\n    <div style=\"border-radius:14px;padding:16px;text-align:center;background:linear-gradient(145deg,rgba(251,146,60,0.2),rgba(0,0,0,0.2));border:1px solid rgba(251,146,60,0.35);\">\n      <div style=\"font-size:0.75em;color:#fdba74;text-transform:uppercase;\">Active power</div>\n      <div style=\"font-size:2.2em;font-weight:800;margin:8px 0;color:#fff;\">{{ formatW(activePower) }}</div>\n    </div>\n    <div style=\"border-radius:14px;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);\">\n      <div style=\"font-size:0.75em;color:#fde68a;text-transform:uppercase;\">Daily yield</div>\n      <div style=\"font-size:1.8em;font-weight:800;margin:8px 0;\">{{ dailyYield }}</div>\n    </div>\n    <div style=\"border-radius:14px;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);\">\n      <div style=\"font-size:0.75em;color:#93c5fd;text-transform:uppercase;\">DC input</div>\n      <div style=\"font-size:1.8em;font-weight:800;margin:8px 0;\">{{ formatW(dcInput) }}</div>\n    </div>\n    <div style=\"border-radius:14px;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);\">\n      <div style=\"font-size:0.75em;color:#a5f3fc;text-transform:uppercase;\">Grid frequency</div>\n      <div style=\"font-size:1.8em;font-weight:800;margin:8px 0;\">{{ gridHz }}</div>\n    </div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px;\">\n    <div style=\"background:rgba(255,255,255,0.04);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.08);\">\n      <div style=\"font-weight:600;color:#fdba74;margin-bottom:8px;\">PV string 1</div>\n      <div>{{ pv1Voltage }} \u00b7 {{ pv1Current }}</div>\n    </div>\n    <div style=\"background:rgba(255,255,255,0.04);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.08);\">\n      <div style=\"font-weight:600;color:#fdba74;margin-bottom:8px;\">PV string 2</div>\n      <div>{{ pv2Voltage }} \u00b7 {{ pv2Current }}</div>\n    </div>\n    <div style=\"background:rgba(255,255,255,0.04);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.08);\">\n      <div style=\"font-weight:600;color:#c4b5fd;margin-bottom:8px;\">Rated power</div>\n      <div>{{ ratedPower }}</div>\n    </div>\n  </div>\n  <div v-if=\"weekChart.length\" style=\"margin-top:8px;padding:14px;border-radius:14px;background:rgba(0,0,0,0.28);border:1px solid rgba(251,146,60,0.25);\">\n    <div style=\"font-weight:700;color:#fb923c;margin-bottom:10px;\">7-day active power (15 min buckets)</div>\n    <svg viewBox=\"0 0 800 200\" style=\"width:100%;height:auto;display:block;\">\n      <line x1=\"10\" y1=\"100\" x2=\"790\" y2=\"100\" stroke=\"rgba(255,255,255,0.12)\" stroke-width=\"1\" stroke-dasharray=\"4 4\"/>\n      <g v-for=\"(tick,i) in chartXTicks\" :key=\"'x'+i\">\n        <line :x1=\"tick.x\" y1=\"12\" :x2=\"tick.x\" y2=\"180\" stroke=\"rgba(255,255,255,0.08)\" stroke-width=\"1\"/>\n        <text :x=\"tick.x\" y=\"196\" fill=\"#94a3b8\" font-size=\"11\" text-anchor=\"middle\">{{ tick.label }}</text>\n      </g>\n      <path :d=\"powerPath\" fill=\"none\" stroke=\"#fb923c\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/>\n    </svg>\n  </div>\n  <div v-if=\"!msg.payload?.timestamp\" style=\"text-align:center;padding:32px;color:#64748b;\">\n    Waiting for <code style=\"color:#fb923c;\">energy/huawei/status</code>\n  </div>\n</div>\n\n<script>\nexport default {\n  data() { return { now: Date.now(), timer: null }; },\n  mounted() { this.timer = setInterval(() => { this.now = Date.now(); }, 1000); },\n  unmounted() { clearInterval(this.timer); },\n  methods: {\n    pad2(n) { return String(n).padStart(2, '0'); },\n    chartX(t) {\n      const w = this.chartWindow;\n      return 10 + ((t - w.t0) / w.span) * 780;\n    },\n    formatW(val) {\n      if (val == null || val === '') return '\u2014';\n      const n = Number(val);\n      return Number.isNaN(n) ? String(val) : Math.round(n) + ' W';\n    }\n  },\n  computed: {\n    p() { return this.msg.payload || {}; },\n    updateElapsed() {\n      const ms = this.msg.metadata?.lastReportedMs;\n      if (!ms) return '\u2014:\u2014';\n      void this.now;\n      const sec = Math.max(0, Math.floor((this.now - ms) / 1000));\n      const m = Math.floor(sec / 60);\n      const s = sec % 60;\n      return this.pad2(m) + ':' + this.pad2(s);\n    },\n    deviceModel() { return this.p.device?.model || 'SUN2000'; },\n    deviceSerial() { return this.p.device?.serial || '\u2014'; },\n    activePower() { return this.p.inverter?.active_power_w; },\n    dcInput() { return this.p.pv?.input_power_w; },\n    dailyYield() {\n      const v = this.p.inverter?.daily_yield_kwh;\n      return v != null ? Number(v).toFixed(2) + ' kWh' : '\u2014';\n    },\n    gridHz() {\n      const v = this.p.inverter?.grid_frequency_hz;\n      return v != null ? Number(v).toFixed(2) + ' Hz' : '\u2014';\n    },\n    pv1Voltage() { const v = this.p.pv?.string1_voltage_v; return v != null ? v + ' V' : '\u2014'; },\n    pv1Current() { const v = this.p.pv?.string1_current_a; return v != null ? v + ' A' : '\u2014'; },\n    pv2Voltage() { const v = this.p.pv?.string2_voltage_v; return v != null ? v + ' V' : '\u2014'; },\n    pv2Current() { const v = this.p.pv?.string2_current_a; return v != null ? v + ' A' : '\u2014'; },\n    ratedPower() {\n      const v = this.p.device?.rated_power_w;\n      return v != null ? Math.round(v) + ' W' : '\u2014';\n    },\n    weekChart() { return this.p.week_chart || []; },\n    chartWindow() {\n      void this.now;\n      const WEEK = 7 * 86400000;\n      const t1 = this.now;\n      return { t0: t1 - WEEK, t1, span: WEEK };\n    },\n    chartPowerMax() {\n      let m = 500;\n      this.weekChart.forEach(p => {\n        const v = Math.abs(Number(p.active) || 0);\n        if (v > m) m = v;\n      });\n      return Math.ceil(m / 500) * 500;\n    },\n    powerPath() {\n      const pts = this.weekChart;\n      if (!pts.length) return '';\n      const w = this.chartWindow;\n      const pmax = this.chartPowerMax;\n      let d = '';\n      pts.forEach(p => {\n        if (p.t < w.t0 || p.t > w.t1) return;\n        const v = Number(p.active);\n        if (Number.isNaN(v)) return;\n        const x = this.chartX(p.t);\n        const y = 100 - (v / pmax) * 88;\n        d += (d ? ' L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1);\n      });\n      return d;\n    },\n    chartXTicks() {\n      void this.now;\n      const w = this.chartWindow;\n      const ticks = [];\n      const d = new Date(w.t0);\n      d.setHours(0, 0, 0, 0);\n      while (d.getTime() <= w.t1) {\n        const t = d.getTime();\n        if (t >= w.t0) {\n          ticks.push({\n            x: this.chartX(t),\n            label: d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })\n          });\n        }\n        d.setDate(d.getDate() + 1);\n      }\n      return ticks;\n    }\n  }\n};\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 720,
+        "y": 660,
+        "wires": [
+            []
+        ]
+    }
+]

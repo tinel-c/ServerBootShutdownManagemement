@@ -1,0 +1,8 @@
+# Temporary full sudo for automation agent install/config (tinel @ 192.168.2.4).
+# Installed by: scripts/server/grant_temporary_agent_sudo.sh
+# Removed by:   scripts/server/revoke_deploy_sudo.sh (or auto via at)
+#
+# Scope: passwordless sudo for ALL commands during the grant window only.
+# Use during active agent sessions; auto-revokes after the configured timeout.
+
+tinel ALL=(ALL) NOPASSWD: ALL

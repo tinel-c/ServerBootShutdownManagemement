@@ -70,7 +70,7 @@ sudo chmod 600 /opt/dell_server_management/config/.env
 
 ### Updated 🔄
 - Python scripts (`scripts/`)
-- Device integrations (`device/victron-multiplus-ii/`, …)
+- Device integrations (`device/victron-multiplus-ii/`, `device/huawei-inverter/`, …)
 - Systemd service files (`systemd/`)
 - Python dependencies (from `requirements.txt`)
 
@@ -154,11 +154,14 @@ During update:
 After update:
 - [ ] Verify services are running: `systemctl status status-publisher.service`
 - [ ] **Victron** (if configured): `systemctl status victron-mqtt-publisher.service victron-solar-forecast-publisher.service`
+- [ ] **Huawei** (if configured): `systemctl status huawei-mqtt-publisher.service`
 - [ ] **Victron MQTT**: `mosquitto_sub -h localhost -t 'energy/victron/status' -C 1`
+- [ ] **Huawei MQTT**: `mosquitto_sub -h localhost -t 'energy/huawei/status' -C 1`
 - [ ] **Node-RED** (v3.11.6+): re-import flows `800`, `811`, `812`, update `50` and `90` — see [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md)
+- [ ] **Node-RED** (v3.11.8+): re-import flows `821`, `822`, update `50` and `90` for Huawei — see [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md)
 - [ ] Check logs: `journalctl -u status-publisher.service -n 20`
 - [ ] Test functionality (boot/shutdown commands, status monitoring)
-- [ ] Verify Telegram notifications work (`/help`, `/energy_status`)
+- [ ] Verify Telegram notifications work (`/help`, `/energy_status`, `/huawei_status`)
 
 ---
 

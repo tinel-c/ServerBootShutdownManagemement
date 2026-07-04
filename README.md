@@ -15,12 +15,13 @@ A unified automation ecosystem for managing servers (Dell T310, HP DL360p), cour
 
 ### Energy Management (v3.11.6+)
 - ⚡ **Victron Cerbo GX / MultiPlus-II** - Modbus TCP → MQTT (`energy/victron/*`)
-- 🔋 **Live metrics** - Battery SoC, grid import/export, PV, load, inverter state
-- 🤖 **PV headroom automation** - `headroom_w = PV − consumption`, discretionary load start/stop
-- ☀️ **Solar forecast** - Open-Meteo for Lunca Cetătuui (hourly + daily topics)
-- 📊 **Node-RED dashboard** - Energy page with 7-day chart and automation banner (flows `800` / `811`)
-- 📱 **Telegram** - `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help` (flow `812`)
-- 🛡️ **Watchdog** - Telegram alert if `energy/victron/status` stops (flow `90`, 2 min timeout)
+- ☀️ **Huawei SUN2000** - Modbus TCP over inverter WiFi AP → MQTT (`energy/huawei/*`) *(v3.11.8+)*
+- 🔋 **Live metrics** - Battery SoC, grid import/export, PV, load, inverter state (Victron); PV strings, active power, daily yield (Huawei)
+- 🤖 **PV headroom automation** - `headroom_w = PV − consumption`, discretionary load start/stop (Victron)
+- ☀️ **Solar forecast** - Open-Meteo for Lunca Cetătui (hourly + daily topics, Victron)
+- 📊 **Node-RED dashboard** - Energy page with Victron 7-day chart (flows `800` / `811`) and Huawei live cards (`821`)
+- 📱 **Telegram** - Victron `/energy_*` (flow `812`); Huawei `/huawei_status`, `/huawei_help` (flow `822`)
+- 🛡️ **Watchdog** - Telegram alert if `energy/victron/status` or `energy/huawei/status` stops (flow `90`, 2 min timeout)
 
 ### Client Management (NEW v2.4.0)
 - 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
@@ -60,7 +61,7 @@ The platform supports **multiple automation domains** through a scalable, modula
 - 📱 **SMS/Notifications** (500-599) - Alerts, notifications, messaging
 - 📹 **Security/Cameras** (600-699) - Camera feeds, motion detection, recordings
 - 🌡️ **HVAC/Climate** (700-799) - Heating, cooling, ventilation control
-- ⚡ **Energy Management** (800-899) - Victron Cerbo GX: Modbus→MQTT, dashboard, Telegram, watchdog — [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md)
+- ⚡ **Energy Management** (800-899) - Victron Cerbo GX + Huawei SUN2000: Modbus→MQTT, dashboard, Telegram, watchdog — [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md)
 
 **Key Features:**
 - **Modular Design** - Each domain is independent and self-contained
@@ -424,11 +425,13 @@ Modern, feature-rich dashboard with modular flows for easy maintenance and scala
    flows/800-energy-base-config.json   # Energy page (import before 811)
    flows/811-victron-energy-status.json # Victron live dashboard + 7-day chart
    flows/812-victron-energy-telegram.json # Victron /energy_* Telegram commands
-   flows/90-device-watchdog.json  # Device health + Victron reporting watchdog
+   flows/821-huawei-energy-status.json # Huawei live dashboard
+   flows/822-huawei-energy-telegram.json # Huawei /huawei_* Telegram commands
+   flows/90-device-watchdog.json  # Device health + energy reporting watchdog
    flows/90-log-console.json      # System log console
    ```
 
-   **Energy (Victron):** import `800` → `811` → `812`; re-import `50` (or `50-patch-victron-energy-help.json`) and `90` with **Replace existing nodes**. See [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
+   **Energy:** import `800` → `811` → `812` (Victron) and/or `821` → `822` (Huawei); re-import `50` and `90` with **Replace existing nodes**. See [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
 
 5. **Click Deploy** and access dashboard: http://localhost:1880/dashboard/home  
    Energy page: http://localhost:1880/dashboard/energy
@@ -464,12 +467,13 @@ Each server (Dell T310 & HP DL360p) has dedicated panels:
 - Subscribes to all MQTT response topics
 
 #### Telegram Bot Interface (Optional)
-- 🤖 Control servers, gates, lights, irrigation, **Victron energy**, and more via Telegram
+- 🤖 Control servers, gates, lights, irrigation, **Victron/Huawei energy**, and more via Telegram
 - 📊 Real-time status notifications
 - 🔔 Automatic alerts on server state changes and device watchdog events
 - 🔐 User authorization support
 - **Server commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
-- **Energy commands**: `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help`
+- **Energy commands (Victron)**: `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help`
+- **Energy commands (Huawei)**: `/huawei_status`, `/huawei_help`
 - **See**: [docs/TELEGRAM_INTERFACE.md](docs/TELEGRAM_INTERFACE.md), [nodered/TELEGRAM_SETUP.md](nodered/TELEGRAM_SETUP.md)
 
 **Flow Structure:**
@@ -480,8 +484,9 @@ nodered/flows/
 ├── 20-22-hp-*.json            # HP DL360p management
 ├── 40-42-client-*.json        # Client tracking & automation
 ├── 50-telegram-interface.json # Telegram bot (optional)
-├── 800-811-victron-*.json   # Victron energy dashboard + Telegram
-├── 90-device-watchdog.json  # MQTT heartbeat watchdog (all devices + Victron)
+├── 800-812-victron-*.json   # Victron energy dashboard + Telegram
+├── 821-822-huawei-*.json    # Huawei solar dashboard + Telegram
+├── 90-device-watchdog.json  # MQTT heartbeat watchdog (all devices + energy publishers)
 └── 90-log-console.json        # System logging
 ```
 
@@ -587,8 +592,9 @@ LOG_FILE=/var/log/dell_t310_management.log
 | `dell/t310/status` | Server → Client | Status updates |
 | `dell/t310/response` | Server → Client | Command responses |
 | `energy/victron/#` | Server → Client | Victron Cerbo GX energy metrics (Modbus publisher) |
+| `energy/huawei/#` | Server → Client | Huawei SUN2000 solar metrics (Modbus publisher) |
 
-Victron topics (`energy/victron/status`, `energy/victron/battery/soc`, grid/PV/load/inverter metrics, etc.) are documented in [MQTT Protocol — Victron Energy](docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron). Node-RED dashboard: [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
+Victron topics are documented in [MQTT Protocol — Victron Energy](docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron). Huawei topics in [MQTT Protocol — Huawei Energy](docs/MQTT_PROTOCOL.md#huawei-energy-topics-domain-energyhuawei). Node-RED dashboard: [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
 
 ## Manual Testing
 
@@ -722,8 +728,9 @@ ServerBootShutdownMangement/
 - [Development Guide](docs/DEVELOPMENT.md) - Development and contribution
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Message specifications
-- [Energy / Node-RED](docs/ENERGY_NODE_RED.md) - Victron dashboard flows 800–812
+- [Energy / Node-RED](docs/ENERGY_NODE_RED.md) - Victron flows 800–812, Huawei flows 821–822
 - [Victron device README](device/victron-multiplus-ii/README.md) - Cerbo setup, Modbus, systemd install
+- [Huawei device README](device/huawei-inverter/README.md) - SUN2000 WiFi AP, Modbus, systemd install
 - [Telegram Interface](docs/TELEGRAM_INTERFACE.md) - Bot command reference & gateway
 - [SMS Interface](docs/SMS_INTERFACE.md) - SMS command reference & emergency forwarding
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
@@ -800,10 +807,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.11.7 (Documentation for Victron energy release)  
+**Version:** 3.11.8 (Huawei SUN2000 energy integration)  
 **Last Updated:** 2026-07-04
 
 ## Recent Releases
+
+### v3.11.8 (2026-07-04) - Huawei SUN2000 energy integration
+- ☀️ **Huawei SUN2000** Modbus→MQTT publisher over inverter WiFi AP (`energy/huawei/*`)
+- 📊 **Node-RED** flows `821` / `822` — live dashboard + Telegram `/huawei_*`
+- 🛡️ **Watchdog** monitors `energy/huawei/status` (2 min); `/help` updated in flow `50`
+- See [RELEASE_NOTES_v3.11.8.md](RELEASE_NOTES_v3.11.8.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.11.6 (2026-07-04) - Victron energy integration
 - ⚡ **Cerbo GX / MultiPlus-II** Modbus→MQTT publisher + Open-Meteo solar forecast

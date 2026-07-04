@@ -2,7 +2,7 @@
 """
 Solar irradiance forecast publisher for Victron energy automations.
 
-Fetches Open-Meteo data for Lunca Cetătuui (Iași) and publishes current
+Fetches Open-Meteo data for Lunca Cetătui (Iași) and publishes current
 irradiance plus hourly/daily forecasts to MQTT.
 """
 
@@ -42,7 +42,7 @@ def load_settings() -> dict:
         "latitude": float(os.getenv("VICTRON_FORECAST_LAT", "47.0966")),
         "longitude": float(os.getenv("VICTRON_FORECAST_LON", "27.5632")),
         "location": os.getenv(
-            "VICTRON_FORECAST_LOCATION", "Lunca Cetătuui, Iași, RO"
+            "VICTRON_FORECAST_LOCATION", "Lunca Cetătui, Iași, RO"
         ),
         "timezone": os.getenv("VICTRON_FORECAST_TIMEZONE", "Europe/Bucharest"),
         "forecast_days": int(os.getenv("VICTRON_FORECAST_DAYS", "3")),

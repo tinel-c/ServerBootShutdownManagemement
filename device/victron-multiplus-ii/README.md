@@ -420,7 +420,7 @@ Per-metric topics use **plain text** payloads; only `energy/victron/status` is J
 
 Set `VICTRON_AUTOMATION_MIN_HEADROOM_W` (default `0`) for hysteresis.
 
-### Solar forecast MQTT (Open-Meteo, Lunca Cetătuui)
+### Solar forecast MQTT (Open-Meteo, Lunca Cetătui)
 
 | Topic | Description |
 |-------|-------------|

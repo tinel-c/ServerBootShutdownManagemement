@@ -66,7 +66,8 @@ systemctl stop mqtt-boot-listener.service \
                health-monitor.service \
                tapo-monitor.service \
                victron-mqtt-publisher.service \
-               victron-solar-forecast-publisher.service || true
+               victron-solar-forecast-publisher.service \
+               huawei-mqtt-publisher.service || true
 sleep 1
 print_info "Services stopped."
 

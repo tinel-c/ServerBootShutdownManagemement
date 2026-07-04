@@ -1,6 +1,13 @@
-# Victron Energy — Node-RED Dashboard
+# Energy — Node-RED Dashboard
 
-Live Cerbo GX / MultiPlus-II metrics on the Node-RED Dashboard 2.0 **Energy** page, fed by MQTT from `victron-mqtt-publisher.service`.
+Live energy metrics on the Node-RED Dashboard 2.0 **Energy** page, fed by MQTT from Modbus publishers on the automation server.
+
+- **Victron** Cerbo GX / MultiPlus-II → `energy/victron/*` (flows `800`–`812`)
+- **Huawei** SUN2000 grid-tie inverter → `energy/huawei/*` (flows `821`–`822`)
+
+---
+
+## Victron Cerbo GX / MultiPlus-II
 
 ## Data transmission
 
@@ -129,9 +136,97 @@ Initialized by flow **800**; updated on every `energy/victron/status` message in
 | Stale values | Publisher poll interval (default 10 s); Cerbo Modbus connectivity |
 | Empty MPPT section | Normal if no MPPT on VE.Direct; AC-coupled PV still shown under PV cards |
 
-## Related documentation
+---
+
+## Huawei SUN2000
+
+### Data transmission
+
+```text
+SUN2000 inverter AP (192.168.200.1:6607 Modbus TCP, unit ID 0)
+        │  USB WiFi on automation server
+        ▼
+huawei-mqtt-publisher.service  (poll every 10 s)
+        │
+        ▼
+Mosquitto MQTT broker
+  • energy/huawei/status     ← JSON snapshot (used by Node-RED)
+  • energy/huawei/pv/*, inverter/*  ← plain-text scalars
+        │
+        ▼
+Node-RED flow 821 (mqtt in → function → ui-template)
+        │
+        ├── Dashboard 2.0  /energy  (Huawei Energy group)
+        └── global.huawei_energy_state  (for Telegram / automations)
+```
+
+The dashboard subscribes only to **`energy/huawei/status`**. One message per poll cycle keeps device, PV, and inverter values in sync.
+
+Full topic list: [MQTT_PROTOCOL.md — Huawei Energy](MQTT_PROTOCOL.md#huawei-energy-topics-domain-energyhuawei).
+
+### Prerequisites
+
+1. **Node-RED** running (`systemctl status nodered`)
+2. **Dashboard 2.0** installed
+3. **`00-base-config.json`** and **`800-energy-base-config.json`** imported
+4. **`huawei-mqtt-publisher.service`** active; USB WiFi connected to inverter AP
+5. MQTT broker reachable from Node-RED
+
+Verify MQTT before importing flows:
+
+```bash
+mosquitto_sub -h localhost -t 'energy/huawei/status' -v
+```
+
+### Import order
+
+| Order | File | Purpose |
+|-------|------|---------|
+| 1 | `800-energy-base-config.json` | Energy page + `ui_group_huawei_energy` |
+| 2 | **`821-huawei-energy-status.json`** | Live Huawei dashboard |
+| 3 | **`822-huawei-energy-telegram.json`** | Telegram `/huawei_*` commands |
+
+Re-import **`50-telegram-interface.json`** (Replace existing nodes) for `/help` Huawei section. Re-import **`90-device-watchdog.json`** to monitor `energy/huawei/status` (2 min timeout).
+
+### Flow files
+
+#### `821-huawei-energy-status.json`
+
+- **Subscribes:** `energy/huawei/status` (QoS 1, JSON)
+- **Stores:** `global.huawei_energy_state`
+- **Displays:** model/serial, PV strings, active power, grid frequency, daily yield
+
+#### `822-huawei-energy-telegram.json`
+
+- **Commands:** `/huawei_status`, `/huawei_help`
+- **Reads:** `global.huawei_energy_state` (updated by flow 821)
+- **Requires:** `50-telegram-interface.json`
+
+### Shared global context
+
+```javascript
+const huawei = global.get('huawei_energy_state');
+// huawei.device.model, huawei.pv.input_power_w, huawei.inverter.active_power_w, …
+```
+
+Initialized by flow **800**; updated on every `energy/huawei/status` message in flow **821**.
+
+**Watchdog:** flow **90** monitors `energy/huawei/status` (2 min timeout) and sends Telegram alerts when the publisher or inverter reporting stops.
+
+### Troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| Dashboard shows “Waiting for energy/huawei/status” | `systemctl status huawei-mqtt-publisher.service`; WiFi to inverter AP; `mosquitto_sub -t 'energy/huawei/status'` |
+| Modbus connect failed | `device/huawei-inverter/scripts/modbus_probe.py`; verify `192.168.200.1:6607` from automation server |
+| “Node configuration error” on import | Import `800-energy-base-config.json` before `821` |
+
+---
+
+## Related documentation (both systems)
 
 - [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md) — Cerbo setup, Modbus Unit IDs, server install
+- [device/huawei-inverter/README.md](../device/huawei-inverter/README.md) — SUN2000 WiFi AP, Modbus probe, systemd install
 - [MQTT_PROTOCOL.md](MQTT_PROTOCOL.md) — message formats
 - [nodered/flows/README.md](../nodered/flows/README.md) — all modular flows
 - [developer/SERVER_DEPLOY.md](developer/SERVER_DEPLOY.md) — deploy publisher to automation server

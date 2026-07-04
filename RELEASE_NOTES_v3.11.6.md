@@ -6,7 +6,7 @@
 
 - **Modbus → MQTT** (`victron-mqtt-publisher.service`): battery, grid, PV, load, inverter metrics on `energy/victron/*`
 - **Automation**: `headroom_w = PV − consumption`, `can_add_load`, discretionary load MQTT commands
-- **Solar forecast** (`victron-solar-forecast-publisher.service`): Open-Meteo for Lunca Cetătuui (48 h / daily)
+- **Solar forecast** (`victron-solar-forecast-publisher.service`): Open-Meteo for Lunca Cetătui (48 h / daily)
 - **Node-RED**: flows `800` (Energy page), `811` (live dashboard + 7-day chart), `812` (Telegram `/energy_*`)
 - **Telegram `/help`**: Victron energy section and quick-action buttons (flow `50` patch)
 - **Watchdog** (flow `90`): monitors `energy/victron/status` (2 min timeout); alerts only on online/offline transitions

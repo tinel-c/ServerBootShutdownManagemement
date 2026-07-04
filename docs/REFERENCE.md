@@ -255,6 +255,13 @@ python3 scripts/status/status_publisher.py  # Run once manually
 | `/energy_stop` | Stop discretionary loads |
 | `/energy_help` | Victron energy help + buttons |
 
+### Huawei energy (v3.11.8+)
+
+| Command | Description |
+|---------|-------------|
+| `/huawei_status` | Model, PV strings, active power, daily yield |
+| `/huawei_help` | Huawei solar help |
+
 See [TELEGRAM_INTERFACE.md](TELEGRAM_INTERFACE.md) and [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md).
 
 ---

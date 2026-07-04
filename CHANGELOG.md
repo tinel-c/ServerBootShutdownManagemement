@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.8] - 2026-07-04
+
+### Added - Huawei SUN2000 solar (Modbus → MQTT → Node-RED → Telegram)
+
+- **Publisher service**: `huawei-mqtt-publisher.service`; USB WiFi → inverter AP; topics under `energy/huawei/#` documented in [MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md) (protocol v1.3).
+- **Device package**: `device/huawei-inverter/` — Modbus library, probe, MQTT publisher, install/deploy scripts.
+- **Node-RED**: `821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`; `800` Huawei UI group; `50` `/help`; `90` watchdog on `energy/huawei/status` (2 min).
+- **Telegram**: `/huawei_status`, `/huawei_help`.
+- **Docs**: [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), architecture, README, UPDATE/REFERENCE checklists.
+
 ## [3.11.7] - 2026-07-04
 
 ### Changed - Documentation (Victron energy v3.11.6)

@@ -126,13 +126,21 @@ Running as background services on the automation server:
    - Publishes health information every 60 seconds
    - Includes all check details (pings, grace period, timeouts, etc.)
 
-5. **victron_mqtt_publisher.service** (Energy domain)
+5. **victron_mqtt_publisher.service** (Energy domain — Victron)
    - Polls Victron Cerbo GX via Modbus TCP every 10 seconds
    - Publishes battery, grid, PV, loads, and inverter data to `energy/victron/#` MQTT topics
    - Configuration: `/opt/dell_server_management/device/victron-multiplus-ii/config/.env`
    - MQTT reference: [MQTT_PROTOCOL.md — Victron Energy](MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron)
    - Node-RED dashboard: [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md) (`800` / `811` flows)
    - See [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md)
+
+6. **huawei_mqtt_publisher.service** (Energy domain — Huawei SUN2000)
+   - Polls Huawei SUN2000 via Modbus TCP over USB WiFi → inverter AP every 10 seconds
+   - Publishes PV strings, inverter power, and daily yield to `energy/huawei/#` MQTT topics
+   - Configuration: `/opt/dell_server_management/device/huawei-inverter/config/.env`
+   - MQTT reference: [MQTT_PROTOCOL.md — Huawei Energy](MQTT_PROTOCOL.md#huawei-energy-topics-domain-energyhuawei)
+   - Node-RED dashboard: [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md) (`821` / `822` flows)
+   - See [device/huawei-inverter/README.md](../device/huawei-inverter/README.md)
 
 ### 3. Network Layer
 

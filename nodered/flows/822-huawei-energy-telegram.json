@@ -1,0 +1,130 @@
+[
+    {
+        "id": "huawei_energy_telegram_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ HUAWEI ENERGY TELEGRAM INTERFACE ═══════════════",
+        "info": "## Huawei Energy Telegram Interface\n\n**Flow 822**\n\n### Commands\n- `/huawei_status` — PV production, daily yield, strings\n- `/huawei_help` — help\n\n### Data\n- Reads `global.huawei_energy_state` (flow 821)\n\n### Dependencies\n- `50-telegram-interface.json`\n- `821-huawei-energy-status.json`",
+        "x": 320,
+        "y": 1920,
+        "wires": []
+    },
+    {
+        "id": "link_in_822_huawei_energy_telegram",
+        "type": "link in",
+        "z": "tab_dashboard",
+        "name": "Authorized Telegram Commands (In)",
+        "links": ["link_out_authorized_telegram"],
+        "x": 100,
+        "y": 2020,
+        "wires": [["huawei_energy_telegram_parse"]]
+    },
+    {
+        "id": "huawei_energy_telegram_parse",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Parse Huawei Commands",
+        "func": "const payload = msg.payload || {};\nlet chatId = payload.chatId;\nconst messageType = payload.type;\nlet text = (payload.content || '').trim();\nconst originalMsg = msg.originalMessage || {};\nlet userId = originalMsg.from ? originalMsg.from.id : null;\nconst messageId = originalMsg.message_id;\nlet answerCallback = null;\nif (messageType === 'callback_query') {\n    text = payload.data || payload.callback_data || payload.content ||\n           (originalMsg.data ? originalMsg.data : '') || '';\n    if (!chatId) {\n        if (originalMsg.message && originalMsg.message.chat) chatId = originalMsg.message.chat.id;\n        else if (originalMsg.chat) chatId = originalMsg.chat.id;\n    }\n    if (originalMsg.from) userId = originalMsg.from.id;\n    const callbackQueryId = payload.callback_query_id || payload.id ||\n        (originalMsg.id ? originalMsg.id.toString() : null);\n    if (callbackQueryId) {\n        answerCallback = {\n            payload: { callback_query_id: callbackQueryId, text: '', show_alert: false },\n            topic: 'answerCallbackQuery'\n        };\n    }\n}\nif ((messageType !== 'message' && messageType !== 'callback_query') || !text || !chatId) {\n    return [null, answerCallback].filter(m => m !== null);\n}\nconst command = text.split(' ')[0].toLowerCase();\nconst args = text.split(' ').slice(1);\nif (!command.startsWith('/huawei_')) {\n    return [null, answerCallback].filter(m => m !== null);\n}\nmsg.telegram = { chatId, userId, messageId, command, args, originalText: text };\nif (command === '/huawei_status') msg.topic = 'huawei_status';\nelse if (command === '/huawei_help') msg.topic = 'huawei_help';\nelse msg.topic = 'huawei_unknown';\nreturn [msg, answerCallback].filter(m => m !== null);",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 2020,
+        "wires": [["huawei_energy_telegram_switch"], ["huawei_energy_telegram_answer_callback"]]
+    },
+    {
+        "id": "huawei_energy_telegram_answer_callback",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Answer Huawei Callback",
+        "func": "if (msg.payload && msg.payload.callback_query_id) {\n    msg.payload = {\n        callback_query_id: msg.payload.callback_query_id,\n        text: msg.payload.text || '',\n        show_alert: msg.payload.show_alert || false\n    };\n    msg.topic = 'answerCallbackQuery';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 1970,
+        "wires": [["huawei_energy_telegram_sender"]]
+    },
+    {
+        "id": "huawei_energy_telegram_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Route Huawei Commands",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {"t": "eq", "v": "huawei_status", "vt": "str"},
+            {"t": "eq", "v": "huawei_help", "vt": "str"},
+            {"t": "eq", "v": "huawei_unknown", "vt": "str"}
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 590,
+        "y": 2080,
+        "wires": [
+            ["huawei_energy_telegram_handle_status"],
+            ["huawei_energy_telegram_handle_help"],
+            ["huawei_energy_telegram_handle_unknown"]
+        ]
+    },
+    {
+        "id": "huawei_energy_telegram_handle_status",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Handle Huawei Status",
+        "func": "const fmtW = (v) => {\n    if (v == null || v === '') return 'N/A';\n    const n = Number(v);\n    return Number.isNaN(n) ? String(v) : `${Math.round(n)} W`;\n};\nconst energy = global.get('huawei_energy_state') || {};\nconst dev = energy.device || {};\nconst pv = energy.pv || {};\nconst inv = energy.inverter || {};\nif (!energy.timestamp) {\n    msg.payload = {\n        chatId: msg.telegram.chatId,\n        type: 'message',\n        content: '⚠️ No Huawei data yet.\\n\\nCheck `huawei-mqtt-publisher.service` and `energy/huawei/status`.',\n        parse_mode: 'Markdown'\n    };\n    msg.topic = 'send';\n    return msg;\n}\nlet t = '☀️ *Huawei SUN2000 Status*\\n\\n';\nt += `📟 *Model:* ${dev.model || '?'}\\n`;\nt += `🔢 *Serial:* ${dev.serial || '?'}\\n\\n`;\nt += `⚡ *Active power:* ${fmtW(inv.active_power_w)}\\n`;\nt += `🔆 *DC input:* ${fmtW(pv.input_power_w)}\\n`;\nt += `📈 *Daily yield:* ${inv.daily_yield_kwh != null ? inv.daily_yield_kwh + ' kWh' : '?'}\\n`;\nt += `🔌 *Grid:* ${inv.grid_frequency_hz != null ? inv.grid_frequency_hz + ' Hz' : '?'}\\n\\n`;\nt += `*PV1:* ${pv.string1_voltage_v ?? '?'} V / ${pv.string1_current_a ?? '?'} A\\n`;\nt += `*PV2:* ${pv.string2_voltage_v ?? '?'} V / ${pv.string2_current_a ?? '?'} A\\n`;\nif (energy.lastReportedMs) {\n    const age = Math.max(0, Math.floor((Date.now() - energy.lastReportedMs) / 1000));\n    t += `\\n🕐 Updated ${Math.floor(age / 60)}:${String(age % 60).padStart(2, '0')} ago`;\n}\nmsg.payload = { chatId: msg.telegram.chatId, type: 'message', content: t, parse_mode: 'Markdown' };\nmsg.topic = 'send';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 2040,
+        "wires": [["huawei_energy_telegram_sender"]]
+    },
+    {
+        "id": "huawei_energy_telegram_handle_help",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Handle Huawei Help",
+        "func": "const helpText = `☀️ *Huawei SUN2000 Bot*\\n\\n` +\n    `📊 \\`/huawei_status\\` — PV power, yield, strings\\n` +\n    `❓ \\`/huawei_help\\` — this help\\n\\n` +\n    `*MQTT:* energy/huawei/status\\n` +\n    `*Service:* huawei-mqtt-publisher.service`;\nconst inlineKeyboard = {\n    inline_keyboard: [[\n        { text: '📊 Status', callback_data: '/huawei_status' },\n        { text: '❓ Help', callback_data: '/huawei_help' }\n    ]]\n};\nmsg.payload = {\n    chatId: msg.telegram.chatId,\n    type: 'message',\n    content: helpText,\n    parse_mode: 'Markdown',\n    options: { reply_markup: JSON.stringify(inlineKeyboard) }\n};\nmsg.topic = 'send';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 2100,
+        "wires": [["huawei_energy_telegram_sender"]]
+    },
+    {
+        "id": "huawei_energy_telegram_handle_unknown",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Handle Unknown Huawei Command",
+        "func": "msg.payload = {\n    chatId: msg.telegram.chatId,\n    type: 'message',\n    content: `❓ Unknown Huawei command: ${msg.telegram.originalText}\\n\\nType /huawei_help for available commands.`\n};\nmsg.topic = 'send';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 2160,
+        "wires": [["huawei_energy_telegram_sender"]]
+    },
+    {
+        "id": "huawei_energy_telegram_sender",
+        "type": "telegram sender",
+        "z": "tab_dashboard",
+        "name": "Huawei Telegram Sender",
+        "bot": "LuncaCetatuiiAutomationBot_bot",
+        "x": 1160,
+        "y": 2080,
+        "wires": []
+    }
+]

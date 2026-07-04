@@ -286,10 +286,10 @@ sudo ./install_victron_service.sh
 
 **Remote deploy from your PC:** see [scripts/server/README.md](../scripts/server/README.md) and [developer/SERVER_DEPLOY.md](developer/SERVER_DEPLOY.md).
 
-On **192.168.2.4**, grant temporary deploy sudo first:
+On **192.168.2.4**, grant temporary sudo first (use **agent** mode for netplan/systemd/apt; **deploy** mode for script-only installs):
 
 ```bash
-cd ~/ServerBootShutdownManagemement && sudo ./scripts/server/grant_temporary_deploy_sudo.sh
+cd ~/ServerBootShutdownManagemement && sudo ./scripts/server/grant_temporary_agent_sudo.sh
 ```
 
 ### Step 2: Start Services

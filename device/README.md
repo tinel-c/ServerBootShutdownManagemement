@@ -7,6 +7,7 @@ Device projects live in **separate Git repositories** and are included here as *
 | `device/esp32-sms-gateway/` | [tinel-c/esp32-sms-gateway](https://github.com/tinel-c/esp32-sms-gateway) | ESP32 + SIM800 (LilyGo T-Call) — SMS/MQTT gateway |
 | `device/PlatformIO_ESP8266_Main_Entry/` | [tinel-c/PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry) | ESP8266 — main gate (Node-RED 210–212, 514) |
 | `device/victron-multiplus-ii/` | *(in-repo docs)* | Victron MultiPlus-II — GX/Modbus/MQTT integration ([README](victron-multiplus-ii/README.md)) |
+| `device/huawei-inverter/` | *(in-repo docs)* | Huawei SUN2000 — Modbus/MQTT integration ([README](huawei-inverter/README.md)) |
 
 **Clone with all device firmware:**  
 `git clone --recurse-submodules <this-repo-url>`

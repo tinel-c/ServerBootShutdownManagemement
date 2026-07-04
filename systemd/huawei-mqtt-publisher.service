@@ -1,0 +1,23 @@
+[Unit]
+Description=Huawei SUN2000 Modbus to MQTT Publisher
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/dell_server_management
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/dell_server_management/device/huawei-inverter/lib"
+ExecStart=/opt/dell_server_management/venv/bin/python3 /opt/dell_server_management/device/huawei-inverter/scripts/huawei_mqtt_publisher.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+TimeoutStopSec=15
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

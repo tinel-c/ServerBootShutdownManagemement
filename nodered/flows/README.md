@@ -23,6 +23,8 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 **Energy (Victron):** after base config, import `800`, `811`, `812`, and update `/help` via `50-telegram-interface.json` or patch `50-patch-victron-energy-help.json` (replace existing nodes). Requires `50-telegram-interface.json`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
 
+**Energy (Huawei):** after `800`, import `821`, `822`; re-import `50` and `90` (replace existing nodes). Requires `huawei-mqtt-publisher.service`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
+
 ### Import Instructions
 
 1. Open Node-RED: http://localhost:1880
@@ -442,6 +444,23 @@ Import order and MQTT transmission chain: [docs/ENERGY_NODE_RED.md](../../docs/E
 
 ---
 
+### Energy / Huawei (821–822)
+
+**Files:** `821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`
+
+Requires `800-energy-base-config.json` (Huawei UI group). Full import order: [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
+
+| File | Purpose |
+|------|---------|
+| `821-huawei-energy-status.json` | Live dashboard: device info, PV strings, active power, daily yield |
+| `822-huawei-energy-telegram.json` | Telegram: `/huawei_status`, `/huawei_help` |
+
+**MQTT:** Subscribes `energy/huawei/status` (QoS 1, JSON). Requires `huawei-mqtt-publisher.service` on the automation server.
+
+**Dashboard:** `/dashboard/energy` — Huawei Energy group on the same Energy page as Victron.
+
+---
+
 ### Gate automation (200–212)
 
 **Files:** `200-gate-base-config.json`, `210-main-gate-controls.json`, `211-main-gate-status.json`, `212-gate-telegram.json` (optional). Import order and layout: see [docs/GATE_IMPORT_INSTRUCTIONS.md](../../docs/GATE_IMPORT_INSTRUCTIONS.md).
@@ -617,7 +636,7 @@ system/logs
 - `40-49`: Client automation and tracking
 - `50-59`: External interfaces (Telegram, etc.)
 - `300-399`: Power monitoring (garden Sonoff, lights)
-- `800-899`: Energy management (Victron Cerbo GX)
+- `800-899`: Energy management (Victron Cerbo GX, Huawei SUN2000)
 - `90-99`: Shared utilities
 
 ## Version Control
@@ -648,5 +667,5 @@ For detailed development guidance, see:
 ---
 
 **Last Updated**: July 4, 2026  
-**Format Version**: 3.11.6 (Victron energy flows 800–812)
+**Format Version**: 3.11.8 (Victron flows 800–812, Huawei flows 821–822)
 

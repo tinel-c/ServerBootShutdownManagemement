@@ -191,7 +191,7 @@ TEMPLATE = r"""<div class="victron-dash" style="font-family:system-ui,-apple-sys
 
   <div v-if="forecastSolar" style="margin-bottom:16px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(250,204,21,0.25);">
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-weight:600;color:#fde047;">Solar forecast · {{ forecastSolar.location || 'Lunca Cetătuui' }}</div>
+      <div style="font-weight:600;color:#fde047;">Solar forecast · {{ forecastSolar.location || 'Lunca Cetătui' }}</div>
       <div style="font-size:0.8em;color:#94a3b8;">Open-Meteo · {{ forecastSolar.time || '—' }}</div>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:0.9em;">

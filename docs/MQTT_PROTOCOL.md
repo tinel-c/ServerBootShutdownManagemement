@@ -4,7 +4,7 @@ This document defines the MQTT message format and protocol for the Dell T310 Man
 
 ## Overview
 
-The system uses MQTT for remote commands, status updates, and telemetry. Most command/response payloads are **JSON**. Victron per-metric topics under `energy/victron/` use **plain-text scalars**; only `energy/victron/status` is JSON.
+The system uses MQTT for remote commands, status updates, and telemetry. Most command/response payloads are **JSON**. Energy per-metric topics under `energy/victron/` and `energy/huawei/` use **plain-text scalars**; only `energy/victron/status` and `energy/huawei/status` are JSON snapshots.
 
 ## Topics
 
@@ -142,7 +142,7 @@ Published when the Energy dashboard **Start** / **Stop discretionary** buttons a
 
 **Start** is only enabled in the UI when `can_add_load` is true; **Stop** is always available.
 
-#### Solar forecast topics (Open-Meteo — Lunca Cetătuui, Iași)
+#### Solar forecast topics (Open-Meteo — Lunca Cetătui, Iași)
 
 Published by **`victron-solar-forecast-publisher.service`** (default every **30 min**). Location: `VICTRON_FORECAST_LAT/LON` (default 47.0966, 27.5632).
 
@@ -158,6 +158,47 @@ Published by **`victron-solar-forecast-publisher.service`** (default every **30 
 See [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md) for Cerbo GX setup, Modbus Unit IDs, and deployment.
 
 **Node-RED dashboard:** import `nodered/flows/800-energy-base-config.json` and `811-victron-energy-status.json`. See [ENERGY_NODE_RED.md](../ENERGY_NODE_RED.md).
+
+### Huawei Energy Topics (Domain: energy/huawei)
+
+Published by **`huawei-mqtt-publisher.service`** on the automation server. Polls the SUN2000 via **Modbus TCP** over USB WiFi → inverter AP (`192.168.200.1:6607`, unit ID `0`) every **10 seconds** (configurable).
+
+| Setting | Default | Config |
+|---------|---------|--------|
+| Topic prefix | `energy/huawei` | `HUAWEI_MQTT_PREFIX` in [device/huawei-inverter/config/.env](../device/huawei-inverter/config/.env) |
+| Poll interval | `10` s | `HUAWEI_MODBUS_POLL_INTERVAL` |
+| QoS | `1` | `HUAWEI_MQTT_QOS` |
+| Broker | root `config/.env` | `MQTT_BROKER_HOST`, `MQTT_BROKER_PORT`, credentials |
+
+**Direction:** Server → subscribers (Node-RED **821**, Telegram **822**, watchdog **90**). Messages are **not retained** (except none by default).
+
+#### Per-metric topics
+
+| Topic | Payload type | Unit | Description |
+|-------|--------------|------|-------------|
+| `energy/huawei/device/model` | string | — | Inverter model (e.g. `SUN2000-6KTL-L1`) |
+| `energy/huawei/device/serial` | string | — | Serial number |
+| `energy/huawei/device/rated_power_w` | integer | W | Rated power |
+| `energy/huawei/pv/string1_voltage` | number | V | PV string 1 voltage |
+| `energy/huawei/pv/string1_current` | number | A | PV string 1 current |
+| `energy/huawei/pv/string2_voltage` | number | V | PV string 2 voltage |
+| `energy/huawei/pv/string2_current` | number | A | PV string 2 current |
+| `energy/huawei/pv/input_power` | integer | W | DC input power |
+| `energy/huawei/inverter/active_power` | integer | W | AC active power |
+| `energy/huawei/inverter/grid_frequency` | number | Hz | Grid frequency |
+| `energy/huawei/inverter/daily_yield` | number | kWh | Daily yield |
+
+Per-metric payloads are **plain text** scalars (not JSON).
+
+#### Aggregate snapshot
+
+| Topic | Purpose | QoS |
+|-------|---------|-----|
+| `energy/huawei/status` | Full JSON snapshot (`device`, `pv`, `inverter`, `timestamp`, `source`) | 1 |
+
+See [device/huawei-inverter/README.md](../device/huawei-inverter/README.md) for WiFi AP setup and Modbus probe.
+
+**Node-RED:** import `821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`. Telegram: `/huawei_status`, `/huawei_help`.
 
 ---
 
@@ -814,6 +855,84 @@ mosquitto_sub -h 192.168.2.4 -t 'energy/victron/battery/soc' -v
 
 ---
 
+## Huawei Energy Messages
+
+Published by `huawei-mqtt-publisher.service` every poll cycle (default **10 s**). Topic prefix defaults to `energy/huawei`; override with `HUAWEI_MQTT_PREFIX`.
+
+### Status Snapshot
+
+**Topic:** `energy/huawei/status`
+
+**Schema:**
+```json
+{
+  "timestamp": "2026-07-04T17:30:00+00:00",
+  "source": "huawei_modbus",
+  "device_name": "huawei-inverter",
+  "device": {
+    "model": "SUN2000-6KTL-L1",
+    "serial": "HV2310027721",
+    "rated_power_w": 6000
+  },
+  "pv": {
+    "string1_voltage_v": 312.5,
+    "string1_current_a": 0.62,
+    "string2_voltage_v": 0.0,
+    "string2_current_a": 0.0,
+    "input_power_w": 195
+  },
+  "inverter": {
+    "active_power_w": 195,
+    "grid_frequency_hz": 50.01,
+    "daily_yield_kwh": 45.65
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | string | UTC ISO8601 time of the poll |
+| `source` | string | Always `"huawei_modbus"` |
+| `device_name` | string | Logical name from `HUAWEI_DEVICE_NAME` (default `huawei-inverter`) |
+| `device` | object | Model, serial, rated power (W) |
+| `pv` | object | String voltages (V), currents (A), DC input power (W) |
+| `inverter` | object | AC active power (W), grid frequency (Hz), daily yield (kWh) |
+
+**Sign conventions:**
+
+- **Active power:** positive = export to grid / production; zero at night or when curtailed
+- **String 2:** may read `0` when only one MPPT string is wired
+
+### Per-Metric Payloads
+
+Individual topics under `energy/huawei/` publish **scalar plain-text** values (not JSON). Examples from a live poll:
+
+```
+energy/huawei/device/model              SUN2000-6KTL-L1
+energy/huawei/device/serial             HV2310027721
+energy/huawei/device/rated_power_w      6000
+energy/huawei/pv/input_power            195
+energy/huawei/inverter/active_power     195
+energy/huawei/inverter/grid_frequency   50.01
+energy/huawei/inverter/daily_yield      45.65
+```
+
+**Monitor all Huawei topics:**
+
+```bash
+mosquitto_sub -h localhost -t 'energy/huawei/#' -v
+```
+
+**Subscribe to status snapshot (Node-RED flow 821, watchdog 90):**
+
+```bash
+mosquitto_sub -h 192.168.2.4 -t 'energy/huawei/status' -v
+```
+
+---
+
 ### Solar Forecast (Open-Meteo)
 
 **Topic:** `energy/victron/forecast/solar/current`
@@ -824,7 +943,7 @@ mosquitto_sub -h 192.168.2.4 -t 'energy/victron/battery/soc' -v
   "timestamp": "2026-07-04T15:30:00+00:00",
   "source": "open-meteo",
   "attribution": "Weather data by Open-Meteo.com (CC BY 4.0)",
-  "location": "Lunca Cetătuui, Iași, RO",
+  "location": "Lunca Cetătui, Iași, RO",
   "latitude": 47.0966,
   "longitude": 27.5632,
   "timezone": "Europe/Bucharest",
@@ -1112,6 +1231,11 @@ mosquitto_sub -h localhost -t "dell/t310/response" \
 mosquitto_sub -h localhost -t "energy/victron/#" -v
 ```
 
+**Monitor Huawei solar metrics:**
+```bash
+mosquitto_sub -h localhost -t "energy/huawei/#" -v
+```
+
 ---
 
 ## Error Handling
@@ -1144,7 +1268,8 @@ If a command fails to execute:
 
 ## Version History
 
-- **v1.2** (2026-07-04) - PV automation headroom topics + Open-Meteo solar forecast (Lunca Cetătuui)
+- **v1.3** (2026-07-04) - Huawei SUN2000 solar inverter (`energy/huawei/#`) via Modbus publisher
+- **v1.2** (2026-07-04) - PV automation headroom topics + Open-Meteo solar forecast (Lunca Cetătui)
 - **v1.1** (2026-07-04) - Victron Cerbo GX energy metrics (`energy/victron/#`) via Modbus publisher
 - **v1.0** (2025-12-25) - Initial protocol specification
 

@@ -112,9 +112,9 @@ Examples:
 - `790-799`: HVAC utilities
 
 #### Energy Management (800-899)
-- `800-809`: Base energy infrastructure
-- `810-819`: Main power monitoring
-- `820-829`: Solar panels
+- `800-809`: Base energy infrastructure (`800-energy-base-config.json`)
+- `810-819`: Victron Cerbo GX (`811-victron-energy-status.json`, `812-victron-energy-telegram.json`)
+- `820-829`: Huawei SUN2000 solar (`821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`)
 - `830-839`: Battery storage
 - `840-849`: Smart plugs/switches
 - `850-859`: Energy analytics

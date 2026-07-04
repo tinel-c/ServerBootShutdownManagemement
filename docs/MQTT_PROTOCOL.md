@@ -4,7 +4,7 @@ This document defines the MQTT message format and protocol for the Dell T310 Man
 
 ## Overview
 
-The system uses MQTT for all remote commands and status updates. All messages are JSON-formatted and follow a consistent structure.
+The system uses MQTT for remote commands, status updates, and telemetry. Most command/response payloads are **JSON**. Victron per-metric topics under `energy/victron/` use **plain-text scalars**; only `energy/victron/status` is JSON.
 
 ## Topics
 
@@ -50,6 +50,73 @@ The system uses MQTT for all remote commands and status updates. All messages ar
 | `sms/gateway/ota/status` | OTA update status | 1 | Device → Dashboard |
 | `sms/gateway/ota/progress` | OTA update progress | 1 | Device → Dashboard |
 | `sms/command/received` | Internal: new SMS for command processing | 1 | Node-RED 511 → 514 |
+
+### Victron Energy Topics (Domain: energy/victron)
+
+Published by **`victron-mqtt-publisher.service`** on the automation server (`scripts/victron_mqtt_publisher.py`). The service polls the Cerbo GX via **Modbus TCP** every **10 seconds** (configurable) and publishes to the central MQTT broker.
+
+| Setting | Default | Config |
+|---------|---------|--------|
+| Topic prefix | `energy/victron` | `VICTRON_MQTT_PREFIX` in [device/victron-multiplus-ii/config/.env](../device/victron-multiplus-ii/config/.env) |
+| Poll interval | `10` s | `VICTRON_MODBUS_POLL_INTERVAL` |
+| QoS | `1` | `VICTRON_MQTT_QOS` |
+| Broker | root `config/.env` | `MQTT_BROKER_HOST`, `MQTT_BROKER_PORT`, credentials |
+
+**Direction:** Server → subscribers (Node-RED, dashboards, automations). Messages are **not retained**.
+
+#### Per-metric topics (always published)
+
+| Topic | Payload type | Unit | Description |
+|-------|--------------|------|-------------|
+| `energy/victron/battery/voltage` | number | V | Battery voltage (system register 840) |
+| `energy/victron/battery/soc` | integer | % | State of charge (register 843) |
+| `energy/victron/battery/power` | signed integer | W | Battery power; positive = charging (register 842) |
+| `energy/victron/grid/power_l1` | signed integer | W | Grid L1 power; positive = import, negative = export (register 820) |
+| `energy/victron/pv/dc_power` | integer | W | PV DC power (register 850) |
+| `energy/victron/pv/dc_current` | number | A | PV DC current (register 851) |
+| `energy/victron/pv/ac_output_l1` | integer | W | AC-coupled PV on inverter output L1 (register 808) |
+| `energy/victron/pv/ac_grid_l1` | integer | W | AC-coupled PV on grid L1 (register 811) |
+| `energy/victron/load/consumption_l1` | integer | W | AC consumption L1 (register 817) |
+| `energy/victron/load/output_l1` | signed integer | W | VE.Bus AC output L1 power (register 878) |
+| `energy/victron/load/input_l1` | signed integer | W | VE.Bus AC input L1 power (register 872) |
+| `energy/victron/inverter/ac_in_voltage_l1` | number | V | AC input voltage L1 (VE.Bus register 3) |
+| `energy/victron/inverter/ac_in_power_l1` | signed integer | W | AC input power L1 (VE.Bus register 12) |
+| `energy/victron/inverter/ac_out_power_l1` | signed integer | W | AC output power L1 (VE.Bus register 23) |
+| `energy/victron/inverter/dc_voltage` | number | V | DC voltage (VE.Bus register 26) |
+| `energy/victron/inverter/state` | string | — | Human-readable inverter state (e.g. `Passthru`, `Inverting`) |
+| `energy/victron/inverter/state_code` | integer | — | Raw VE.Bus state code (register 31) |
+| `energy/victron/inverter/grid_lost` | boolean | — | `True` when grid lost alarm active (register 64 = 2) |
+
+Per-metric payloads are **plain text** (not JSON): numbers as decimal strings, booleans as `True`/`False`.
+
+#### Aggregate snapshot
+
+| Topic | Purpose | QoS |
+|-------|---------|-----|
+| `energy/victron/status` | Full JSON snapshot of all metrics below | 1 |
+
+#### Optional topics (when hardware is detected or configured)
+
+Published only when an MPPT solar charger is found on Modbus (auto-scan or `VICTRON_SOLARCHARGER_UNIT_ID`):
+
+| Topic | Payload type | Unit | Description |
+|-------|--------------|------|-------------|
+| `energy/victron/solar/pv_voltage` | number | V | MPPT PV voltage |
+| `energy/victron/solar/charge_current` | number | A | Charge current |
+| `energy/victron/solar/pv_power` | number | W | PV power |
+| `energy/victron/solar/yield_today` | number | kWh | Yield today |
+| `energy/victron/solar/state` | string | — | Charger state (e.g. `Bulk`, `Float`) |
+
+Published only when `VICTRON_PVINVERTER_UNIT_ID` is set in device config:
+
+| Topic | Payload type | Unit | Description |
+|-------|--------------|------|-------------|
+| `energy/victron/pvinverter/ac_power_l1` | integer | W | Grid-tie PV AC power L1 |
+| `energy/victron/pvinverter/ac_voltage_l1` | number | V | AC voltage L1 |
+| `energy/victron/pvinverter/ac_current_l1` | number | A | AC current L1 |
+| `energy/victron/pvinverter/position` | string | — | Meter position (`AC input 1`, `AC output`, `AC input 2`) |
+
+See [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md) for Cerbo GX setup, Modbus Unit IDs, and deployment.
 
 ---
 
@@ -554,6 +621,138 @@ mosquitto_sub -h localhost -t "sms/gateway/receive/+" -v
 
 ---
 
+## Victron Energy Messages
+
+Published by `victron-mqtt-publisher.service` every poll cycle (default **10 s**). Topic prefix defaults to `energy/victron`; override with `VICTRON_MQTT_PREFIX`.
+
+### Status Snapshot
+
+**Topic:** `energy/victron/status`
+
+**Schema:**
+```json
+{
+  "timestamp": "ISO8601 UTC timestamp",
+  "source": "victron_modbus",
+  "battery": {
+    "voltage_v": 52.3,
+    "soc_pct": 91,
+    "power_w": -450
+  },
+  "grid": {
+    "power_l1_w": 32
+  },
+  "pv": {
+    "dc_power_w": 0,
+    "dc_current_a": 0.0,
+    "ac_output_l1_w": 3100,
+    "ac_grid_l1_w": 0
+  },
+  "load": {
+    "consumption_l1_w": 2163,
+    "output_l1_w": 2200,
+    "input_l1_w": 50
+  },
+  "inverter": {
+    "ac_in_voltage_l1_v": 230.5,
+    "ac_in_power_l1_w": 50,
+    "ac_out_power_l1_w": 2150,
+    "dc_voltage_v": 52.30,
+    "state_code": 8,
+    "state": "Passthru",
+    "grid_lost": false
+  },
+  "solar_charger": null,
+  "pv_inverter": null
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | string | UTC ISO8601 time of the poll |
+| `source` | string | Always `"victron_modbus"` |
+| `battery` | object | Voltage (V), SoC (%), power (W) |
+| `grid` | object | Grid L1 power (W); signed — import positive, export negative |
+| `pv` | object | DC and AC-coupled PV metrics (W / A) |
+| `load` | object | Consumption and VE.Bus input/output power (W) |
+| `inverter` | object | AC/DC electrical values, state name/code, grid-lost flag |
+| `solar_charger` | object \| null | MPPT data when a solar charger is found; omitted from per-metric topics when null |
+| `pv_inverter` | object \| null | Grid-tie inverter data when `VICTRON_PVINVERTER_UNIT_ID` is configured |
+
+**Inverter state codes** (register 31 → `inverter/state`):
+
+| Code | State |
+|------|-------|
+| 0 | Off |
+| 1 | Low Power |
+| 2 | Fault |
+| 3 | Bulk |
+| 4 | Absorption |
+| 5 | Float |
+| 6 | Storage |
+| 7 | Equalize |
+| 8 | Passthru |
+| 9 | Inverting |
+| 10 | Power assist |
+| 11 | Power supply |
+| 252 | External control |
+
+When `solar_charger` is present, the snapshot includes:
+
+```json
+"solar_charger": {
+  "unit_id": 226,
+  "pv_voltage_v": 48.50,
+  "charge_current_a": 12.3,
+  "pv_power_w": 580,
+  "yield_today_kwh": 4.2,
+  "state_code": 3,
+  "state": "Bulk"
+}
+```
+
+When `pv_inverter` is present:
+
+```json
+"pv_inverter": {
+  "unit_id": 32,
+  "ac_power_l1_w": 1500,
+  "ac_voltage_l1_v": 230.0,
+  "ac_current_l1_a": 6.5,
+  "position": "AC output"
+}
+```
+
+### Per-Metric Payloads
+
+Individual topics under `energy/victron/` publish **scalar plain-text** values (not JSON). Examples from a live poll:
+
+```
+energy/victron/battery/soc          91
+energy/victron/battery/voltage      52.3
+energy/victron/battery/power        -450
+energy/victron/grid/power_l1        32
+energy/victron/load/consumption_l1  2163
+energy/victron/inverter/state       Passthru
+energy/victron/inverter/grid_lost   False
+```
+
+**Monitor all Victron topics:**
+
+```bash
+mosquitto_sub -h localhost -t 'energy/victron/#' -v
+```
+
+**Subscribe to a single metric (Node-RED, scripts):**
+
+```bash
+mosquitto_sub -h 192.168.2.4 -t 'energy/victron/battery/soc' -v
+```
+
+---
+
 ### SMS Gateway Status
 
 **Topic:** `sms/gateway/status`
@@ -817,6 +1016,11 @@ mosquitto_sub -h localhost -t "dell/t310/response" \
   -u dell_t310 -P password -v
 ```
 
+**Monitor Victron energy metrics:**
+```bash
+mosquitto_sub -h localhost -t "energy/victron/#" -v
+```
+
 ---
 
 ## Error Handling
@@ -849,6 +1053,7 @@ If a command fails to execute:
 
 ## Version History
 
+- **v1.1** (2026-07-04) - Victron Cerbo GX energy metrics (`energy/victron/#`) via Modbus publisher
 - **v1.0** (2025-12-25) - Initial protocol specification
 
 ---

@@ -372,16 +372,38 @@ mosquitto_pub -h "$GX_IP" -t "R/${PORTAL_ID}/keepalive" \
 | MQTT publisher | [scripts/victron_mqtt_publisher.py](scripts/victron_mqtt_publisher.py) | Polls Modbus every 10s → MQTT |
 | systemd unit | [systemd/victron-mqtt-publisher.service](../../systemd/victron-mqtt-publisher.service) | Install on automation server |
 | Energy flows (planned) | `nodered/flows/80x-*.json` | Domain 80–89 in architecture doc |
-| Central MQTT | `MQTT_BROKER_HOST` in root [config/.env.example](../../config/.env.example) | Bridge GX → automation broker |
+| Central MQTT | `MQTT_BROKER_HOST` in root [config/.env.example](../../config/.env.example) | Publisher uses automation broker |
 | Node-RED Modbus | `node-red-contrib-modbus` | TCP to GX:502, unit ID from GX menu |
 
-Suggested project topic prefix (convention — not yet implemented):
+### MQTT topics on the automation broker
 
-```
-energy/victron/<metric>
-```
+The publisher posts to prefix **`energy/victron`** (override: `VICTRON_MQTT_PREFIX`). Full specification: **[docs/MQTT_PROTOCOL.md](../../docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron)**.
 
-Examples: `energy/victron/battery/soc`, `energy/victron/inverter/state`, `energy/victron/grid/power_l1`.
+| Topic | Payload | Notes |
+|-------|---------|-------|
+| `energy/victron/status` | JSON | Full snapshot each poll |
+| `energy/victron/battery/voltage` | number (V) | |
+| `energy/victron/battery/soc` | integer (%) | |
+| `energy/victron/battery/power` | signed int (W) | + = charging |
+| `energy/victron/grid/power_l1` | signed int (W) | + = import |
+| `energy/victron/pv/dc_power` | int (W) | |
+| `energy/victron/pv/dc_current` | number (A) | |
+| `energy/victron/pv/ac_output_l1` | int (W) | AC-coupled solar on output |
+| `energy/victron/pv/ac_grid_l1` | int (W) | AC-coupled solar on grid |
+| `energy/victron/load/consumption_l1` | int (W) | |
+| `energy/victron/load/output_l1` | signed int (W) | |
+| `energy/victron/load/input_l1` | signed int (W) | |
+| `energy/victron/inverter/ac_in_voltage_l1` | number (V) | |
+| `energy/victron/inverter/ac_in_power_l1` | signed int (W) | |
+| `energy/victron/inverter/ac_out_power_l1` | signed int (W) | |
+| `energy/victron/inverter/dc_voltage` | number (V) | |
+| `energy/victron/inverter/state` | string | e.g. `Passthru`, `Inverting` |
+| `energy/victron/inverter/state_code` | integer | VE.Bus register 31 |
+| `energy/victron/inverter/grid_lost` | boolean | |
+| `energy/victron/solar/*` | scalars | Only if MPPT found on Modbus |
+| `energy/victron/pvinverter/*` | scalars | Only if `VICTRON_PVINVERTER_UNIT_ID` set |
+
+Per-metric topics use **plain text** payloads; only `energy/victron/status` is JSON. Poll interval default **10 s**; QoS **1**; not retained.
 
 ### Run the MQTT publisher
 
@@ -415,7 +437,11 @@ cd ~/ServerBootShutdownManagemement
 sudo ./install_victron_service.sh
 ```
 
-Published topics include `energy/victron/status` (full JSON snapshot) and per-metric topics such as `energy/victron/battery/soc`, `energy/victron/pv/ac_output_l1`, `energy/victron/load/consumption_l1`.
+Monitor on the broker:
+
+```bash
+mosquitto_sub -h localhost -t 'energy/victron/#' -v
+```
 
 ---
 

@@ -567,6 +567,9 @@ LOG_FILE=/var/log/dell_t310_management.log
 | `dell/t310/command/shutdown` | Client → Server | Shutdown commands |
 | `dell/t310/status` | Server → Client | Status updates |
 | `dell/t310/response` | Server → Client | Command responses |
+| `energy/victron/#` | Server → Client | Victron Cerbo GX energy metrics (Modbus publisher) |
+
+Victron topics (`energy/victron/status`, `energy/victron/battery/soc`, grid/PV/load/inverter metrics, etc.) are documented in [MQTT Protocol — Victron Energy](docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron).
 
 ## Manual Testing
 

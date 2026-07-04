@@ -130,6 +130,7 @@ Running as background services on the automation server:
    - Polls Victron Cerbo GX via Modbus TCP every 10 seconds
    - Publishes battery, grid, PV, loads, and inverter data to `energy/victron/#` MQTT topics
    - Configuration: `/opt/dell_server_management/device/victron-multiplus-ii/config/.env`
+   - MQTT reference: [MQTT_PROTOCOL.md — Victron Energy](MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron)
    - See [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md)
 
 ### 3. Network Layer

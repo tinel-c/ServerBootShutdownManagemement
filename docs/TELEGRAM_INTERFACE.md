@@ -50,6 +50,14 @@ The Telegram interface allows remote control and monitoring of servers, gates, l
 | `/lights_off` | Turn all garden lights OFF |
 | `/lights_status` | Get status of all 16 lights |
 
+### ☀️ Victron energy
+| Command | Description |
+|---------|-------------|
+| `/energy_status` | Battery, grid, PV, load, headroom, inverter |
+| `/energy_start` | Start discretionary loads (when PV surplus) |
+| `/energy_stop` | Stop discretionary loads |
+| `/energy_help` | Victron energy commands and buttons |
+
 ### 🐠 Aquarium
 | Command | Description |
 |---------|-------------|

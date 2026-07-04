@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.6] - 2026-07-04
+
+### Added - Victron Cerbo GX energy (Modbus → MQTT → Node-RED → Telegram)
+
+- **Publisher services**: `victron-mqtt-publisher.service`, `victron-solar-forecast-publisher.service`; automation headroom (`energy/victron/automation/*`), Open-Meteo forecast topics, discretionary load commands documented in [MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md).
+- **Node-RED**: `800-energy-base-config.json`, `811-victron-energy-status.json` (dashboard, 7-day chart, Start/Stop discretionary), `812-victron-energy-telegram.json`; `build_811_flow.py`, `50-patch-victron-energy-help.json`.
+- **Telegram**: `/energy_*` commands; `/help` and `/commands` updated in flow `50`.
+- **Watchdog**: flow `90` monitors `energy/victron/status` (2 min); state-change-only Telegram alerts; fixes duplicate heartbeat notifications for all devices.
+- **Docs**: [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), Victron README, architecture, install/update scripts.
+
 ## [3.11.5] - 2026-04-26
 
 ### Changed - device firmware (submodule layout)

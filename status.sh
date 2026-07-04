@@ -24,6 +24,7 @@ SERVICES=(
     "health-monitor.service"
     "tapo-monitor.service"
     "victron-mqtt-publisher.service"
+    "victron-solar-forecast-publisher.service"
 )
 
 # Print header

@@ -1,0 +1,73 @@
+[
+    {
+        "id": "energy_base_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "═══════════════ ENERGY DOMAIN - Base Configuration ═══════════════",
+        "info": "## Energy Management Domain - Base Configuration\n\n**Flow Number:** 800\n**Domain:** Energy Management (800-899)\n\n### Purpose\nBase UI page and groups for Victron Cerbo GX / MultiPlus-II energy monitoring.\n\n### UI Components\n- Page: **Energy** (`/energy`)\n- Group: **Victron Energy** (full-width dashboard)\n\n### Data path (MQTT transmission)\n1. Cerbo GX — Modbus TCP `:502`\n2. `victron-mqtt-publisher.service` — polls every 10 s\n3. Mosquitto — `energy/victron/status` (JSON) + `energy/victron/*` scalars\n4. Node-RED flow **811** — subscribes and renders Dashboard 2.0\n5. `global.victron_energy_state` — shared for Telegram / automations\n\n### Context\n- `victron_energy_state` — latest snapshot from `energy/victron/status`\n\n### Related Flows\n- 811-victron-energy-status.json — live energy dashboard\n- 812-victron-energy-telegram.json — Telegram commands\n\n### Dependencies\n- `00-base-config.json` (`ui_base`, `mqtt_broker_local`)\n- `victron-mqtt-publisher.service` running on automation server\n\nSee [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md) and [MQTT_PROTOCOL.md](../../docs/MQTT_PROTOCOL.md).",
+        "x": 300,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "ui_page_energy",
+        "type": "ui-page",
+        "name": "Energy",
+        "ui": "ui_base",
+        "path": "/energy",
+        "icon": "solar_power",
+        "layout": "grid",
+        "theme": "theme_base",
+        "order": 5,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_victron_energy",
+        "type": "ui-group",
+        "name": "Victron Energy",
+        "page": "ui_page_energy",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "victron_context_init_inject",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Initialize Victron State",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 120,
+        "wires": [
+            [
+                "victron_context_init_function"
+            ]
+        ]
+    },
+    {
+        "id": "victron_context_init_function",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Init victron_energy_state",
+        "func": "if (!global.get('victron_energy_state')) {\n    global.set('victron_energy_state', {\n        timestamp: null,\n        source: 'victron_modbus',\n        battery: { voltage_v: null, soc_pct: null, power_w: null },\n        grid: { power_l1_w: null },\n        pv: { dc_power_w: null, dc_current_a: null, ac_output_l1_w: null, ac_grid_l1_w: null },\n        load: { consumption_l1_w: null, output_l1_w: null, input_l1_w: null },\n        inverter: { state: 'Unknown', state_code: null, grid_lost: false },\n        solar_charger: null,\n        pv_inverter: null,\n        lastReportedMs: null,\n        receivedAtMs: null\n    });\n    node.warn('Initialized victron_energy_state in global context');\n}\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 120,
+        "wires": []
+    }
+]

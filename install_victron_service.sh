@@ -42,6 +42,7 @@ print_info "Installing Victron MQTT publisher..."
 mkdir -p "$INSTALL_DIR/device"
 cp -r "$SCRIPT_DIR/device/victron-multiplus-ii" "$INSTALL_DIR/device/"
 cp "$SCRIPT_DIR/systemd/victron-mqtt-publisher.service" /etc/systemd/system/
+cp "$SCRIPT_DIR/systemd/victron-solar-forecast-publisher.service" /etc/systemd/system/
 cp "$SCRIPT_DIR/requirements.txt" "$INSTALL_DIR/requirements.txt"
 
 if [ -f "$VICTRON_ENV" ]; then
@@ -61,14 +62,22 @@ pip install -r "$INSTALL_DIR/requirements.txt"
 
 systemctl daemon-reload
 systemctl enable victron-mqtt-publisher.service
+systemctl enable victron-solar-forecast-publisher.service
 systemctl restart victron-mqtt-publisher.service
+systemctl restart victron-solar-forecast-publisher.service
 
 sleep 2
 if systemctl is-active --quiet victron-mqtt-publisher.service; then
     print_info "victron-mqtt-publisher.service is running"
 else
-    print_warn "Service not active — check: journalctl -u victron-mqtt-publisher.service -n 30"
+    print_warn "victron-mqtt-publisher not active — check: journalctl -u victron-mqtt-publisher.service -n 30"
     exit 1
+fi
+
+if systemctl is-active --quiet victron-solar-forecast-publisher.service; then
+    print_info "victron-solar-forecast-publisher.service is running"
+else
+    print_warn "victron-solar-forecast-publisher not active — check: journalctl -u victron-solar-forecast-publisher.service -n 30"
 fi
 
 print_info "Done. Test MQTT: mosquitto_sub -h localhost -t 'energy/victron/#' -v"

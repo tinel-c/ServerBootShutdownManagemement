@@ -131,6 +131,7 @@ Running as background services on the automation server:
    - Publishes battery, grid, PV, loads, and inverter data to `energy/victron/#` MQTT topics
    - Configuration: `/opt/dell_server_management/device/victron-multiplus-ii/config/.env`
    - MQTT reference: [MQTT_PROTOCOL.md — Victron Energy](MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron)
+   - Node-RED dashboard: [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md) (`800` / `811` flows)
    - See [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md)
 
 ### 3. Network Layer

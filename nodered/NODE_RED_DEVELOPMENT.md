@@ -35,6 +35,8 @@ nodered/
 │   ├── 20-hp-controls.json     # HP DL360p boot/shutdown buttons
 │   ├── 21-hp-status.json       # HP DL360p status display
 │   ├── 22-hp-health.json       # HP DL360p health monitoring
+│   ├── 800-energy-base-config.json   # Energy page (Victron)
+│   ├── 811-victron-energy-status.json # Victron MQTT dashboard
 │   └── 90-log-console.json     # System log console
 └── NODE_RED_DEVELOPMENT.md     # This file
 ```
@@ -47,7 +49,11 @@ Flow files follow a numbered prefix system:
 - `20-29`: HP server features
 - `30-39`: Reserved for future server type 1
 - `40-49`: Reserved for future server type 2
+- `300-399`: Power monitoring (garden)
+- `800-899`: Energy management (Victron Cerbo GX)
 - `90-99`: Shared utilities (logs, notifications)
+
+Victron energy dashboard: see [docs/ENERGY_NODE_RED.md](../docs/ENERGY_NODE_RED.md).
 
 ## Getting Started
 

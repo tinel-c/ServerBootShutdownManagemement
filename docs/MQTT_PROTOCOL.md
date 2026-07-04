@@ -116,7 +116,48 @@ Published only when `VICTRON_PVINVERTER_UNIT_ID` is set in device config:
 | `energy/victron/pvinverter/ac_current_l1` | number | A | AC current L1 |
 | `energy/victron/pvinverter/position` | string | — | Meter position (`AC input 1`, `AC output`, `AC input 2`) |
 
+#### Automation topics (PV headroom — every poll)
+
+Computed as **`headroom_w = pv_power_w − consumption_l1_w`**. PV power uses the grid-tie PV inverter register when configured (`VICTRON_PVINVERTER_UNIT_ID`); otherwise system PV (AC output, AC grid, DC, or MPPT).
+
+| Topic | Payload type | Description |
+|-------|--------------|-------------|
+| `energy/victron/automation/pv_power_w` | integer | PV production used in the calculation (W) |
+| `energy/victron/automation/consumption_l1_w` | integer | AC consumption L1 (W) |
+| `energy/victron/automation/headroom_w` | signed integer | Surplus (+) or deficit (−); **positive → discretionary loads OK** |
+| `energy/victron/automation/can_add_load` | boolean | `True` when `headroom_w > VICTRON_AUTOMATION_MIN_HEADROOM_W` (default 0) |
+| `energy/victron/automation/pv_source` | string | Register used for PV (e.g. `pv.ac_output_l1`, `pvinverter.ac_power_l1`) |
+| `energy/victron/automation/discretionary_load/state` | JSON (retained) | Dashboard/automation state: `{ "enabled": bool, "action", "source", "updated_at", "headroom_w" }` |
+
+The `automation` object is also included in `energy/victron/status`.
+
+#### Discretionary load commands (Node-RED dashboard → automation)
+
+Published when the Energy dashboard **Start** / **Stop discretionary** buttons are used (flow **811**). Downstream automations (e.g. relay control, AC contactor) should subscribe to these topics.
+
+| Topic | Payload | Description |
+|-------|---------|-------------|
+| `energy/victron/command/discretionary/start` | JSON | `{ "action": "start", "source": "nodered", "timestamp": "ISO8601", "enabled": true }` |
+| `energy/victron/command/discretionary/stop` | JSON | `{ "action": "stop", "source": "nodered", "timestamp": "ISO8601", "enabled": false }` |
+
+**Start** is only enabled in the UI when `can_add_load` is true; **Stop** is always available.
+
+#### Solar forecast topics (Open-Meteo — Lunca Cetătuui, Iași)
+
+Published by **`victron-solar-forecast-publisher.service`** (default every **30 min**). Location: `VICTRON_FORECAST_LAT/LON` (default 47.0966, 27.5632).
+
+| Topic | Format | Description |
+|-------|--------|-------------|
+| `energy/victron/forecast/solar/current` | JSON | Current shortwave/direct/diffuse irradiance (W/m²), `is_day` |
+| `energy/victron/forecast/solar/hourly` | JSON | Next 48 h hourly irradiance series |
+| `energy/victron/forecast/solar/daily` | JSON | Daily radiation sum (MJ/m² and kWh/m²) + sunshine duration |
+| `energy/victron/forecast/solar/radiation_wm2` | number | Current shortwave radiation (W/m²) |
+| `energy/victron/forecast/solar/today_sum_kwh_m2` | number | Forecast total today (kWh/m²) |
+| `energy/victron/forecast/solar/is_day` | boolean | Daylight flag at forecast location |
+
 See [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md) for Cerbo GX setup, Modbus Unit IDs, and deployment.
+
+**Node-RED dashboard:** import `nodered/flows/800-energy-base-config.json` and `811-victron-energy-status.json`. See [ENERGY_NODE_RED.md](../ENERGY_NODE_RED.md).
 
 ---
 
@@ -663,7 +704,15 @@ Published by `victron-mqtt-publisher.service` every poll cycle (default **10 s**
     "grid_lost": false
   },
   "solar_charger": null,
-  "pv_inverter": null
+  "pv_inverter": null,
+  "automation": {
+    "pv_power_w": 3100,
+    "pv_source": "pv.ac_output_l1",
+    "consumption_l1_w": 2163,
+    "headroom_w": 937,
+    "can_add_load": true,
+    "min_headroom_w": 0
+  }
 }
 ```
 
@@ -680,6 +729,7 @@ Published by `victron-mqtt-publisher.service` every poll cycle (default **10 s**
 | `inverter` | object | AC/DC electrical values, state name/code, grid-lost flag |
 | `solar_charger` | object \| null | MPPT data when a solar charger is found; omitted from per-metric topics when null |
 | `pv_inverter` | object \| null | Grid-tie inverter data when `VICTRON_PVINVERTER_UNIT_ID` is configured |
+| `automation` | object | PV headroom for load automations (see below) |
 
 **Inverter state codes** (register 31 → `inverter/state`):
 
@@ -725,6 +775,17 @@ When `pv_inverter` is present:
 }
 ```
 
+**Automation object** (in every `energy/victron/status` snapshot):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `pv_power_w` | integer | PV production used (W) |
+| `pv_source` | string | Modbus source (e.g. `pv.ac_output_l1`) |
+| `consumption_l1_w` | integer | AC consumption L1 (W) |
+| `headroom_w` | integer | `pv_power_w − consumption_l1_w`; positive = solar surplus |
+| `can_add_load` | boolean | `true` when discretionary loads (e.g. AC) may run |
+| `min_headroom_w` | integer | Threshold from `VICTRON_AUTOMATION_MIN_HEADROOM_W` |
+
 ### Per-Metric Payloads
 
 Individual topics under `energy/victron/` publish **scalar plain-text** values (not JSON). Examples from a live poll:
@@ -750,6 +811,36 @@ mosquitto_sub -h localhost -t 'energy/victron/#' -v
 ```bash
 mosquitto_sub -h 192.168.2.4 -t 'energy/victron/battery/soc' -v
 ```
+
+---
+
+### Solar Forecast (Open-Meteo)
+
+**Topic:** `energy/victron/forecast/solar/current`
+
+**Schema:**
+```json
+{
+  "timestamp": "2026-07-04T15:30:00+00:00",
+  "source": "open-meteo",
+  "attribution": "Weather data by Open-Meteo.com (CC BY 4.0)",
+  "location": "Lunca Cetătuui, Iași, RO",
+  "latitude": 47.0966,
+  "longitude": 27.5632,
+  "timezone": "Europe/Bucharest",
+  "time": "2026-07-04T18:30",
+  "shortwave_radiation_wm2": 319.0,
+  "direct_radiation_wm2": 213.0,
+  "diffuse_radiation_wm2": 106.0,
+  "is_day": true
+}
+```
+
+**Topic:** `energy/victron/forecast/solar/hourly` — JSON with `hours[]` (48 entries by default).
+
+**Topic:** `energy/victron/forecast/solar/daily` — JSON with `days[]` (`shortwave_radiation_sum_kwh_m2`, `sunshine_duration_s`).
+
+**Scalars:** `radiation_wm2`, `today_sum_kwh_m2`, `is_day` for simple rule engines.
 
 ---
 
@@ -1053,6 +1144,7 @@ If a command fails to execute:
 
 ## Version History
 
+- **v1.2** (2026-07-04) - PV automation headroom topics + Open-Meteo solar forecast (Lunca Cetătuui)
 - **v1.1** (2026-07-04) - Victron Cerbo GX energy metrics (`energy/victron/#`) via Modbus publisher
 - **v1.0** (2025-12-25) - Initial protocol specification
 

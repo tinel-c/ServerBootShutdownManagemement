@@ -25,6 +25,7 @@ sys.path.insert(0, str(DEVICE_ROOT / "lib"))
 from logger import get_logger  # noqa: E402
 from mqtt_client import MQTTClientWrapper  # noqa: E402
 from victron_modbus import VictronConfig, VictronModbusReader, load_victron_config  # noqa: E402
+from victron_automation import compute_automation_metrics  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -40,7 +41,14 @@ def load_mqtt_settings() -> dict:
         "prefix": os.getenv("VICTRON_MQTT_PREFIX", "energy/victron").rstrip("/"),
         "interval": int(os.getenv("VICTRON_MODBUS_POLL_INTERVAL", "10")),
         "qos": int(os.getenv("VICTRON_MQTT_QOS", "1")),
+        "min_headroom_w": int(os.getenv("VICTRON_AUTOMATION_MIN_HEADROOM_W", "0")),
     }
+
+
+def enrich_metrics(metrics: dict, min_headroom_w: int) -> dict:
+    metrics = dict(metrics)
+    metrics["automation"] = compute_automation_metrics(metrics, min_headroom_w)
+    return metrics
 
 
 def flatten_metrics(prefix: str, metrics: dict, timestamp: str) -> dict[str, object]:
@@ -94,6 +102,18 @@ def flatten_metrics(prefix: str, metrics: dict, timestamp: str) -> dict[str, obj
             }
         )
 
+    auto = metrics.get("automation")
+    if auto:
+        topics.update(
+            {
+                f"{prefix}/automation/pv_power_w": auto["pv_power_w"],
+                f"{prefix}/automation/consumption_l1_w": auto["consumption_l1_w"],
+                f"{prefix}/automation/headroom_w": auto["headroom_w"],
+                f"{prefix}/automation/can_add_load": auto["can_add_load"],
+                f"{prefix}/automation/pv_source": auto["pv_source"],
+            }
+        )
+
     return topics
 
 
@@ -129,12 +149,16 @@ class VictronMqttPublisher:
             return False
         try:
             metrics = self.reader.read_metrics()
+            metrics = enrich_metrics(metrics, self.mqtt_settings["min_headroom_w"])
             self.publish_metrics(metrics)
+            auto = metrics["automation"]
             logger.info(
-                "Published Victron metrics: battery=%s%% grid=%sW load=%sW",
+                "Published Victron metrics: battery=%s%% grid=%sW load=%sW headroom=%sW can_add_load=%s",
                 metrics["battery"]["soc_pct"],
                 metrics["grid"]["power_l1_w"],
                 metrics["load"]["consumption_l1_w"],
+                auto["headroom_w"],
+                auto["can_add_load"],
             )
             return True
         finally:

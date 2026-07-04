@@ -370,8 +370,12 @@ mosquitto_pub -h "$GX_IP" -t "R/${PORTAL_ID}/keepalive" \
 | Config template | [config/.env.example](config/.env.example) | GX IP, Unit IDs, portal ID |
 | Modbus probe | [scripts/modbus_probe.py](scripts/modbus_probe.py) | Read-only connectivity test |
 | MQTT publisher | [scripts/victron_mqtt_publisher.py](scripts/victron_mqtt_publisher.py) | Polls Modbus every 10s → MQTT |
-| systemd unit | [systemd/victron-mqtt-publisher.service](../../systemd/victron-mqtt-publisher.service) | Install on automation server |
+| Node-RED dashboard | [nodered/flows/811-victron-energy-status.json](../../nodered/flows/811-victron-energy-status.json) | Subscribes `energy/victron/status` → Dashboard 2.0 |
+| Solar forecast | [scripts/victron_solar_forecast_publisher.py](scripts/victron_solar_forecast_publisher.py) | Open-Meteo → `energy/victron/forecast/solar/*` |
+| systemd (Modbus) | [systemd/victron-mqtt-publisher.service](../../systemd/victron-mqtt-publisher.service) | Install on automation server |
+| systemd (forecast) | [systemd/victron-solar-forecast-publisher.service](../../systemd/victron-solar-forecast-publisher.service) | Open-Meteo forecast service |
 | Energy flows (planned) | `nodered/flows/80x-*.json` | Domain 80–89 in architecture doc |
+| Energy dashboard | `800-energy-base-config.json`, `811-victron-energy-status.json` | [ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md) |
 | Central MQTT | `MQTT_BROKER_HOST` in root [config/.env.example](../../config/.env.example) | Publisher uses automation broker |
 | Node-RED Modbus | `node-red-contrib-modbus` | TCP to GX:502, unit ID from GX menu |
 
@@ -404,6 +408,27 @@ The publisher posts to prefix **`energy/victron`** (override: `VICTRON_MQTT_PREF
 | `energy/victron/pvinverter/*` | scalars | Only if `VICTRON_PVINVERTER_UNIT_ID` set |
 
 Per-metric topics use **plain text** payloads; only `energy/victron/status` is JSON. Poll interval default **10 s**; QoS **1**; not retained.
+
+### Automation MQTT (load headroom)
+
+| Topic | Description |
+|-------|-------------|
+| `energy/victron/automation/headroom_w` | PV − consumption (W); **positive = surplus** |
+| `energy/victron/automation/can_add_load` | `True` / `False` — allow discretionary loads (AC, etc.) |
+| `energy/victron/automation/pv_power_w` | PV value used in calculation |
+| `energy/victron/automation/consumption_l1_w` | Consumption L1 mirror |
+
+Set `VICTRON_AUTOMATION_MIN_HEADROOM_W` (default `0`) for hysteresis.
+
+### Solar forecast MQTT (Open-Meteo, Lunca Cetătuui)
+
+| Topic | Description |
+|-------|-------------|
+| `energy/victron/forecast/solar/current` | Current irradiance JSON |
+| `energy/victron/forecast/solar/hourly` | 48 h hourly forecast JSON |
+| `energy/victron/forecast/solar/daily` | Multi-day daily sums JSON |
+| `energy/victron/forecast/solar/radiation_wm2` | Current W/m² (scalar) |
+| `energy/victron/forecast/solar/today_sum_kwh_m2` | Today forecast kWh/m² |
 
 ### Run the MQTT publisher
 
@@ -442,6 +467,8 @@ Monitor on the broker:
 ```bash
 mosquitto_sub -h localhost -t 'energy/victron/#' -v
 ```
+
+Import Node-RED flows and open **Dashboard → Energy**: see [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
 
 ---
 

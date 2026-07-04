@@ -65,7 +65,8 @@ systemctl stop mqtt-boot-listener.service \
                status-publisher.service \
                health-monitor.service \
                tapo-monitor.service \
-               victron-mqtt-publisher.service || true
+               victron-mqtt-publisher.service \
+               victron-solar-forecast-publisher.service || true
 sleep 1
 print_info "Services stopped."
 
@@ -194,7 +195,9 @@ systemctl restart health-monitor.service || true
 systemctl restart tapo-monitor.service || true
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     systemctl enable victron-mqtt-publisher.service || true
+    systemctl enable victron-solar-forecast-publisher.service || true
     systemctl restart victron-mqtt-publisher.service || true
+    systemctl restart victron-solar-forecast-publisher.service || true
 else
     print_warn "Victron .env missing — victron-mqtt-publisher.service not started"
 fi

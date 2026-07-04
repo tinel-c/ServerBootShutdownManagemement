@@ -1,0 +1,23 @@
+[Unit]
+Description=Victron Solar Forecast Open-Meteo MQTT Publisher
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/dell_server_management
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/dell_server_management/device/victron-multiplus-ii/lib"
+ExecStart=/opt/dell_server_management/venv/bin/python3 /opt/dell_server_management/device/victron-multiplus-ii/scripts/victron_solar_forecast_publisher.py
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+TimeoutStopSec=15
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

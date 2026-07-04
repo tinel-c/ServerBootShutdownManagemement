@@ -21,6 +21,8 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 11. `50-telegram-interface.json` - **Telegram Bot Interface** (optional)
 12. `90-log-console.json`
 
+**Energy (Victron):** after base config, import `800`, `811`, `812`, and update `/help` via `50-telegram-interface.json` or patch `50-patch-victron-energy-help.json` (replace existing nodes). Requires `50-telegram-interface.json`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
+
 ### Import Instructions
 
 1. Open Node-RED: http://localhost:1880
@@ -422,6 +424,24 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 ---
 
+### Energy / Victron (800–812)
+
+**Files:** `800-energy-base-config.json`, `811-victron-energy-status.json`, `812-victron-energy-telegram.json`
+
+Import order and MQTT transmission chain: [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
+
+| File | Purpose |
+|------|---------|
+| `800-energy-base-config.json` | Energy dashboard page, Victron UI group, global context init |
+| `811-victron-energy-status.json` | Live dashboard: metrics, 7-day chart, discretionary load Start/Stop (MQTT commands) |
+| `812-victron-energy-telegram.json` | Telegram: `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help` |
+
+**MQTT:** Subscribes `energy/victron/status` (QoS 1, JSON). Requires `victron-mqtt-publisher.service` on the automation server.
+
+**Dashboard:** `/dashboard/energy` — battery SoC, grid import/export, load, PV, inverter state.
+
+---
+
 ### Gate automation (200–212)
 
 **Files:** `200-gate-base-config.json`, `210-main-gate-controls.json`, `211-main-gate-status.json`, `212-gate-telegram.json` (optional). Import order and layout: see [docs/GATE_IMPORT_INSTRUCTIONS.md](../../docs/GATE_IMPORT_INSTRUCTIONS.md).
@@ -596,6 +616,8 @@ system/logs
 - `30-39`: Reserved for future server 1
 - `40-49`: Client automation and tracking
 - `50-59`: External interfaces (Telegram, etc.)
+- `300-399`: Power monitoring (garden Sonoff, lights)
+- `800-899`: Energy management (Victron Cerbo GX)
 - `90-99`: Shared utilities
 
 ## Version Control

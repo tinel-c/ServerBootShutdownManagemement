@@ -4,7 +4,7 @@
         "type": "comment",
         "z": "tab_dashboard",
         "name": "═══════════════ DEVICE WATCHDOG - Health Monitoring ═══════════════",
-        "info": "## Device Watchdog - Health Monitoring\n\n**Flow Number:** 90\n**Domain:** Monitoring & Logging\n\n### Purpose\nMonitors device health via MQTT heartbeats and sends Telegram alerts when devices go offline.\n\n### Monitored Devices\n1. **Main Gate** (MainGate)\n   - Topic: MainGate/STAT/reccurentStatusRelay4\n   - Timeout: 3 minutes\n   - Alert: \"Main gate online/offline\"\n\n2. **Irrigation System** (IrigationSystem)\n   - Topic: tele/IrigationSystem/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Irrigation system online/offline\"\n\n3. **Water Pump** (pompaApa)\n   - Topic: tele/pompaApa/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Pump system online/offline\"\n\n4. **SMS Gateway** (ESP32 with SIM800)\n   - Topic: sms/gateway/status\n   - Timeout: 5 minutes\n   - Alert: \"SMS Gateway online/offline\"\n\n### Features\n- Trigger-based timeout detection\n- Automatic Telegram notifications\n- Node-RED startup notification\n- Configurable timeout per device\n\n### Integration\n- Uses shared telegram_bot_config\n- Sends to chat ID: 991635368 (hardcoded)\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- node-red-contrib-simpletime (timestamp formatting)\n\n### Note\nThis is a pure monitoring flow with NO UI components.",
+        "info": "## Device Watchdog - Health Monitoring\n\n**Flow Number:** 90\n**Domain:** Monitoring & Logging\n\n### Purpose\nMonitors device health via MQTT heartbeats and sends Telegram alerts when devices go offline.\n\n### Monitored Devices\n1. **Main Gate** (MainGate)\n   - Topic: MainGate/STAT/reccurentStatusRelay4\n   - Timeout: 3 minutes\n   - Alert: \"Main gate online/offline\"\n\n2. **Irrigation System** (IrigationSystem)\n   - Topic: tele/IrigationSystem/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Irrigation system online/offline\"\n\n3. **Water Pump** (pompaApa)\n   - Topic: tele/pompaApa/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Pump system online/offline\"\n\n4. **SMS Gateway** (ESP32 with SIM800)\n   - Topic: sms/gateway/status\n   - Timeout: 5 minutes\n   - Alert: \"SMS Gateway online/offline\"\n\n5. **Victron Energy** (Cerbo GX / MultiPlus-II)\n   - Topic: energy/victron/status\n   - Timeout: 2 minutes (publisher polls every ~10 s)\n   - Alert: \"Victron Energy online/offline\"\n   - Service: victron-mqtt-publisher.service\n\n### Features\n- Trigger-based timeout detection\n- Telegram alerts only on online/offline **transitions** (not every heartbeat)\n- Automatic Telegram notifications\n- Node-RED startup notification\n- Configurable timeout per device\n\n### Integration\n- Uses shared telegram_bot_config\n- Sends to chat ID: 991635368 (hardcoded)\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- node-red-contrib-simpletime (timestamp formatting)\n\n### Note\nThis is a pure monitoring flow with NO UI components.",
         "x": 300,
         "y": 40,
         "wires": []
@@ -264,10 +264,10 @@
         "y": 280,
         "wires": [
             [
-                "watchdog_maingate_online"
+                "watchdog_maingate_filter_online"
             ],
             [
-                "watchdog_maingate_offline"
+                "watchdog_maingate_filter_offline"
             ]
         ]
     },
@@ -449,10 +449,10 @@
         "y": 440,
         "wires": [
             [
-                "watchdog_irrigation_online"
+                "watchdog_irrigation_filter_online"
             ],
             [
-                "watchdog_irrigation_offline"
+                "watchdog_irrigation_filter_offline"
             ]
         ]
     },
@@ -634,10 +634,10 @@
         "y": 600,
         "wires": [
             [
-                "watchdog_pump_online"
+                "watchdog_pump_filter_online"
             ],
             [
-                "watchdog_pump_offline"
+                "watchdog_pump_filter_offline"
             ]
         ]
     },
@@ -819,10 +819,10 @@
         "y": 760,
         "wires": [
             [
-                "watchdog_sliding_online"
+                "watchdog_sliding_filter_online"
             ],
             [
-                "watchdog_sliding_offline"
+                "watchdog_sliding_filter_offline"
             ]
         ]
     },
@@ -1004,10 +1004,10 @@
         "y": 920,
         "wires": [
             [
-                "watchdog_secondary_online"
+                "watchdog_secondary_filter_online"
             ],
             [
-                "watchdog_secondary_offline"
+                "watchdog_secondary_filter_offline"
             ]
         ]
     },
@@ -1189,10 +1189,10 @@
         "y": 1080,
         "wires": [
             [
-                "watchdog_garden_power_online"
+                "watchdog_garden_power_filter_online"
             ],
             [
-                "watchdog_garden_power_offline"
+                "watchdog_garden_power_filter_offline"
             ]
         ]
     },
@@ -1374,10 +1374,10 @@
         "y": 1240,
         "wires": [
             [
-                "watchdog_garden_lights_online"
+                "watchdog_garden_lights_filter_online"
             ],
             [
-                "watchdog_garden_lights_offline"
+                "watchdog_garden_lights_filter_offline"
             ]
         ]
     },
@@ -1559,10 +1559,10 @@
         "y": 1400,
         "wires": [
             [
-                "watchdog_front_house_online"
+                "watchdog_front_house_filter_online"
             ],
             [
-                "watchdog_front_house_offline"
+                "watchdog_front_house_filter_offline"
             ]
         ]
     },
@@ -1744,10 +1744,10 @@
         "y": 1560,
         "wires": [
             [
-                "watchdog_aquarium_online"
+                "watchdog_aquarium_filter_online"
             ],
             [
-                "watchdog_aquarium_offline"
+                "watchdog_aquarium_filter_offline"
             ]
         ]
     },
@@ -1929,10 +1929,10 @@
         "y": 1720,
         "wires": [
             [
-                "watchdog_sms_gateway_online"
+                "watchdog_sms_gateway_filter_online"
             ],
             [
-                "watchdog_sms_gateway_offline"
+                "watchdog_sms_gateway_filter_offline"
             ]
         ]
     },
@@ -2033,6 +2033,181 @@
         ]
     },
     {
+        "id": "watchdog_victron_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "Victron Energy Watchdog (2 min timeout)",
+        "info": "Monitors energy/victron/status (victron-mqtt-publisher.service)\nPoll interval: ~10 s · Timeout: 2 minutes\nAlerts when Cerbo/publisher stops reporting",
+        "x": 220,
+        "y": 1820,
+        "wires": []
+    },
+    {
+        "id": "watchdog_victron_in",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Victron Status Heartbeat",
+        "topic": "energy/victron/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 1880,
+        "wires": [
+            [
+                "watchdog_victron_validate"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_victron_validate",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Validate Victron status",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try { data = JSON.parse(data); } catch (e) { return null; }\n}\nif (!data || typeof data !== 'object' || !data.timestamp) return null;\nflow.set('watchdog_victron_last', data);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 1880,
+        "wires": [
+            [
+                "watchdog_victron_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_victron_trigger",
+        "type": "trigger",
+        "z": "tab_dashboard",
+        "name": "2 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "2",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 640,
+        "y": 1880,
+        "wires": [
+            [
+                "watchdog_victron_switch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_victron_switch",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 860,
+        "y": 1880,
+        "wires": [
+            [
+                "watchdog_victron_filter_online"
+            ],
+            [
+                "watchdog_victron_filter_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_victron_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Victron energy online",
+        "func": "const d = flow.get('watchdog_victron_last') || {};\nconst bat = d.battery || {};\nconst inv = d.inverter || {};\nconst auto = d.automation || {};\nlet content = '🟢 *Victron Energy ONLINE*\\n\\n';\nif (bat.soc_pct != null) content += `Battery: ${bat.soc_pct}%\\n`;\nif (inv.state) content += `Inverter: ${inv.state}\\n`;\nif (auto.headroom_w != null) {\n    const h = Math.round(Number(auto.headroom_w));\n    content += `Headroom: ${h > 0 ? '+' : ''}${h} W\\n`;\n}\ncontent += `Topic: energy/victron/status`;\nmsg.payload = {\n    chatId: 991635368,\n    type: 'message',\n    content,\n    parse_mode: 'Markdown'\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 1860,
+        "wires": [
+            [
+                "watchdog_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_victron_offline",
+        "type": "change",
+        "z": "tab_dashboard",
+        "name": "Victron energy offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🔴 Victron Energy OFFLINE\n\nNo energy/victron/status for 2 min.\nCheck victron-mqtt-publisher.service and Cerbo Modbus.",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1120,
+        "y": 1920,
+        "wires": [
+            [
+                "watchdog_telegram_sender"
+            ]
+        ]
+    },
+    {
         "id": "watchdog_telegram_sender",
         "type": "telegram sender",
         "z": "tab_dashboard",
@@ -2044,6 +2219,424 @@
         "y": 900,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "watchdog_maingate_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_maingate';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 260,
+        "wires": [
+            [
+                "watchdog_maingate_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_maingate_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_maingate';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 300,
+        "wires": [
+            [
+                "watchdog_maingate_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_irrigation_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_irrigation';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 420,
+        "wires": [
+            [
+                "watchdog_irrigation_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_irrigation_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_irrigation';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 460,
+        "wires": [
+            [
+                "watchdog_irrigation_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_pump_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_pump';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 580,
+        "wires": [
+            [
+                "watchdog_pump_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_pump_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_pump';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 620,
+        "wires": [
+            [
+                "watchdog_pump_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_sliding_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_sliding';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 740,
+        "wires": [
+            [
+                "watchdog_sliding_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_sliding_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_sliding';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 780,
+        "wires": [
+            [
+                "watchdog_sliding_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_secondary_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_secondary';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 900,
+        "wires": [
+            [
+                "watchdog_secondary_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_secondary_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_secondary';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 940,
+        "wires": [
+            [
+                "watchdog_secondary_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_garden_power_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_garden_power';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1060,
+        "wires": [
+            [
+                "watchdog_garden_power_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_garden_power_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_garden_power';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1100,
+        "wires": [
+            [
+                "watchdog_garden_power_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_garden_lights_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_garden_lights';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1220,
+        "wires": [
+            [
+                "watchdog_garden_lights_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_garden_lights_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_garden_lights';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1260,
+        "wires": [
+            [
+                "watchdog_garden_lights_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_front_house_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_front_house';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1380,
+        "wires": [
+            [
+                "watchdog_front_house_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_front_house_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_front_house';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1420,
+        "wires": [
+            [
+                "watchdog_front_house_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_aquarium_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_aquarium';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1540,
+        "wires": [
+            [
+                "watchdog_aquarium_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_aquarium_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_aquarium';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1580,
+        "wires": [
+            [
+                "watchdog_aquarium_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_sms_gateway_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_sms_gateway';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1700,
+        "wires": [
+            [
+                "watchdog_sms_gateway_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_sms_gateway_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_sms_gateway';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1740,
+        "wires": [
+            [
+                "watchdog_sms_gateway_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_victron_filter_online",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_victron';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 1860,
+        "wires": [
+            [
+                "watchdog_victron_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_victron_filter_offline",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_victron';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 1920,
+        "wires": [
+            [
+                "watchdog_victron_offline"
+            ]
         ]
     }
 ]

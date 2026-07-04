@@ -569,7 +569,7 @@ LOG_FILE=/var/log/dell_t310_management.log
 | `dell/t310/response` | Server → Client | Command responses |
 | `energy/victron/#` | Server → Client | Victron Cerbo GX energy metrics (Modbus publisher) |
 
-Victron topics (`energy/victron/status`, `energy/victron/battery/soc`, grid/PV/load/inverter metrics, etc.) are documented in [MQTT Protocol — Victron Energy](docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron).
+Victron topics (`energy/victron/status`, `energy/victron/battery/soc`, grid/PV/load/inverter metrics, etc.) are documented in [MQTT Protocol — Victron Energy](docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron). Node-RED dashboard: [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
 
 ## Manual Testing
 
@@ -779,7 +779,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.10.6 (Irrigation 421 weekdays, season & schedule)  
+**Version:** 3.11.6 (Victron energy — Cerbo GX dashboard, Telegram, watchdog)  
 **Last Updated:** 2026-04-11
 
 ## Recent Releases

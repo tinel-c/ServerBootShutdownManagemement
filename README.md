@@ -756,7 +756,7 @@ ServerBootShutdownMangement/
 
 ### Release Information
 - [Changelog](CHANGELOG.md) - Complete version history
-- [Release Archive](docs/archive/releases/) - Historical release notes (v2.3.0+)
+- [Release notes](docs/releases/) - Per-version notes (v2.3.0 through current)
 - [Release History](RELEASE_HISTORY.md) - Legacy versions (v1.x - v2.2.0)
 
 ## Requirements
@@ -816,14 +816,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ☀️ **Huawei SUN2000** Modbus→MQTT publisher over inverter WiFi AP (`energy/huawei/*`)
 - 📊 **Node-RED** flows `821` / `822` — live dashboard + Telegram `/huawei_*`
 - 🛡️ **Watchdog** monitors `energy/huawei/status` (2 min); `/help` updated in flow `50`
-- See [RELEASE_NOTES_v3.11.8.md](RELEASE_NOTES_v3.11.8.md) and [CHANGELOG.md](CHANGELOG.md)
+- See [RELEASE_NOTES_v3.11.8.md](docs/releases/RELEASE_NOTES_v3.11.8.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.11.6 (2026-07-04) - Victron energy integration
 - ⚡ **Cerbo GX / MultiPlus-II** Modbus→MQTT publisher + Open-Meteo solar forecast
 - 📊 **Node-RED** flows `800` / `811` / `812` — dashboard, 7-day chart, discretionary load controls
 - 📱 **Telegram** `/energy_*` commands; `/help` updated with Victron section
 - 🛡️ **Watchdog** monitors `energy/victron/status` (2 min); state-change-only alerts for all devices
-- See [RELEASE_NOTES_v3.11.6.md](RELEASE_NOTES_v3.11.6.md) and [CHANGELOG.md](CHANGELOG.md)
+- See [RELEASE_NOTES_v3.11.6.md](docs/releases/RELEASE_NOTES_v3.11.6.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.10.6 (2026-04-11) - Irrigation 421 weekdays, season & schedule
 - 📅 **Weekday gates** for automatic Lawn/Flowers; **Mar–Nov** irrigation season; **season-themed** Irrigation days card.
@@ -833,7 +833,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📱 **Multi-SMS replies** - HELP/COMMANDS send 8 SMS with full descriptions (3s + 5s spacing)
 - 📋 **LIST** alias - Same as COMMANDS (Telegram parity)
 - 📷 **Camera commands** - CAMERA_STATUS, CAMERA_HELP via SMS
-- See `RELEASE_NOTES_v3.10.0.md` for details
+- See [RELEASE_NOTES_v3.10.0.md](docs/releases/RELEASE_NOTES_v3.10.0.md) for details
 
 ### v3.7.0 (2026-01-25) - SMS Gateway Node-RED Integration
 - 🎛️ **Node-RED Dashboard** - Complete management interface for SMS Gateway
@@ -842,14 +842,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 🤖 **Telegram Integration** - `/sms`, `/sms_status`, `/sms_log` commands
 - 🛡️ **Watchdog Monitoring** - SMS Gateway health monitoring with Telegram alerts
 - ✅ **Device Online Notification** - Automatic SMS when device initializes
-- See `RELEASE_NOTES_v3.7.0.md` for details
+- See [RELEASE_NOTES_v3.7.0.md](docs/releases/RELEASE_NOTES_v3.7.0.md) for details
 
 ### v3.6.0 (2026-01-25) - SMS Gateway Device & OTA Updates
 - 📱 **SMS Gateway Device** - Embedded ESP32 + SIM800 device for SMS send/receive via MQTT
 - 🔄 **OTA Updates** - Over-The-Air firmware updates with MQTT control and progress tracking
 - 🛡️ **Self-Recovery** - Automatic WiFi/MQTT reconnection and reset detection
 - 📚 **Developer Guide** - Comprehensive OTA development guide
-- See `RELEASE_NOTES_v3.6.0.md` for details
+- See [RELEASE_NOTES_v3.6.0.md](docs/releases/RELEASE_NOTES_v3.6.0.md) for details
 
 ### v3.2.0 (2026-01-18) - Enhanced Stability & Reliability
 - 🏥 **Robust Monitoring**: Added Ping Fallback for status reporting (Dell T310)
@@ -857,7 +857,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 👥 **Client-Aware**: Recovery boots now only trigger if clients need server
 - ⚡ **Update Performance**: Parallel service stop/start in `update.sh`
 - 🛑 **Graceful Exit**: Proper signal handling (SIGTERM) in Python services
-- See `RELEASE_NOTES_v3.2.0.md` for details
+- See [RELEASE_NOTES_v3.2.0.md](docs/releases/RELEASE_NOTES_v3.2.0.md) for details
 
 ### v3.0.0 (2026-01-17) - Multi-Domain Automation System
 - 🚀 Modular architecture for Gate, Lights, HVAC, etc.

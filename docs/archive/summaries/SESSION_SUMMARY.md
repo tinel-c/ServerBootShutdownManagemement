@@ -528,7 +528,7 @@ git tag -l
 - [README.md](README.md) - Main documentation
 - [CHANGELOG.md](CHANGELOG.md) - Version history
 - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) - Development process
-- [RELEASE_NOTES_v2.6.0.md](RELEASE_NOTES_v2.6.0.md) - Release details
+- [RELEASE_NOTES_v2.6.0.md](../releases/RELEASE_NOTES_v2.6.0.md) - Release details
 - [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Command reference
 
 ### Management Scripts

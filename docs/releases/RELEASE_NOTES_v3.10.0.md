@@ -57,4 +57,4 @@ Click **Deploy** after import.
 
 ---
 
-**Full Changelog:** See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+**Full Changelog:** See [CHANGELOG.md](../../CHANGELOG.md) for complete version history.

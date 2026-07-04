@@ -147,7 +147,7 @@ If upgrading from v1.x:
 
 ## See Also
 
-- **Current Releases**: See `RELEASE_NOTES_v2.3.0.md`, `RELEASE_NOTES_v2.4.0.md`, `RELEASE_NOTES_v2.5.0.md`
+- **Current Releases**: See [docs/releases/](docs/releases/) (`RELEASE_NOTES_v2.3.0.md` … `RELEASE_NOTES_v3.11.8.md`)
 - **Architecture**: See `docs/ARCHITECTURE.md`
 - **MQTT Protocol**: See `docs/MQTT_PROTOCOL.md`
 - **Development Guide**: See `DEVELOPMENT_GUIDE.md`

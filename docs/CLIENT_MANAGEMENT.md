@@ -553,7 +553,7 @@ If client becomes unresponsive:
 - [MQTT Protocol](docs/MQTT_PROTOCOL.md)
 - [Node-RED Development](nodered/NODE_RED_DEVELOPMENT.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Release Notes v2.4.0](RELEASE_NOTES_v2.4.0.md)
+- [Release Notes v2.4.0](docs/releases/RELEASE_NOTES_v2.4.0.md)
 
 ## Support
 

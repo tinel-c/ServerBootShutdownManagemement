@@ -62,4 +62,4 @@ Send `HELP` via SMS to the gateway SIM. You should receive:
 
 ---
 
-**Full Changelog:** See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+**Full Changelog:** See [CHANGELOG.md](../../CHANGELOG.md) for complete version history.

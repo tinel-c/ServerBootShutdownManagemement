@@ -200,12 +200,12 @@ To use the SMS gateway:
 ## 📚 Documentation
 
 ### New Documentation
-- [SMS Gateway README](device/sms-gateway/README.md) - Complete device guide
-- [OTA Developer Guide](docs/developer/OTA_DEVICE_UPDATES.md) - OTA development guide
+- [SMS Gateway README](../../device/sms-gateway/README.md) - Complete device guide
+- [OTA Developer Guide](../developer/OTA_DEVICE_UPDATES.md) - OTA development guide
 
 ### Updated Documentation
-- [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Added SMS gateway schemas
-- [README](README.md) - Added SMS gateway references
+- [MQTT Protocol](../MQTT_PROTOCOL.md) - Added SMS gateway schemas
+- [README](../../README.md) - Added SMS gateway references
 
 ---
 
@@ -270,4 +270,4 @@ For issues and questions:
 
 ---
 
-**Full Changelog:** See [CHANGELOG.md](CHANGELOG.md)
+**Full Changelog:** See [CHANGELOG.md](../../CHANGELOG.md)

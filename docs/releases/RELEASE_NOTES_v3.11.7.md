@@ -12,6 +12,6 @@ Documentation and README updates for the Victron energy release. **No code chang
 
 ## Quick links
 
-- [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md)
-- [Victron device README](device/victron-multiplus-ii/README.md)
-- [MQTT Victron topics](docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron)
+- [ENERGY_NODE_RED.md](../ENERGY_NODE_RED.md)
+- [Victron device README](../../device/victron-multiplus-ii/README.md)
+- [MQTT Victron topics](../MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron)

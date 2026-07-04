@@ -27,7 +27,7 @@ cp device/victron-multiplus-ii/config/.env.example device/victron-multiplus-ii/c
 sudo ./install_victron_service.sh
 ```
 
-See [device/victron-multiplus-ii/README.md](device/victron-multiplus-ii/README.md) and [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
+See [device/victron-multiplus-ii/README.md](../../device/victron-multiplus-ii/README.md) and [docs/ENERGY_NODE_RED.md](../ENERGY_NODE_RED.md).
 
 ## Telegram commands
 
@@ -42,10 +42,10 @@ See [device/victron-multiplus-ii/README.md](device/victron-multiplus-ii/README.m
 
 | Document | Description |
 |----------|-------------|
-| [device/victron-multiplus-ii/README.md](device/victron-multiplus-ii/README.md) | Cerbo IP, Modbus unit IDs, install, troubleshooting |
-| [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md) | Node-RED flows 800–812, import order, dashboard layout |
-| [docs/MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron) | All `energy/victron/*` topics |
-| [docs/TELEGRAM_INTERFACE.md](docs/TELEGRAM_INTERFACE.md) | `/energy_*` and main `/help` |
+| [device/victron-multiplus-ii/README.md](../../device/victron-multiplus-ii/README.md) | Cerbo IP, Modbus unit IDs, install, troubleshooting |
+| [docs/ENERGY_NODE_RED.md](../ENERGY_NODE_RED.md) | Node-RED flows 800–812, import order, dashboard layout |
+| [docs/MQTT_PROTOCOL.md](../MQTT_PROTOCOL.md#victron-energy-topics-domain-energyvictron) | All `energy/victron/*` topics |
+| [docs/TELEGRAM_INTERFACE.md](../TELEGRAM_INTERFACE.md) | `/energy_*` and main `/help` |
 | [nodered/flows/README.md](nodered/flows/README.md) | Flow numbering 800–899 |
 
 ## Verify after deploy

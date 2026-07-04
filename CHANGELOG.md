@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed - Documentation (Victron energy v3.11.6)
 
 - **README.md**: Energy Management feature section, Node-RED import order (800–812, 90), Telegram `/energy_*`, v3.11.6 in recent releases.
-- **RELEASE_NOTES_v3.11.6.md**: Documentation index and post-deploy verify commands.
+- **RELEASE_NOTES_v3.11.6.md**: Documentation index and post-deploy verify commands ([docs/releases/RELEASE_NOTES_v3.11.6.md](docs/releases/RELEASE_NOTES_v3.11.6.md)).
 - **docs/UPDATE.md**, **docs/REFERENCE.md**: Victron upgrade checklist and Telegram energy commands.
 - **nodered/flows/README.md**: Last updated date.
 
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed - device firmware (submodule layout)
 
 - **SMS gateway** firmware is now a **separate repository** — [tinel-c/esp32-sms-gateway](https://github.com/tinel-c/esp32-sms-gateway) — and included in this monorepo as a submodule at **`device/esp32-sms-gateway`** (replace former inline `device/sms-gateway/`). Same sources; paths in docs and OTA updated.
-- New specification: [docs/developer/DEVICE_SUBMODULES.md](docs/developer/DEVICE_SUBMODULES.md) for adding future device repos as submodules. [device/README.md](device/README.md) lists both device submodules and clone commands. [RELEASE_NOTES_v3.11.5.md](RELEASE_NOTES_v3.11.5.md).
+- New specification: [docs/developer/DEVICE_SUBMODULES.md](docs/developer/DEVICE_SUBMODULES.md) for adding future device repos as submodules. [device/README.md](device/README.md) lists both device submodules and clone commands. [RELEASE_NOTES_v3.11.5.md](docs/releases/RELEASE_NOTES_v3.11.5.md).
 
 ## [3.11.4] - 2026-04-26
 
@@ -486,7 +486,7 @@ See `RELEASE_HISTORY.md` for older version history.
 
 ## Links
 
-- [Release Notes v2.5.0](RELEASE_NOTES_v2.5.0.md)
-- [Release Notes v2.4.0](RELEASE_NOTES_v2.4.0.md)
-- [Release Notes v2.3.0](RELEASE_NOTES_v2.3.0.md)
+- [Release Notes v2.5.0](docs/releases/RELEASE_NOTES_v2.5.0.md)
+- [Release Notes v2.4.0](docs/releases/RELEASE_NOTES_v2.4.0.md)
+- [Release Notes v2.3.0](docs/releases/RELEASE_NOTES_v2.3.0.md)
 - [Release History](RELEASE_HISTORY.md) - Versions 1.x - 2.2.0

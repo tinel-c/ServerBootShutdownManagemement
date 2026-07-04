@@ -323,7 +323,7 @@ Special thanks to the debug-driven development approach that identified and fixe
 
 ## 📝 Full Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+See [CHANGELOG.md](../../CHANGELOG.md) for complete version history.
 
 ---
 

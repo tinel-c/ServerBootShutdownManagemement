@@ -22,10 +22,10 @@ Grid-tie solar monitoring for the Huawei SUN2000 inverter, following the same Mo
 
 ### Documentation
 
-- [MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md) — Huawei topics + status JSON schema (protocol v1.3)
-- [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md) — Huawei import order and troubleshooting
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md), [AUTOMATION_ARCHITECTURE.md](docs/AUTOMATION_ARCHITECTURE.md)
-- [REFERENCE.md](docs/REFERENCE.md), [UPDATE.md](docs/UPDATE.md), [README.md](README.md)
+- [MQTT_PROTOCOL.md](../MQTT_PROTOCOL.md) — Huawei topics + status JSON schema (protocol v1.3)
+- [ENERGY_NODE_RED.md](../ENERGY_NODE_RED.md) — Huawei import order and troubleshooting
+- [ARCHITECTURE.md](../ARCHITECTURE.md), [AUTOMATION_ARCHITECTURE.md](../AUTOMATION_ARCHITECTURE.md)
+- [REFERENCE.md](../REFERENCE.md), [UPDATE.md](../UPDATE.md), [README.md](../../README.md)
 
 ## Post-deploy checklist
 
@@ -40,6 +40,6 @@ mosquitto_sub -h localhost -t 'energy/huawei/status' -C 1
 
 ## Quick links
 
-- [Huawei device README](device/huawei-inverter/README.md)
-- [MQTT Huawei topics](docs/MQTT_PROTOCOL.md#huawei-energy-topics-domain-energyhuawei)
-- [Energy Node-RED guide](docs/ENERGY_NODE_RED.md)
+- [Huawei device README](../../device/huawei-inverter/README.md)
+- [MQTT Huawei topics](../MQTT_PROTOCOL.md#huawei-energy-topics-domain-energyhuawei)
+- [Energy Node-RED guide](../ENERGY_NODE_RED.md)

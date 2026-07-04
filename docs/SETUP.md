@@ -179,8 +179,8 @@ The installation script will:
 - Create installation directory (`/opt/dell_server_management`)
 - Set up Python virtual environment
 - Install Python packages
-- Copy configuration templates
-- Install systemd services
+- Copy configuration templates (including Victron and Huawei device `.env` from examples when missing)
+- Install and enable all systemd services (core + Victron + Huawei energy publishers)
 
 ---
 
@@ -272,17 +272,30 @@ sudo systemctl enable status-publisher.service
 sudo systemctl enable health-monitor.service
 sudo systemctl enable tapo-monitor.service
 sudo systemctl enable victron-mqtt-publisher.service
+sudo systemctl enable victron-solar-forecast-publisher.service
+sudo systemctl enable huawei-mqtt-publisher.service
 ```
 
-Configure Victron (Cerbo GX Modbus → MQTT) before starting the publisher:
+Configure energy devices before expecting live MQTT (install.sh creates `.env` templates and attempts to start services):
+
+**Victron (Cerbo GX):**
 
 ```bash
-sudo cp device/victron-multiplus-ii/config/.env.example \
-  /opt/dell_server_management/device/victron-multiplus-ii/config/.env
 sudo nano /opt/dell_server_management/device/victron-multiplus-ii/config/.env
 # Set VICTRON_GX_HOST, Unit IDs; MQTT uses /opt/dell_server_management/config/.env
 sudo ./install_victron_service.sh
 ```
+
+**Huawei (SUN2000):**
+
+```bash
+sudo nano /opt/dell_server_management/device/huawei-inverter/config/.env
+# Set HUAWEI_INVERTER_HOST, WiFi AP; see device/huawei-inverter/README.md
+sudo ./scripts/server/setup_huawei_wifi.sh   # if using USB WiFi → inverter AP
+sudo ./install_huawei_service.sh
+```
+
+Re-run the device installer after editing `.env`. On first full install, `install.sh` already calls both installers (services may stay inactive until Modbus is reachable).
 
 **Remote deploy from your PC:** see [scripts/server/README.md](../scripts/server/README.md) and [developer/SERVER_DEPLOY.md](developer/SERVER_DEPLOY.md).
 

@@ -129,7 +129,7 @@ sudo systemctl restart mqtt-boot-listener.service mqtt-shutdown-listener.service
 
 | Feature | install.sh | update.sh |
 |---------|-----------|----------|
-| Preserves .env | ✅ Yes | ✅ Yes |
+| Preserves device .env (Victron/Huawei) | ✅ Yes | ✅ Yes |
 | Preserves YAML configs | ❌ No | ✅ Yes |
 | Stops services first | ❌ No | ✅ Yes |
 | Updates dependencies | ✅ Yes | ✅ Yes |

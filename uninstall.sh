@@ -60,6 +60,7 @@ services=(
     "tapo-monitor.service"
     "victron-mqtt-publisher.service"
     "victron-solar-forecast-publisher.service"
+    "huawei-mqtt-publisher.service"
 )
 
 for service in "${services[@]}"; do

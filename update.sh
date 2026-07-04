@@ -6,53 +6,18 @@
 
 set -e  # Exit on error
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Installation directory
-INSTALL_DIR="/opt/dell_server_management"
-
-# Print functions
-print_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-print_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-print_step() {
-    echo -e "${BLUE}[STEP]${NC} $1"
-}
-
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    print_error "This script must be run as root"
-    exit 1
-fi
-
-# Check if already installed
-if [ ! -d "$INSTALL_DIR" ]; then
-    print_error "System is not installed yet. Please run install.sh first."
-    exit 1
-fi
-
-# Get the directory where the script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/install/common.sh
+source "$SCRIPT_DIR/scripts/install/common.sh"
 
 echo ""
 echo "========================================"
 echo "  Server Management System - UPDATE"
 echo "========================================"
 echo ""
+
+require_root "$0"
+require_install_dir
 
 print_info "This script will update the system while preserving your configuration."
 print_warn "Press Ctrl+C to cancel, or Enter to continue..."
@@ -99,6 +64,12 @@ if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     print_info "✓ Backed up Victron .env"
 fi
 
+if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
+    mkdir -p "$BACKUP_DIR/huawei"
+    cp "$INSTALL_DIR/device/huawei-inverter/config/.env" "$BACKUP_DIR/huawei/.env"
+    print_info "✓ Backed up Huawei .env"
+fi
+
 print_info "Configuration backed up to: $BACKUP_DIR"
 
 # Step 3: Update Python scripts
@@ -106,13 +77,19 @@ print_step "Step 3: Updating Python scripts..."
 cp -r "$SCRIPT_DIR/scripts/"* "$INSTALL_DIR/scripts/"
 print_info "✓ Python scripts updated"
 
-# Step 3b: Update device integrations (Victron, etc.)
+# Step 3b: Update device integrations (Victron, Huawei, …)
 print_step "Step 3b: Updating device integrations..."
 mkdir -p "$INSTALL_DIR/device"
 if [ -d "$SCRIPT_DIR/device/victron-multiplus-ii" ]; then
     cp -r "$SCRIPT_DIR/device/victron-multiplus-ii" "$INSTALL_DIR/device/"
     print_info "✓ Victron MultiPlus-II integration updated"
 fi
+if [ -d "$SCRIPT_DIR/device/huawei-inverter" ]; then
+    cp -r "$SCRIPT_DIR/device/huawei-inverter" "$INSTALL_DIR/device/"
+    print_info "✓ Huawei SUN2000 integration updated"
+fi
+cp "$SCRIPT_DIR/install_victron_service.sh" "$SCRIPT_DIR/install_huawei_service.sh" "$INSTALL_DIR/" 2>/dev/null || true
+cp -r "$SCRIPT_DIR/scripts/install" "$INSTALL_DIR/scripts/" 2>/dev/null || true
 
 # Step 4: Update systemd service files
 print_step "Step 4: Updating systemd services..."
@@ -170,6 +147,20 @@ elif [ ! -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     fi
 fi
 
+if [ -f "$BACKUP_DIR/huawei/.env" ]; then
+    mkdir -p "$INSTALL_DIR/device/huawei-inverter/config"
+    cp "$BACKUP_DIR/huawei/.env" "$INSTALL_DIR/device/huawei-inverter/config/.env"
+    chmod 600 "$INSTALL_DIR/device/huawei-inverter/config/.env"
+    print_info "✓ Restored Huawei .env"
+elif [ ! -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
+    if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env.example" ]; then
+        mkdir -p "$INSTALL_DIR/device/huawei-inverter/config"
+        cp "$INSTALL_DIR/device/huawei-inverter/config/.env.example" \
+           "$INSTALL_DIR/device/huawei-inverter/config/.env"
+        print_warn "Created Huawei .env from template — edit inverter/WiFi settings before starting service"
+    fi
+fi
+
 print_info "Configuration restored successfully!"
 
 # Step 7: Set permissions
@@ -180,10 +171,16 @@ chmod +x "$INSTALL_DIR/scripts/status/"*.py
 if [ -d "$INSTALL_DIR/device/victron-multiplus-ii/scripts" ]; then
     chmod +x "$INSTALL_DIR/device/victron-multiplus-ii/scripts/"*.py
 fi
-chmod +x "$INSTALL_DIR/"*.sh
+if [ -d "$INSTALL_DIR/device/huawei-inverter/scripts" ]; then
+    chmod +x "$INSTALL_DIR/device/huawei-inverter/scripts/"*.py
+fi
+chmod +x "$INSTALL_DIR/install_"*.sh 2>/dev/null || true
 chmod 600 "$INSTALL_DIR/config/.env"
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+fi
+if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
+    chmod 600 "$INSTALL_DIR/device/huawei-inverter/config/.env"
 fi
 print_info "✓ Permissions set"
 
@@ -200,7 +197,13 @@ if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     systemctl restart victron-mqtt-publisher.service || true
     systemctl restart victron-solar-forecast-publisher.service || true
 else
-    print_warn "Victron .env missing — victron-mqtt-publisher.service not started"
+    print_warn "Victron .env missing — victron services not started"
+fi
+if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
+    systemctl enable huawei-mqtt-publisher.service || true
+    systemctl restart huawei-mqtt-publisher.service || true
+else
+    print_warn "Huawei .env missing — huawei-mqtt-publisher.service not started"
 fi
 print_info "✓ Services restarted"
 
@@ -220,8 +223,11 @@ echo "  systemctl status status-publisher.service"
 echo "  systemctl status health-monitor.service"
 echo "  systemctl status tapo-monitor.service"
 echo "  systemctl status victron-mqtt-publisher.service"
+echo "  systemctl status victron-solar-forecast-publisher.service"
+echo "  systemctl status huawei-mqtt-publisher.service"
 echo ""
 print_info "View logs with:"
 echo "  journalctl -u status-publisher.service -f"
 echo "  journalctl -u victron-mqtt-publisher.service -f"
+echo "  journalctl -u huawei-mqtt-publisher.service -f"
 echo ""

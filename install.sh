@@ -7,38 +7,17 @@
 
 set -e  # Exit on error
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/install/common.sh
+source "$SCRIPT_DIR/scripts/install/common.sh"
 
-# Installation directory
-INSTALL_DIR="/opt/dell_server_management"
+# Installation directory (also set in common.sh)
 LOG_DIR="/var/log"
 LOG_FILE="${LOG_DIR}/dell_server_management.log"
 
-# Print functions
-print_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-print_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
 # Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    print_error "This script must be run as root"
-    exit 1
-fi
-
-# Get the directory where the script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+require_root "$0"
 
 print_info "Starting Dell & HP Server Management System installation..."
 
@@ -68,15 +47,9 @@ if [ -f "$INSTALL_DIR/config/.env" ]; then
     print_info "Configuration backed up to /tmp/dell_server_management_env.bak"
 fi
 
-# Check for existing Victron .env BEFORE backing up the directory
-HAS_EXISTING_VICTRON_ENV=false
-if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
-    print_warn "Found existing Victron .env configuration. Preserving it..."
-    mkdir -p /tmp/dell_server_victron_env.bak
-    cp "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" /tmp/dell_server_victron_env.bak/.env
-    HAS_EXISTING_VICTRON_ENV=true
-    print_info "Victron configuration backed up to /tmp/dell_server_victron_env.bak/.env"
-fi
+# Check for existing device .env files BEFORE backing up the directory
+backup_device_env "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" /tmp/dell_server_victron_env.bak
+backup_device_env "$INSTALL_DIR/device/huawei-inverter/config/.env" /tmp/dell_server_huawei_env.bak
 
 if [ -d "$INSTALL_DIR" ]; then
     print_warn "Installation directory already exists. Backing up..."
@@ -102,21 +75,15 @@ if [ "$HAS_EXISTING_ENV" = true ]; then
     print_info "✓ Configuration successfully preserved from previous installation!"
 fi
 
-if [ "$HAS_EXISTING_VICTRON_ENV" = true ]; then
-    print_info "Restoring preserved Victron .env configuration..."
-    mkdir -p "$INSTALL_DIR/device/victron-multiplus-ii/config"
-    cp /tmp/dell_server_victron_env.bak/.env "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
-    chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
-    print_info "✓ Victron configuration preserved!"
-elif [ ! -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
-    if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env.example" ]; then
-        print_warn "Creating Victron .env from template..."
-        mkdir -p "$INSTALL_DIR/device/victron-multiplus-ii/config"
-        cp "$INSTALL_DIR/device/victron-multiplus-ii/config/.env.example" \
-           "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
-        print_warn "IMPORTANT: Edit $INSTALL_DIR/device/victron-multiplus-ii/config/.env (Cerbo GX IP, Unit IDs)"
-    fi
-fi
+restore_device_env "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" \
+    /tmp/dell_server_victron_env.bak \
+    "$INSTALL_DIR/device/victron-multiplus-ii/config/.env.example" \
+    "edit VICTRON_GX_HOST and Unit IDs"
+
+restore_device_env "$INSTALL_DIR/device/huawei-inverter/config/.env" \
+    /tmp/dell_server_huawei_env.bak \
+    "$INSTALL_DIR/device/huawei-inverter/config/.env.example" \
+    "edit HUAWEI_INVERTER_HOST and WiFi settings"
 
 # Step 4: Create Python virtual environment
 print_info "Step 4: Creating Python virtual environment..."
@@ -160,6 +127,7 @@ print_warn "  - $INSTALL_DIR/config/mqtt_config.yaml"
 print_warn "  - $INSTALL_DIR/config/server_config.yaml"
 print_warn "  - $INSTALL_DIR/config/.env"
 print_warn "  - $INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+print_warn "  - $INSTALL_DIR/device/huawei-inverter/config/.env"
 
 # Step 9: Install systemd services
 print_info "Step 9: Installing systemd services..."
@@ -171,14 +139,54 @@ print_info "Step 10: Setting permissions..."
 chmod +x "$INSTALL_DIR/scripts/boot/"*.py
 chmod +x "$INSTALL_DIR/scripts/shutdown/"*.py
 chmod +x "$INSTALL_DIR/scripts/status/"*.py
-chmod +x "$INSTALL_DIR/device/victron-multiplus-ii/scripts/"*.py
+chmod +x "$INSTALL_DIR/install_"*.sh 2>/dev/null || true
+if [ -d "$INSTALL_DIR/device/victron-multiplus-ii/scripts" ]; then
+    chmod +x "$INSTALL_DIR/device/victron-multiplus-ii/scripts/"*.py
+fi
+if [ -d "$INSTALL_DIR/device/huawei-inverter/scripts" ]; then
+    chmod +x "$INSTALL_DIR/device/huawei-inverter/scripts/"*.py
+fi
 chmod 600 "$INSTALL_DIR/config/.env"
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
 fi
+if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
+    chmod 600 "$INSTALL_DIR/device/huawei-inverter/config/.env"
+fi
 
-# Step 11: Test IPMI connectivity
-print_info "Step 11: Testing IPMI connectivity..."
+# Step 11: Enable and start core services
+print_info "Step 11: Enabling core systemd services..."
+CORE_SERVICES=(
+    mqtt-boot-listener.service
+    mqtt-shutdown-listener.service
+    status-publisher.service
+    health-monitor.service
+    tapo-monitor.service
+)
+for service in "${CORE_SERVICES[@]}"; do
+    systemctl enable "$service" 2>/dev/null || true
+    if systemctl start "$service" 2>/dev/null; then
+        print_info "Started $service"
+    else
+        print_warn "Could not start $service — check configuration and journalctl"
+    fi
+done
+
+# Step 12: Energy device publishers (Victron + Huawei)
+print_info "Step 12: Installing energy device services..."
+export ALLOW_INACTIVE_SERVICE=1
+if [ -x "$INSTALL_DIR/install_victron_service.sh" ]; then
+    bash "$INSTALL_DIR/install_victron_service.sh" || \
+        print_warn "Victron install incomplete — edit device/victron-multiplus-ii/config/.env and re-run install_victron_service.sh"
+fi
+if [ -x "$INSTALL_DIR/install_huawei_service.sh" ]; then
+    bash "$INSTALL_DIR/install_huawei_service.sh" || \
+        print_warn "Huawei install incomplete — edit device/huawei-inverter/config/.env and re-run install_huawei_service.sh"
+fi
+unset ALLOW_INACTIVE_SERVICE
+
+# Step 13: Test IPMI connectivity
+print_info "Step 13: Testing IPMI connectivity..."
 print_warn "Skipping IPMI test. Please test manually after configuration."
 
 # Installation complete
@@ -189,39 +197,25 @@ echo "  1. Edit configuration files:"
 echo "     - $INSTALL_DIR/config/.env"
 echo "     - $INSTALL_DIR/config/mqtt_config.yaml"
 echo "     - $INSTALL_DIR/config/server_config.yaml"
+echo "     - $INSTALL_DIR/device/victron-multiplus-ii/config/.env (if using Victron)"
+echo "     - $INSTALL_DIR/device/huawei-inverter/config/.env (if using Huawei)"
 echo ""
 echo "  2. Test IPMI connectivity:"
 echo "     ipmitool -I lanplus -H <ipmi-ip> -U <username> -P <password> chassis status"
 echo ""
-echo "  3. Enable and start services:"
-echo "     systemctl enable mqtt-boot-listener.service"
-echo "     systemctl enable mqtt-shutdown-listener.service"
-echo "     systemctl enable status-publisher.service"
-echo "     systemctl enable health-monitor.service"
-echo "     systemctl enable tapo-monitor.service"
-echo "     systemctl enable victron-mqtt-publisher.service"
-echo "     systemctl start mqtt-boot-listener.service"
-echo "     systemctl start mqtt-shutdown-listener.service"
-echo "     systemctl start status-publisher.service"
-echo "     systemctl start health-monitor.service"
-echo "     systemctl start tapo-monitor.service"
-echo "     systemctl start victron-mqtt-publisher.service"
+echo "  3. Re-run device installers after editing energy config:"
+echo "     sudo $INSTALL_DIR/install_victron_service.sh"
+echo "     sudo $INSTALL_DIR/install_huawei_service.sh"
 echo ""
 echo "  4. Check service status:"
-echo "     systemctl status mqtt-boot-listener.service"
-echo "     systemctl status mqtt-shutdown-listener.service"
-echo "     systemctl status status-publisher.service"
-echo "     systemctl status health-monitor.service"
-echo "     systemctl status tapo-monitor.service"
-echo "     systemctl status victron-mqtt-publisher.service"
+echo "     systemctl status mqtt-boot-listener.service status-publisher.service"
+echo "     systemctl status victron-mqtt-publisher.service victron-solar-forecast-publisher.service"
+echo "     systemctl status huawei-mqtt-publisher.service"
 echo ""
 echo "  5. View logs:"
-echo "     journalctl -u mqtt-boot-listener.service -f"
-echo "     journalctl -u mqtt-shutdown-listener.service -f"
 echo "     journalctl -u status-publisher.service -f"
-echo "     journalctl -u health-monitor.service -f"
-echo "     journalctl -u tapo-monitor.service -f"
 echo "     journalctl -u victron-mqtt-publisher.service -f"
+echo "     journalctl -u huawei-mqtt-publisher.service -f"
 echo ""
 print_info "Installation directory: $INSTALL_DIR"
 print_info "Log file: $LOG_FILE"

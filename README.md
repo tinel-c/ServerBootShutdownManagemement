@@ -165,7 +165,7 @@ The diagram above shows the same hub-and-spoke model: one automation server, man
 The platform supports **multiple automation domains** through a scalable, modular architecture:
 
 **Available Domains:**
-- 🖥️ **Server Management** (100-199) - Boot/shutdown control for Dell T310, HP DL360p, client PCs
+- 🖥️ **Server Management** (100-199) - Boot/shutdown for Dell T310 & HP DL360p (flows `10`–`22`); client PCs (`40`–`42`)
 - 🚪 **Gate Automation** (200-299) - Perimeter gates, garage doors, access control
 - 💡 **Lighting Control** (300-399) - Indoor/outdoor lights, scenes, scheduling
 - 💧 **Irrigation System** (400-499) - Multi-zone watering with weather integration
@@ -259,16 +259,13 @@ Status and health monitoring is published back through MQTT to the dashboard for
    
    See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) for detailed configuration instructions.
 
-4. **Enable and start services:**
+4. **Services:** `install.sh` already enables and starts the five core systemd units and runs the Victron/Huawei device installers (steps 11–12). After editing `.env`, restart as needed:
    ```bash
-   # Use the management script for convenience
    chmod +x manage.sh status.sh update.sh check_env.sh
-   sudo ./manage.sh enable
-   sudo ./manage.sh start
-   
-   # Check status
-   ./status.sh -l
+   ./status.sh -l                    # all services including energy publishers
+   sudo ./manage.sh restart          # after config changes
    ```
+   Energy publishers start only when `device/victron-multiplus-ii/config/.env` and/or `device/huawei-inverter/config/.env` are configured.
 
 ### Management Scripts
 
@@ -307,9 +304,10 @@ See [docs/REFERENCE.md](docs/REFERENCE.md) for complete command reference.
 
 5. **Verify services are running:**
    ```bash
-   sudo systemctl status mqtt-boot-listener.service
-   sudo systemctl status mqtt-shutdown-listener.service
-   sudo systemctl status status-publisher.service
+   ./status.sh
+   # or individually:
+   sudo systemctl status mqtt-boot-listener.service status-publisher.service
+   sudo systemctl status victron-mqtt-publisher.service huawei-mqtt-publisher.service
    ```
 
 ## Usage
@@ -504,7 +502,7 @@ mosquitto_sub -h <mqtt-broker> -t "clients/+/heartbeat" -v
 Modern, feature-rich dashboard with modular flows for easy maintenance and scalability.
 
 ### Key Features
-- **8 Independent Modules** - Update features without affecting others
+- **Domain-based modular flows** - Servers, gates, irrigation, energy, SMS, and more as separate JSON files
 - **Real-time Health Monitoring** - Live status cards with countdown timers
 - **Client Automation** - Smart boot/shutdown based on client presence
 - **Modern UI** - Glassmorphism design with color-coded indicators
@@ -524,28 +522,11 @@ Modern, feature-rich dashboard with modular flows for easy maintenance and scala
 
 3. **Access Node-RED Editor:** http://localhost:1880
 
-4. **Import Modular Flows** (in order):
+4. **Import modular flows** from `nodered/flows/` — **full order** in [nodered/flows/README.md](nodered/flows/README.md). Minimum server stack:
    ```
-   flows/00-base-config.json      # Core configuration (import first)
-   flows/10-dell-controls.json    # Dell T310 buttons
-   flows/11-dell-status.json      # Dell T310 status display
-   flows/12-dell-health.json      # Dell T310 health monitoring
-   flows/20-hp-controls.json      # HP DL360p buttons
-   flows/21-hp-status.json        # HP DL360p status display
-   flows/22-hp-health.json        # HP DL360p health monitoring
-   flows/40-client-tracking.json  # Client PC presence tracking
-   flows/41-client-automation.json # Server automation based on clients
-   flows/50-telegram-interface.json # Telegram bot interface (optional)
-   flows/800-energy-base-config.json   # Energy page (import before 811)
-   flows/811-victron-energy-status.json # Victron live dashboard + 7-day chart
-   flows/812-victron-energy-telegram.json # Victron /energy_* Telegram commands
-   flows/821-huawei-energy-status.json # Huawei live dashboard
-   flows/822-huawei-energy-telegram.json # Huawei /huawei_* Telegram commands
-   flows/90-device-watchdog.json  # Device health + energy reporting watchdog
-   flows/90-log-console.json      # System log console
+   00-base-config.json → 10–12 (Dell) → 20–22 (HP) → 40–42 (clients) → 50 (Telegram) → 90-log-console.json
    ```
-
-   **Energy:** import `800` → `811` → `812` (Victron) and/or `821` → `822` (Huawei); re-import `50` and `90` with **Replace existing nodes**. See [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
+   Add domain flows as needed (`200` gates, `400` irrigation, `500`/`510` SMS, `611` cameras, …). **Energy:** `800` → `811`/`812` (Victron) and/or `821`/`822` (Huawei); re-import `50` and `90-device-watchdog.json` with **Replace existing nodes**. See [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
 
 5. **Click Deploy** and access dashboard: http://localhost:1880/dashboard/home  
    Energy page: http://localhost:1880/dashboard/energy
@@ -657,15 +638,12 @@ The dashboard integrates with **Healthchecks.io** (or compatible services):
 
 ### Migration from v1.x
 
-If you're using the old monolithic `flows.json`:
+If you still have the old monolithic `flows.json` on your Node-RED server (not shipped in this repo):
 
 1. **Backup existing flows** (Menu → Export → All Flows)
 2. **Clear all flows** in Node-RED
-3. **Import modular flows** in the order listed above
+3. **Import modular flows** per [nodered/flows/README.md](nodered/flows/README.md)
 4. **Deploy and test** all functionality
-5. **Archive old flows.json** (automatically renamed to `flows.json.legacy`)
-
-The modular architecture offers better maintainability and makes future updates much easier!
 
 ---
 
@@ -675,27 +653,30 @@ The modular architecture offers better maintainability and makes future updates 
 
 ### Environment Variables (.env)
 
+Server-wide settings live in `config/.env` (from `config/.env.example`). Per-device Modbus/MQTT settings are in `device/victron-multiplus-ii/config/.env` and `device/huawei-inverter/config/.env`.
+
 ```bash
-# MQTT Credentials
-MQTT_PASSWORD=your_mqtt_password
+# MQTT (required)
+MQTT_BROKER_HOST=192.168.2.4
+MQTT_BROKER_PORT=1883
+MQTT_USERNAME=dell_server_mgmt
+MQTT_PASSWORD=your_mqtt_password_here
 
-# IPMI Credentials
-IPMI_HOST=192.168.1.100
-IPMI_USERNAME=admin
-IPMI_PASSWORD=your_ipmi_password
+# Dell T310
+T310_IPMI_HOST=192.168.1.100
+T310_PROXMOX_HOST=192.168.1.100
+T310_MAC_ADDRESS=00:11:22:33:44:55
 
-# Proxmox Credentials
-PROXMOX_HOST=192.168.1.100
-PROXMOX_USERNAME=root@pam
-PROXMOX_PASSWORD=your_proxmox_password
-
-# Server Configuration
-SERVER_MAC_ADDRESS=00:11:22:33:44:55
+# HP DL360p (optional)
+DL360P_ILO_HOST=192.168.1.101
+DL360P_PROXMOX_HOST=192.168.1.101
 
 # Logging
 LOG_LEVEL=INFO
-LOG_FILE=/var/log/dell_t310_management.log
+LOG_FILE=/var/log/dell_server_management.log
 ```
+
+Run `./generate_env_template.sh` to refresh the template from the repo. See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) for the full variable list.
 
 ### MQTT Topics
 
@@ -843,8 +824,7 @@ ServerBootShutdownManagemement/
 │   ├── SETUP.md · UPDATE.md · REFERENCE.md · TROUBLESHOOTING.md
 │   └── architecture_diagram_v4.{svg,png}
 │
-├── CHANGELOG.md · RELEASE_HISTORY.md · requirements.txt · LICENSE
-└── (legacy) nodered/flows.json     # Deprecated monolithic export
+└── CHANGELOG.md · RELEASE_HISTORY.md · requirements.txt · LICENSE
 ```
 
 **Quick paths**
@@ -859,7 +839,6 @@ ServerBootShutdownManagemement/
 
 ## Documentation
 
-### Documentation
 - [README.md](README.md) - This file (overview and quick start)
 - [Setup Guide](docs/SETUP.md) - Installation and configuration
 - [Client Management](docs/CLIENT_MANAGEMENT.md) - Complete client management
@@ -901,16 +880,16 @@ ServerBootShutdownManagemement/
 
 ## Requirements
 
-### Hardware
-- Dell T310 server with IPMI interface
-- Network interface with Wake-on-LAN support
+### Hardware (pick what you use)
+- **Servers:** Dell T310 (WoL/IPMI + Proxmox) and/or HP DL360p (iLO + Proxmox)
+- **Automation host:** Ubuntu VM/PC on the LAN (runs this repo’s Python services and Node-RED)
+- **Optional:** Victron Cerbo GX, Huawei SUN2000, ESP32 SMS gateway, Tasmota/Sonoff IoT, Tapo cameras
 
 ### Software
-- Ubuntu 22.04+ (on VM)
-- Proxmox VE 7.x+
-- Python 3.8+
-- ipmitool
-- MQTT broker (Mosquitto)
+- Ubuntu 22.04+ on the automation server
+- Proxmox VE 7.x+ on managed hosts
+- Python 3.8+, Mosquitto MQTT broker, Node-RED (+ Dashboard 2.0)
+- `ipmitool` (Dell IPMI), network WoL support where used
 
 ## Security Considerations
 
@@ -921,10 +900,6 @@ ServerBootShutdownManagemement/
 - Restrict IPMI access to management network
 - Use strong passwords for all services
 - Regularly update all components
-
-## License
-
-[Specify your license here]
 
 ## Support
 
@@ -947,7 +922,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.11.9 (Install cleanup & architecture diagram)  
+**Version:** 3.11.9  
 **Last Updated:** 2026-07-04
 
 ## Recent Releases
@@ -955,7 +930,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### v3.11.9 (2026-07-04) - Install cleanup & architecture diagram
 - 🔧 **Unified install** — `install.sh` enables core + Victron + Huawei services; shared `scripts/install/` helpers
 - 📁 **Repo cleanup** — release notes in `docs/releases/`; generic `scripts/release/create_release.*`
-- 📊 **Architecture v4** — SVG + PNG platform diagram (energy, IoT, servers)
+- 📊 **Architecture v4** — SVG + PNG platform diagram; README hero images and project structure refresh
 - See [RELEASE_NOTES_v3.11.9.md](docs/releases/RELEASE_NOTES_v3.11.9.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.11.8 (2026-07-04) - Huawei SUN2000 energy integration

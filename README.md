@@ -117,7 +117,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 🚪 **Gates** (200–212) — perimeter and garage, MQTT + Telegram
 - 💧 **Irrigation** (420–421) — rain-smart scheduling, Open-Meteo, SMS/Telegram alerts
 - 💡 **Lights & power** (300–321) — garden Sonoff, Tapo monitor
-- 📹 **Cameras** (611) · 🐠 **Aquarium** (500–501) · 💧 **Water pump** (410–411)
+- 📹 **Cameras** (611) · 🐠 **Aquarium** (500–501) · 💧 **Water pump** (410–411, Tasmota)
+- 🔜 **Grundfos SCALA1** (412–413) — *planned* BLE booster; see [docs/GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md)
 - 📱 **SMS gateway** (510–514) — ESP32, multi-reply HELP, OTA
 
 </details>
@@ -308,6 +309,7 @@ See [docs/REFERENCE.md](docs/REFERENCE.md) for complete command reference.
    # or individually:
    sudo systemctl status mqtt-boot-listener.service status-publisher.service
    sudo systemctl status victron-mqtt-publisher.service huawei-mqtt-publisher.service
+   # Planned (enable after on-site BLE setup): grundfos-scala1-mqtt-publisher.service
    ```
 
 ## Usage
@@ -764,6 +766,7 @@ ServerBootShutdownManagemement/
 ├── uninstall.sh
 ├── install_victron_service.sh      # Energy publisher only (also called from install.sh)
 ├── install_huawei_service.sh
+├── install_grundfos_service.sh
 ├── manage.sh · status.sh · check_env.sh · generate_env_template.sh
 │
 ├── config/                         # Server-wide secrets & YAML (gitignored: .env)
@@ -792,7 +795,8 @@ ServerBootShutdownManagemement/
 │   ├── tapo-monitor.service
 │   ├── victron-mqtt-publisher.service
 │   ├── victron-solar-forecast-publisher.service
-│   └── huawei-mqtt-publisher.service
+│   ├── huawei-mqtt-publisher.service
+│   └── grundfos-scala1-mqtt-publisher.service  # planned — manual install only
 │
 ├── nodered/
 │   ├── flows/                      # Import in order — see flows/README.md
@@ -833,6 +837,7 @@ ServerBootShutdownManagemement/
 |------|------------|
 | First install | [docs/SETUP.md](docs/SETUP.md) → `sudo ./install.sh` |
 | Energy (Victron / Huawei) | [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), `device/*/README.md` |
+| Grundfos SCALA1 *(planned)* | [docs/GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md) |
 | Node-RED import order | [nodered/flows/README.md](nodered/flows/README.md) |
 | MQTT topic reference | [docs/MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md) |
 | GitHub release | [docs/releases/](docs/releases/) + `scripts/release/create_release.sh` |
@@ -850,6 +855,7 @@ ServerBootShutdownManagemement/
 - [Energy / Node-RED](docs/ENERGY_NODE_RED.md) - Victron flows 800–812, Huawei flows 821–822
 - [Victron device README](device/victron-multiplus-ii/README.md) - Cerbo setup, Modbus, systemd install
 - [Huawei device README](device/huawei-inverter/README.md) - SUN2000 WiFi AP, Modbus, systemd install
+- [Grundfos SCALA1 *(planned)*](docs/GRUNDGOS_SCALA1.md) - BLE scaffolding; not production-ready
 - [Telegram Interface](docs/TELEGRAM_INTERFACE.md) - Bot command reference & gateway
 - [SMS Interface](docs/SMS_INTERFACE.md) - SMS command reference & emergency forwarding
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
@@ -926,6 +932,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Last Updated:** 2026-07-04
 
 ## Recent Releases
+
+### v3.12.0 (2026-07-04) - Planned: Grundfos SCALA1 scaffolding
+- 🔜 **Grundfos SCALA1** — BLE probe, MQTT publisher skeleton, flows `412`/`413`, docs (not production until GATT capture on site)
+- See [RELEASE_NOTES_v3.12.0.md](docs/releases/RELEASE_NOTES_v3.12.0.md) and [GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md)
 
 ### v3.11.9 (2026-07-04) - Install cleanup & architecture diagram
 - 🔧 **Unified install** — `install.sh` enables core + Victron + Huawei services; shared `scripts/install/` helpers

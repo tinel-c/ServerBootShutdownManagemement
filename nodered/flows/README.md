@@ -25,6 +25,8 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 **Energy (Huawei):** after `800`, import `821`, `822`; re-import `50` and `90` (replace existing nodes). Requires `huawei-mqtt-publisher.service`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
 
+**Grundfos SCALA1 *(planned)*:** after on-site BLE setup, import `412`, `413`; re-import `50` and `90` (replace existing nodes). Do **not** import until [docs/GRUNDGOS_SCALA1.md](../../docs/GRUNDGOS_SCALA1.md) checklist is done. Requires manual `install_grundfos_service.sh`.
+
 ### Import Instructions
 
 1. Open Node-RED: http://localhost:1880
@@ -458,6 +460,25 @@ Requires `800-energy-base-config.json` (Huawei UI group). Full import order: [do
 **MQTT:** Subscribes `energy/huawei/status` (QoS 1, JSON). Requires `huawei-mqtt-publisher.service` on the automation server.
 
 **Dashboard:** `/dashboard/energy` — Huawei Energy group on the same Energy page as Victron.
+
+---
+
+### Irrigation / Grundfos SCALA1 (412–413) — **planned**
+
+> Not production-ready. See [docs/GRUNDGOS_SCALA1.md](../../docs/GRUNDGOS_SCALA1.md).
+
+**Files:** `412-grundfos-scala1-status.json`, `413-grundfos-scala1-telegram.json`
+
+Requires `400-irrigation-base-config.json` (adds `ui_group_grundfos_scala1`). See [device/grundfos-scala1/README.md](../../device/grundfos-scala1/README.md).
+
+| File | Purpose |
+|------|---------|
+| `412-grundfos-scala1-status.json` | Live dashboard: pressure, flow, power, alarms; optional start/stop buttons |
+| `413-grundfos-scala1-telegram.json` | Telegram: `/scala1_status`, `/scala1_start`, `/scala1_stop`, `/scala1_help` |
+
+**MQTT:** Subscribes `water/grundfos/scala1/status` (QoS 1, JSON). Requires `grundfos-scala1-mqtt-publisher.service` and BLE GATT configuration.
+
+**Dashboard:** `/dashboard/irrigation` — Grundfos SCALA1 group (separate from Tasmota `pompaApa` in flow 410).
 
 ---
 

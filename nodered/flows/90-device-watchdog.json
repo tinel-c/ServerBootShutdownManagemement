@@ -3,8 +3,8 @@
         "id": "device_watchdog_comment",
         "type": "comment",
         "z": "tab_dashboard",
-        "name": "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 DEVICE WATCHDOG - Health Monitoring \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
-        "info": "## Device Watchdog - Health Monitoring\n\n**Flow Number:** 90\n**Domain:** Monitoring & Logging\n\n### Purpose\nMonitors device health via MQTT heartbeats and sends Telegram alerts when devices go offline.\n\n### Monitored Devices\n1. **Main Gate** (MainGate)\n   - Topic: MainGate/STAT/reccurentStatusRelay4\n   - Timeout: 3 minutes\n   - Alert: \"Main gate online/offline\"\n\n2. **Irrigation System** (IrigationSystem)\n   - Topic: tele/IrigationSystem/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Irrigation system online/offline\"\n\n3. **Water Pump** (pompaApa)\n   - Topic: tele/pompaApa/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Pump system online/offline\"\n\n4. **SMS Gateway** (ESP32 with SIM800)\n   - Topic: sms/gateway/status\n   - Timeout: 5 minutes\n   - Alert: \"SMS Gateway online/offline\"\n\n5. **Victron Energy** (Cerbo GX / MultiPlus-II)\n   - Topic: energy/victron/status\n   - Timeout: 2 minutes (publisher polls every ~10 s)\n   - Alert: \"Victron Energy online/offline\"\n   - Service: victron-mqtt-publisher.service\n\n### Features\n- Trigger-based timeout detection\n- Telegram alerts only on online/offline **transitions** (not every heartbeat)\n- Automatic Telegram notifications\n- Node-RED startup notification\n- Configurable timeout per device\n\n### Integration\n- Uses shared telegram_bot_config\n- Sends to chat ID: 991635368 (hardcoded)\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- node-red-contrib-simpletime (timestamp formatting)\n\n### Note\nThis is a pure monitoring flow with NO UI components.",
+        "name": "═══════════════ DEVICE WATCHDOG - Health Monitoring ═══════════════",
+        "info": "## Device Watchdog - Health Monitoring\n\n**Flow Number:** 90\n**Domain:** Monitoring & Logging\n\n### Purpose\nMonitors device health via MQTT heartbeats and sends Telegram alerts when devices go offline.\n\n### Monitored Devices\n1. **Main Gate** (MainGate)\n   - Topic: MainGate/STAT/reccurentStatusRelay4\n   - Timeout: 3 minutes\n   - Alert: \"Main gate online/offline\"\n\n2. **Irrigation System** (IrigationSystem)\n   - Topic: tele/IrigationSystem/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Irrigation system online/offline\"\n\n3. **Water Pump** (pompaApa)\n   - Topic: tele/pompaApa/STATE\n   - Timeout: 11 minutes\n   - Alert: \"Pump system online/offline\"\n\n4. **SMS Gateway** (ESP32 with SIM800)\n   - Topic: sms/gateway/status\n   - Timeout: 5 minutes\n   - Alert: \"SMS Gateway online/offline\"\n\n5. **Victron Energy** (Cerbo GX / MultiPlus-II)\n   - Topic: energy/victron/status\n   - Timeout: 2 minutes (publisher polls every ~10 s)\n   - Alert: \"Victron Energy online/offline\"\n   - Service: victron-mqtt-publisher.service\n\n6. **Grundfos SCALA1** (BLE booster)\n   - Topic: water/grundfos/scala1/status\n   - Timeout: 2 minutes\n   - Alert: \"Grundfos SCALA1 online/offline\"\n   - Service: grundfos-scala1-mqtt-publisher.service\n\n### Features\n- Trigger-based timeout detection\n- Telegram alerts only on online/offline **transitions** (not every heartbeat)\n- Automatic Telegram notifications\n- Node-RED startup notification\n- Configurable timeout per device\n\n### Integration\n- Uses shared telegram_bot_config\n- Sends to chat ID: 991635368 (hardcoded)\n\n### Dependencies\n- telegram_bot_config (shared)\n- mqtt_broker_local\n- node-red-contrib-simpletime (timestamp formatting)\n\n### Note\nThis is a pure monitoring flow with NO UI components.",
         "x": 300,
         "y": 40,
         "wires": []
@@ -106,7 +106,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\ude80 Node-RED online | Started at:",
+                "to": "🚀 Node-RED online | Started at:",
                 "tot": "str"
             },
             {
@@ -295,7 +295,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Main Gate ONLINE",
+                "to": "🟢 Main Gate ONLINE",
                 "tot": "str"
             },
             {
@@ -343,7 +343,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Main Gate OFFLINE",
+                "to": "🔴 Main Gate OFFLINE",
                 "tot": "str"
             },
             {
@@ -480,7 +480,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Irrigation System ONLINE",
+                "to": "🟢 Irrigation System ONLINE",
                 "tot": "str"
             },
             {
@@ -528,7 +528,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Irrigation System OFFLINE",
+                "to": "🔴 Irrigation System OFFLINE",
                 "tot": "str"
             },
             {
@@ -665,7 +665,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Water Pump ONLINE",
+                "to": "🟢 Water Pump ONLINE",
                 "tot": "str"
             },
             {
@@ -713,7 +713,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Water Pump OFFLINE",
+                "to": "🔴 Water Pump OFFLINE",
                 "tot": "str"
             },
             {
@@ -850,7 +850,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Primary Sliding Gate ONLINE",
+                "to": "🟢 Primary Sliding Gate ONLINE",
                 "tot": "str"
             },
             {
@@ -898,7 +898,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Primary Sliding Gate OFFLINE",
+                "to": "🔴 Primary Sliding Gate OFFLINE",
                 "tot": "str"
             },
             {
@@ -1035,7 +1035,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Secondary Sliding Gate ONLINE",
+                "to": "🟢 Secondary Sliding Gate ONLINE",
                 "tot": "str"
             },
             {
@@ -1083,7 +1083,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Secondary Sliding Gate OFFLINE",
+                "to": "🔴 Secondary Sliding Gate OFFLINE",
                 "tot": "str"
             },
             {
@@ -1220,7 +1220,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Garden Power ONLINE",
+                "to": "🟢 Garden Power ONLINE",
                 "tot": "str"
             },
             {
@@ -1268,7 +1268,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Garden Power OFFLINE",
+                "to": "🔴 Garden Power OFFLINE",
                 "tot": "str"
             },
             {
@@ -1405,7 +1405,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Garden Lights ONLINE",
+                "to": "🟢 Garden Lights ONLINE",
                 "tot": "str"
             },
             {
@@ -1453,7 +1453,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Garden Lights OFFLINE",
+                "to": "🔴 Garden Lights OFFLINE",
                 "tot": "str"
             },
             {
@@ -1590,7 +1590,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Front House Power ONLINE",
+                "to": "🟢 Front House Power ONLINE",
                 "tot": "str"
             },
             {
@@ -1638,7 +1638,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Front House Power OFFLINE",
+                "to": "🔴 Front House Power OFFLINE",
                 "tot": "str"
             },
             {
@@ -1775,7 +1775,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 Aquarium Light ONLINE",
+                "to": "🟢 Aquarium Light ONLINE",
                 "tot": "str"
             },
             {
@@ -1823,7 +1823,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Aquarium Light OFFLINE",
+                "to": "🔴 Aquarium Light OFFLINE",
                 "tot": "str"
             },
             {
@@ -1960,7 +1960,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udfe2 SMS Gateway ONLINE",
+                "to": "🟢 SMS Gateway ONLINE",
                 "tot": "str"
             },
             {
@@ -2008,7 +2008,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 SMS Gateway OFFLINE",
+                "to": "🔴 SMS Gateway OFFLINE",
                 "tot": "str"
             },
             {
@@ -2037,7 +2037,7 @@
         "type": "comment",
         "z": "tab_dashboard",
         "name": "Victron Energy Watchdog (2 min timeout)",
-        "info": "Monitors energy/victron/status (victron-mqtt-publisher.service)\nPoll interval: ~10 s \u00b7 Timeout: 2 minutes\nAlerts when Cerbo/publisher stops reporting",
+        "info": "Monitors energy/victron/status (victron-mqtt-publisher.service)\nPoll interval: ~10 s · Timeout: 2 minutes\nAlerts when Cerbo/publisher stops reporting",
         "x": 220,
         "y": 1820,
         "wires": []
@@ -2145,7 +2145,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Victron energy online",
-        "func": "const d = flow.get('watchdog_victron_last') || {};\nconst bat = d.battery || {};\nconst inv = d.inverter || {};\nconst auto = d.automation || {};\nlet content = '\ud83d\udfe2 *Victron Energy ONLINE*\\n\\n';\nif (bat.soc_pct != null) content += `Battery: ${bat.soc_pct}%\\n`;\nif (inv.state) content += `Inverter: ${inv.state}\\n`;\nif (auto.headroom_w != null) {\n    const h = Math.round(Number(auto.headroom_w));\n    content += `Headroom: ${h > 0 ? '+' : ''}${h} W\\n`;\n}\ncontent += `Topic: energy/victron/status`;\nmsg.payload = {\n    chatId: 991635368,\n    type: 'message',\n    content,\n    parse_mode: 'Markdown'\n};\nreturn msg;",
+        "func": "const d = flow.get('watchdog_victron_last') || {};\nconst bat = d.battery || {};\nconst inv = d.inverter || {};\nconst auto = d.automation || {};\nlet content = '🟢 *Victron Energy ONLINE*\\n\\n';\nif (bat.soc_pct != null) content += `Battery: ${bat.soc_pct}%\\n`;\nif (inv.state) content += `Inverter: ${inv.state}\\n`;\nif (auto.headroom_w != null) {\n    const h = Math.round(Number(auto.headroom_w));\n    content += `Headroom: ${h > 0 ? '+' : ''}${h} W\\n`;\n}\ncontent += `Topic: energy/victron/status`;\nmsg.payload = {\n    chatId: 991635368,\n    type: 'message',\n    content,\n    parse_mode: 'Markdown'\n};\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -2183,7 +2183,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Victron Energy OFFLINE\n\nNo energy/victron/status for 2 min.\nCheck victron-mqtt-publisher.service and Cerbo Modbus.",
+                "to": "🔴 Victron Energy OFFLINE\n\nNo energy/victron/status for 2 min.\nCheck victron-mqtt-publisher.service and Cerbo Modbus.",
                 "tot": "str"
             },
             {
@@ -2644,7 +2644,7 @@
         "type": "comment",
         "z": "8becda4e1ec6a8b9",
         "name": "Huawei Solar Watchdog (2 min timeout)",
-        "info": "Monitors energy/huawei/status (huawei-mqtt-publisher.service)\nPoll interval: ~10 s \u00b7 Timeout: 2 minutes",
+        "info": "Monitors energy/huawei/status (huawei-mqtt-publisher.service)\nPoll interval: ~10 s · Timeout: 2 minutes",
         "x": 350,
         "y": 1980,
         "wires": []
@@ -2752,7 +2752,7 @@
         "type": "function",
         "z": "8becda4e1ec6a8b9",
         "name": "Huawei solar online",
-        "func": "const d = flow.get('watchdog_huawei_last') || {};\nconst dev = d.device || {};\nconst inv = d.inverter || {};\nlet content = '\ud83d\udfe2 *Huawei Solar ONLINE*\\n\\n';\nif (dev.model) content += `Model: ${dev.model}\\n`;\nif (inv.active_power_w != null) content += `Active: ${Math.round(Number(inv.active_power_w))} W\\n`;\nif (inv.daily_yield_kwh != null) content += `Today: ${inv.daily_yield_kwh} kWh\\n`;\ncontent += `Topic: energy/huawei/status`;\nmsg.payload = { chatId: 991635368, type: 'message', content, parse_mode: 'Markdown' };\nreturn msg;",
+        "func": "const d = flow.get('watchdog_huawei_last') || {};\nconst dev = d.device || {};\nconst inv = d.inverter || {};\nlet content = '🟢 *Huawei Solar ONLINE*\\n\\n';\nif (dev.model) content += `Model: ${dev.model}\\n`;\nif (inv.active_power_w != null) content += `Active: ${Math.round(Number(inv.active_power_w))} W\\n`;\nif (inv.daily_yield_kwh != null) content += `Today: ${inv.daily_yield_kwh} kWh\\n`;\ncontent += `Topic: energy/huawei/status`;\nmsg.payload = { chatId: 991635368, type: 'message', content, parse_mode: 'Markdown' };\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -2790,7 +2790,7 @@
                 "t": "set",
                 "p": "payload.content",
                 "pt": "msg",
-                "to": "\ud83d\udd34 Huawei Solar OFFLINE\n\nNo energy/huawei/status for 2 min.\nCheck huawei-mqtt-publisher.service and USB WiFi to inverter AP.",
+                "to": "🔴 Huawei Solar OFFLINE\n\nNo energy/huawei/status for 2 min.\nCheck huawei-mqtt-publisher.service and USB WiFi to inverter AP.",
                 "tot": "str"
             },
             {
@@ -2849,6 +2849,219 @@
         "wires": [
             [
                 "watchdog_huawei_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_comment",
+        "type": "comment",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Grundfos SCALA1 Watchdog (2 min timeout)",
+        "info": "Monitors water/grundfos/scala1/status (grundfos-scala1-mqtt-publisher.service)\nPoll interval: ~15 s · Timeout: 2 minutes",
+        "x": 360,
+        "y": 2180,
+        "wires": []
+    },
+    {
+        "id": "watchdog_scala1_in",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "SCALA1 Status Heartbeat",
+        "topic": "water/grundfos/scala1/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 320,
+        "y": 2240,
+        "wires": [
+            [
+                "watchdog_scala1_validate"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_validate",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Validate SCALA1 status",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try { data = JSON.parse(data); } catch (e) { return null; }\n}\nif (!data || typeof data !== 'object' || !data.timestamp) return null;\nflow.set('watchdog_scala1_last', data);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 2240,
+        "wires": [
+            [
+                "watchdog_scala1_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_trigger",
+        "type": "trigger",
+        "z": "8becda4e1ec6a8b9",
+        "name": "2 min timeout",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "2",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 780,
+        "y": 2240,
+        "wires": [
+            [
+                "watchdog_scala1_switch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_switch",
+        "type": "switch",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Online/Offline",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 980,
+        "y": 2240,
+        "wires": [
+            [
+                "watchdog_scala1_filter_online"
+            ],
+            [
+                "watchdog_scala1_filter_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_online",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "SCALA1 online alert",
+        "func": "const d = flow.get('watchdog_scala1_last') || {};\nlet content = '🟢 *Grundfos SCALA1 ONLINE*\\n\\n';\nif (d.pressure_bar != null) content += `Pressure: ${Number(d.pressure_bar).toFixed(2)} bar\\n`;\nif (d.flow_m3h != null) content += `Flow: ${Number(d.flow_m3h).toFixed(2)} m³/h\\n`;\nif (d.running === true) content += 'State: RUNNING\\n';\nelse if (d.running === false) content += 'State: STOPPED\\n';\ncontent += 'Topic: water/grundfos/scala1/status';\nmsg.payload = { chatId: 991635368, type: 'message', content, parse_mode: 'Markdown' };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1540,
+        "y": 2200,
+        "wires": [
+            [
+                "watchdog_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_offline",
+        "type": "change",
+        "z": "8becda4e1ec6a8b9",
+        "name": "SCALA1 offline",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "payload.type",
+                "pt": "msg",
+                "to": "message",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.content",
+                "pt": "msg",
+                "to": "🔴 Grundfos SCALA1 OFFLINE\n\nNo water/grundfos/scala1/status for 2 min.\nCheck grundfos-scala1-mqtt-publisher.service and BLE range.",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload.chatId",
+                "pt": "msg",
+                "to": "991635368",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1560,
+        "y": 2280,
+        "wires": [
+            [
+                "watchdog_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_filter_online",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_scala1';\nconst prev = flow.get(key);\nconst next = 'online';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1220,
+        "y": 2200,
+        "wires": [
+            [
+                "watchdog_scala1_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_scala1_filter_offline",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Notify only on state change",
+        "func": "const key = 'watchdog_state_watchdog_scala1';\nconst prev = flow.get(key);\nconst next = 'offline';\nif (prev === next) return null;\nflow.set(key, next);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1220,
+        "y": 2280,
+        "wires": [
+            [
+                "watchdog_scala1_offline"
             ]
         ]
     }

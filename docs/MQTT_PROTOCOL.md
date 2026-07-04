@@ -200,6 +200,51 @@ See [device/huawei-inverter/README.md](../device/huawei-inverter/README.md) for 
 
 **Node-RED:** import `821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`. Telegram: `/huawei_status`, `/huawei_help`.
 
+### Grundfos SCALA1 Topics (Domain: water/grundfos/scala1) — **planned**
+
+> **Status: planned** — topic layout and payloads below are the **target spec**. The publisher is scaffolding only until BLE GATT UUIDs are captured on site. See [GRUNDGOS_SCALA1.md](GRUNDGOS_SCALA1.md).
+
+When enabled, published by **`grundfos-scala1-mqtt-publisher.service`** on the automation server. Polls the SCALA1 via **Bluetooth Low Energy** every **15 seconds** (configurable). Requires `SCALA1_BLE_ADDRESS` and GATT UUID mapping from [device/grundfos-scala1/docs/BLE_PROTOCOL.md](../device/grundfos-scala1/docs/BLE_PROTOCOL.md).
+
+| Setting | Default | Config |
+|---------|---------|--------|
+| Topic prefix | `water/grundfos/scala1` | `SCALA1_MQTT_PREFIX` in [device/grundfos-scala1/config/.env](../device/grundfos-scala1/config/.env) |
+| Poll interval | `15` s | `SCALA1_POLL_INTERVAL` |
+| QoS | `1` | `SCALA1_MQTT_QOS` |
+| Broker | root `config/.env` | `MQTT_BROKER_HOST`, `MQTT_BROKER_PORT`, credentials |
+
+**Direction:** Server → subscribers (Node-RED **412**, Telegram **413**, watchdog **90**). Command topic `water/grundfos/scala1/command` is server-subscribed when BLE control is configured.
+
+#### Per-metric topics
+
+| Topic | Payload type | Unit | Description |
+|-------|--------------|------|-------------|
+| `water/grundfos/scala1/running` | boolean | — | Pump running (when decoded) |
+| `water/grundfos/scala1/pressure_bar` | number | bar | Outlet pressure |
+| `water/grundfos/scala1/flow_m3h` | number | m³/h | Flow rate |
+| `water/grundfos/scala1/power_w` | integer | W | Motor power |
+| `water/grundfos/scala1/alarm_code` | integer | — | Alarm code (0 = none) |
+| `water/grundfos/scala1/mode` | string | — | Operating mode |
+| `water/grundfos/scala1/device/model` | string | — | Model label |
+| `water/grundfos/scala1/device/serial` | string | — | Serial number |
+
+#### Aggregate snapshot
+
+| Topic | Purpose | QoS |
+|-------|---------|-----|
+| `water/grundfos/scala1/status` | Full JSON snapshot | 1 |
+
+#### Commands
+
+| Topic | Direction | Payload |
+|-------|-----------|---------|
+| `water/grundfos/scala1/command` | Client → publisher | `{"action":"start"\|"stop"\|"reset_alarm"}` |
+| `water/grundfos/scala1/response` | Publisher → client | `{"action":"...","success":true\|false,...}` |
+
+See [device/grundfos-scala1/README.md](../device/grundfos-scala1/README.md).
+
+**Node-RED:** import `412-grundfos-scala1-status.json`, `413-grundfos-scala1-telegram.json` (after `400-irrigation-base-config.json`). Telegram: `/scala1_status`, `/scala1_start`, `/scala1_stop`, `/scala1_help`.
+
 ---
 
 ## Message Schemas
@@ -929,6 +974,83 @@ mosquitto_sub -h localhost -t 'energy/huawei/#' -v
 
 ```bash
 mosquitto_sub -h 192.168.2.4 -t 'energy/huawei/status' -v
+```
+
+---
+
+## Grundfos SCALA1 Messages — **planned**
+
+> **Status: planned** — not active in production until on-site BLE setup. See [GRUNDGOS_SCALA1.md](GRUNDGOS_SCALA1.md).
+
+When enabled, published by `grundfos-scala1-mqtt-publisher.service` every poll cycle (default **15 s**). Topic prefix defaults to `water/grundfos/scala1`; override with `SCALA1_MQTT_PREFIX`.
+
+### Status Snapshot
+
+**Topic:** `water/grundfos/scala1/status`
+
+**Schema:**
+```json
+{
+  "timestamp": "2026-07-04T18:00:00+00:00",
+  "source": "grundfos_ble",
+  "device_name": "scala1-booster",
+  "running": true,
+  "pressure_bar": 3.2,
+  "flow_m3h": 2.1,
+  "power_w": 450,
+  "alarm_code": 0,
+  "alarm_text": null,
+  "mode": "constant_pressure",
+  "device": {
+    "model": "SCALA1 3-35",
+    "serial": null
+  },
+  "raw": {
+    "telemetry": "aabbcc..."
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | string | UTC ISO8601 time of the BLE poll |
+| `source` | string | Always `"grundfos_ble"` |
+| `device_name` | string | From `SCALA1_DEVICE_NAME` |
+| `running` | boolean \| null | Run state (null until GATT mapping is configured) |
+| `pressure_bar` | number \| null | Pressure in bar |
+| `flow_m3h` | number \| null | Flow in m³/h |
+| `power_w` | integer \| null | Electrical power (W) |
+| `alarm_code` | integer \| null | Non-zero indicates active alarm |
+| `alarm_text` | string \| null | Human-readable alarm (when decoded) |
+| `mode` | string \| null | Pump mode |
+| `raw` | object | Raw characteristic hex (discovery / debug) |
+
+### Command Messages
+
+**Topic:** `water/grundfos/scala1/command`
+
+```json
+{ "action": "start" }
+```
+
+Actions: `start`, `stop`, `reset_alarm` (require GATT write UUIDs in device `.env`).
+
+**Response topic:** `water/grundfos/scala1/response`
+
+```json
+{
+  "timestamp": "2026-07-04T18:01:00+00:00",
+  "action": "start",
+  "success": true
+}
+```
+
+**Monitor all SCALA1 topics:**
+
+```bash
+mosquitto_sub -h 192.168.2.4 -t 'water/grundfos/scala1/#' -v
 ```
 
 ---

@@ -1,0 +1,23 @@
+[Unit]
+Description=Grundfos SCALA1 BLE to MQTT Publisher
+After=network-online.target bluetooth.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/dell_server_management
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/dell_server_management/device/grundfos-scala1/lib"
+ExecStart=/opt/dell_server_management/venv/bin/python3 /opt/dell_server_management/device/grundfos-scala1/scripts/scala1_mqtt_publisher.py
+Restart=always
+RestartSec=15
+StandardOutput=journal
+StandardError=journal
+TimeoutStopSec=20
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

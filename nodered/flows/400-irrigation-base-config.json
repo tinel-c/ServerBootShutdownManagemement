@@ -63,6 +63,19 @@
         "disabled": "false"
     },
     {
+        "id": "ui_group_grundfos_scala1",
+        "type": "ui-group",
+        "name": "Grundfos SCALA1",
+        "page": "ui_page_irrigation",
+        "width": "12",
+        "height": "1",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
         "id": "irrigation_context_init",
         "type": "inject",
         "z": "tab_dashboard",
@@ -84,7 +97,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Initialize Irrigation State",
-        "func": "// Initialize global context for water pump state\nif (!global.get('water_pump_state')) {\n    global.set('water_pump_state', {\n        pump_power: 'UNKNOWN',\n        drain_water: 'UNKNOWN',\n        feed_trench_1: 'UNKNOWN',\n        feed_trench_2: 'UNKNOWN',\n        lastUpdate: new Date().toISOString()\n    });\n    node.warn('Initialized water_pump_state in global context');\n} else {\n    node.warn('water_pump_state already exists in global context');\n}\n\n// Initialize global context for irrigation zones state\nif (!global.get('irrigation_zones_state')) {\n    global.set('irrigation_zones_state', {\n        zone_1: 'UNKNOWN',\n        zone_2: 'UNKNOWN',\n        zone_3: 'UNKNOWN',\n        zone_4: 'UNKNOWN',\n        zone_5: 'UNKNOWN',\n        zone_6: 'UNKNOWN',\n        zone_7: 'UNKNOWN',\n        zone_8: 'UNKNOWN',\n        zone_9: 'UNKNOWN',\n        zone_10: 'UNKNOWN',\n        zone_11: 'UNKNOWN',\n        zone_12: 'UNKNOWN',\n        power_24v: 'UNKNOWN',\n        automation_status: 'idle',\n        lastUpdate: new Date().toISOString()\n    });\n    node.warn('Initialized irrigation_zones_state in global context');\n} else {\n    node.warn('irrigation_zones_state already exists in global context');\n}\n\nreturn null;",
+        "func": "// Initialize global context for water pump state\nif (!global.get('water_pump_state')) {\n    global.set('water_pump_state', {\n        pump_power: 'UNKNOWN',\n        drain_water: 'UNKNOWN',\n        feed_trench_1: 'UNKNOWN',\n        feed_trench_2: 'UNKNOWN',\n        lastUpdate: new Date().toISOString()\n    });\n    node.warn('Initialized water_pump_state in global context');\n} else {\n    node.warn('water_pump_state already exists in global context');\n}\n\nif (!global.get('grundfos_scala1_state')) {\n    global.set('grundfos_scala1_state', {});\n    node.warn('Initialized grundfos_scala1_state in global context');\n}\n\n// Initialize global context for irrigation zones state\nif (!global.get('irrigation_zones_state')) {\n    global.set('irrigation_zones_state', {\n        zone_1: 'UNKNOWN',\n        zone_2: 'UNKNOWN',\n        zone_3: 'UNKNOWN',\n        zone_4: 'UNKNOWN',\n        zone_5: 'UNKNOWN',\n        zone_6: 'UNKNOWN',\n        zone_7: 'UNKNOWN',\n        zone_8: 'UNKNOWN',\n        zone_9: 'UNKNOWN',\n        zone_10: 'UNKNOWN',\n        zone_11: 'UNKNOWN',\n        zone_12: 'UNKNOWN',\n        power_24v: 'UNKNOWN',\n        automation_status: 'idle',\n        lastUpdate: new Date().toISOString()\n    });\n    node.warn('Initialized irrigation_zones_state in global context');\n} else {\n    node.warn('irrigation_zones_state already exists in global context');\n}\n\nreturn null;",
         "outputs": 0,
         "noerr": 0,
         "initialize": "",

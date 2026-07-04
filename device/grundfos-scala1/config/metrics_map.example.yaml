@@ -1,0 +1,39 @@
+# Copy to metrics_map.yaml after BLE capture (ble_probe.py --dump).
+# Adjust service/char UUIDs and field offsets to match your SCALA1 firmware.
+
+characteristics:
+  telemetry:
+    service_uuid: "00000000-0000-0000-0000-000000000000"
+    char_uuid: "00000000-0000-0000-0000-000000000001"
+  # alarms:
+  #   service_uuid: "..."
+  #   char_uuid: "..."
+
+fields:
+  running:
+    source: telemetry
+    offset: 0
+    format: bool
+  pressure_bar:
+    source: telemetry
+    offset: 1
+    format: float32_le
+    scale: 1.0
+  flow_m3h:
+    source: telemetry
+    offset: 5
+    format: float32_le
+    scale: 1.0
+  power_w:
+    source: telemetry
+    offset: 9
+    format: uint16_le
+    scale: 1.0
+  alarm_code:
+    source: telemetry
+    offset: 11
+    format: uint16_le
+  mode:
+    source: telemetry
+    offset: 13
+    format: uint8

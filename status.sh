@@ -26,6 +26,7 @@ SERVICES=(
     "victron-mqtt-publisher.service"
     "victron-solar-forecast-publisher.service"
     "huawei-mqtt-publisher.service"
+    "grundfos-scala1-mqtt-publisher.service"
 )
 
 # Print header

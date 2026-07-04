@@ -29,6 +29,9 @@ WSDiscovery>=2.0.0
 # Victron Cerbo GX / Modbus TCP
 pymodbus>=3.6.0
 
+# Grundfos SCALA1 BLE
+bleak>=0.21.0
+
 # Utilities
 wakeonlan>=3.0.0
 rich>=13.0.0

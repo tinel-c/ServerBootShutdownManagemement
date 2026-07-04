@@ -50,6 +50,7 @@ fi
 # Check for existing device .env files BEFORE backing up the directory
 backup_device_env "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" /tmp/dell_server_victron_env.bak
 backup_device_env "$INSTALL_DIR/device/huawei-inverter/config/.env" /tmp/dell_server_huawei_env.bak
+backup_device_env "$INSTALL_DIR/device/grundfos-scala1/config/.env" /tmp/dell_server_grundfos_env.bak
 
 if [ -d "$INSTALL_DIR" ]; then
     print_warn "Installation directory already exists. Backing up..."
@@ -84,6 +85,11 @@ restore_device_env "$INSTALL_DIR/device/huawei-inverter/config/.env" \
     /tmp/dell_server_huawei_env.bak \
     "$INSTALL_DIR/device/huawei-inverter/config/.env.example" \
     "edit HUAWEI_INVERTER_HOST and WiFi settings"
+
+restore_device_env "$INSTALL_DIR/device/grundfos-scala1/config/.env" \
+    /tmp/dell_server_grundfos_env.bak \
+    "$INSTALL_DIR/device/grundfos-scala1/config/.env.example" \
+    "edit SCALA1_BLE_ADDRESS after ble_probe.py --scan"
 
 # Step 4: Create Python virtual environment
 print_info "Step 4: Creating Python virtual environment..."
@@ -128,6 +134,7 @@ print_warn "  - $INSTALL_DIR/config/server_config.yaml"
 print_warn "  - $INSTALL_DIR/config/.env"
 print_warn "  - $INSTALL_DIR/device/victron-multiplus-ii/config/.env"
 print_warn "  - $INSTALL_DIR/device/huawei-inverter/config/.env"
+print_warn "  - $INSTALL_DIR/device/grundfos-scala1/config/.env"
 
 # Step 9: Install systemd services
 print_info "Step 9: Installing systemd services..."
@@ -146,12 +153,18 @@ fi
 if [ -d "$INSTALL_DIR/device/huawei-inverter/scripts" ]; then
     chmod +x "$INSTALL_DIR/device/huawei-inverter/scripts/"*.py
 fi
+if [ -d "$INSTALL_DIR/device/grundfos-scala1/scripts" ]; then
+    chmod +x "$INSTALL_DIR/device/grundfos-scala1/scripts/"*.py
+fi
 chmod 600 "$INSTALL_DIR/config/.env"
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
 fi
 if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
     chmod 600 "$INSTALL_DIR/device/huawei-inverter/config/.env"
+fi
+if [ -f "$INSTALL_DIR/device/grundfos-scala1/config/.env" ]; then
+    chmod 600 "$INSTALL_DIR/device/grundfos-scala1/config/.env"
 fi
 
 # Step 11: Enable and start core services
@@ -183,6 +196,8 @@ if [ -x "$INSTALL_DIR/install_huawei_service.sh" ]; then
     bash "$INSTALL_DIR/install_huawei_service.sh" || \
         print_warn "Huawei install incomplete — edit device/huawei-inverter/config/.env and re-run install_huawei_service.sh"
 fi
+# Grundfos SCALA1: planned — install manually after on-site BLE GATT capture (see docs/GRUNDGOS_SCALA1.md)
+print_info "Grundfos SCALA1: scaffolding in repo — run install_grundfos_service.sh manually when BLE is configured"
 unset ALLOW_INACTIVE_SERVICE
 
 # Step 13: Test IPMI connectivity
@@ -199,6 +214,7 @@ echo "     - $INSTALL_DIR/config/mqtt_config.yaml"
 echo "     - $INSTALL_DIR/config/server_config.yaml"
 echo "     - $INSTALL_DIR/device/victron-multiplus-ii/config/.env (if using Victron)"
 echo "     - $INSTALL_DIR/device/huawei-inverter/config/.env (if using Huawei)"
+echo "     - $INSTALL_DIR/device/grundfos-scala1/config/.env (if using Grundfos SCALA1)"
 echo ""
 echo "  2. Test IPMI connectivity:"
 echo "     ipmitool -I lanplus -H <ipmi-ip> -U <username> -P <password> chassis status"
@@ -206,16 +222,19 @@ echo ""
 echo "  3. Re-run device installers after editing energy config:"
 echo "     sudo $INSTALL_DIR/install_victron_service.sh"
 echo "     sudo $INSTALL_DIR/install_huawei_service.sh"
+echo "     # Planned SCALA1 (after BLE setup): sudo $INSTALL_DIR/install_grundfos_service.sh"
 echo ""
 echo "  4. Check service status:"
 echo "     systemctl status mqtt-boot-listener.service status-publisher.service"
 echo "     systemctl status victron-mqtt-publisher.service victron-solar-forecast-publisher.service"
 echo "     systemctl status huawei-mqtt-publisher.service"
+echo "     systemctl status grundfos-scala1-mqtt-publisher.service"
 echo ""
 echo "  5. View logs:"
 echo "     journalctl -u status-publisher.service -f"
 echo "     journalctl -u victron-mqtt-publisher.service -f"
 echo "     journalctl -u huawei-mqtt-publisher.service -f"
+echo "     journalctl -u grundfos-scala1-mqtt-publisher.service -f"
 echo ""
 print_info "Installation directory: $INSTALL_DIR"
 print_info "Log file: $LOG_FILE"

@@ -32,7 +32,8 @@ systemctl stop mqtt-boot-listener.service \
                tapo-monitor.service \
                victron-mqtt-publisher.service \
                victron-solar-forecast-publisher.service \
-               huawei-mqtt-publisher.service || true
+               huawei-mqtt-publisher.service \
+               grundfos-scala1-mqtt-publisher.service || true
 sleep 1
 print_info "Services stopped."
 
@@ -70,6 +71,12 @@ if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
     print_info "✓ Backed up Huawei .env"
 fi
 
+if [ -f "$INSTALL_DIR/device/grundfos-scala1/config/.env" ]; then
+    mkdir -p "$BACKUP_DIR/grundfos"
+    cp "$INSTALL_DIR/device/grundfos-scala1/config/.env" "$BACKUP_DIR/grundfos/.env"
+    print_info "✓ Backed up Grundfos SCALA1 .env"
+fi
+
 print_info "Configuration backed up to: $BACKUP_DIR"
 
 # Step 3: Update Python scripts
@@ -88,7 +95,11 @@ if [ -d "$SCRIPT_DIR/device/huawei-inverter" ]; then
     cp -r "$SCRIPT_DIR/device/huawei-inverter" "$INSTALL_DIR/device/"
     print_info "✓ Huawei SUN2000 integration updated"
 fi
-cp "$SCRIPT_DIR/install_victron_service.sh" "$SCRIPT_DIR/install_huawei_service.sh" "$INSTALL_DIR/" 2>/dev/null || true
+if [ -d "$SCRIPT_DIR/device/grundfos-scala1" ]; then
+    cp -r "$SCRIPT_DIR/device/grundfos-scala1" "$INSTALL_DIR/device/"
+    print_info "✓ Grundfos SCALA1 integration updated"
+fi
+cp "$SCRIPT_DIR/install_victron_service.sh" "$SCRIPT_DIR/install_huawei_service.sh" "$SCRIPT_DIR/install_grundfos_service.sh" "$INSTALL_DIR/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/scripts/install" "$INSTALL_DIR/scripts/" 2>/dev/null || true
 
 # Step 4: Update systemd service files
@@ -161,6 +172,20 @@ elif [ ! -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
     fi
 fi
 
+if [ -f "$BACKUP_DIR/grundfos/.env" ]; then
+    mkdir -p "$INSTALL_DIR/device/grundfos-scala1/config"
+    cp "$BACKUP_DIR/grundfos/.env" "$INSTALL_DIR/device/grundfos-scala1/config/.env"
+    chmod 600 "$INSTALL_DIR/device/grundfos-scala1/config/.env"
+    print_info "✓ Restored Grundfos SCALA1 .env"
+elif [ ! -f "$INSTALL_DIR/device/grundfos-scala1/config/.env" ]; then
+    if [ -f "$INSTALL_DIR/device/grundfos-scala1/config/.env.example" ]; then
+        mkdir -p "$INSTALL_DIR/device/grundfos-scala1/config"
+        cp "$INSTALL_DIR/device/grundfos-scala1/config/.env.example" \
+           "$INSTALL_DIR/device/grundfos-scala1/config/.env"
+        print_warn "Created Grundfos .env from template — edit SCALA1_BLE_ADDRESS before starting service"
+    fi
+fi
+
 print_info "Configuration restored successfully!"
 
 # Step 7: Set permissions
@@ -174,6 +199,9 @@ fi
 if [ -d "$INSTALL_DIR/device/huawei-inverter/scripts" ]; then
     chmod +x "$INSTALL_DIR/device/huawei-inverter/scripts/"*.py
 fi
+if [ -d "$INSTALL_DIR/device/grundfos-scala1/scripts" ]; then
+    chmod +x "$INSTALL_DIR/device/grundfos-scala1/scripts/"*.py
+fi
 chmod +x "$INSTALL_DIR/install_"*.sh 2>/dev/null || true
 chmod 600 "$INSTALL_DIR/config/.env"
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
@@ -181,6 +209,9 @@ if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
 fi
 if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
     chmod 600 "$INSTALL_DIR/device/huawei-inverter/config/.env"
+fi
+if [ -f "$INSTALL_DIR/device/grundfos-scala1/config/.env" ]; then
+    chmod 600 "$INSTALL_DIR/device/grundfos-scala1/config/.env"
 fi
 print_info "✓ Permissions set"
 
@@ -205,6 +236,12 @@ if [ -f "$INSTALL_DIR/device/huawei-inverter/config/.env" ]; then
 else
     print_warn "Huawei .env missing — huawei-mqtt-publisher.service not started"
 fi
+if [ -f "$INSTALL_DIR/device/grundfos-scala1/config/.env" ]; then
+    systemctl enable grundfos-scala1-mqtt-publisher.service || true
+    systemctl restart grundfos-scala1-mqtt-publisher.service || true
+else
+    print_warn "Grundfos .env missing — grundfos-scala1-mqtt-publisher.service not started"
+fi
 print_info "✓ Services restarted"
 
 # Update complete
@@ -225,9 +262,11 @@ echo "  systemctl status tapo-monitor.service"
 echo "  systemctl status victron-mqtt-publisher.service"
 echo "  systemctl status victron-solar-forecast-publisher.service"
 echo "  systemctl status huawei-mqtt-publisher.service"
+echo "  systemctl status grundfos-scala1-mqtt-publisher.service"
 echo ""
 print_info "View logs with:"
 echo "  journalctl -u status-publisher.service -f"
 echo "  journalctl -u victron-mqtt-publisher.service -f"
 echo "  journalctl -u huawei-mqtt-publisher.service -f"
+echo "  journalctl -u grundfos-scala1-mqtt-publisher.service -f"
 echo ""

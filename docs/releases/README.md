@@ -1,6 +1,33 @@
 # Release notes
 
-Per-version release notes for GitHub tags. Use with:
+Per-version release notes for GitHub tags.
+
+## Create a release
+
+From the repo root (after pushing the tag):
+
+```powershell
+# Windows
+.\scripts\release\create_release.ps1 3.11.8
+
+# or
+scripts\release\create_release.bat 3.11.8
+```
+
+```bash
+# Linux / Git Bash
+./scripts/release/create_release.sh 3.11.8
+```
+
+Optional custom title:
+
+```bash
+./scripts/release/create_release.sh 3.11.8 "v3.11.8 — Custom title"
+```
+
+The script reads `docs/releases/RELEASE_NOTES_vX.Y.Z.md` and derives the title from the first heading when omitted.
+
+Manual fallback:
 
 ```bash
 gh release create vX.Y.Z --title "vX.Y.Z — …" --notes-file docs/releases/RELEASE_NOTES_vX.Y.Z.md

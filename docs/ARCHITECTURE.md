@@ -126,6 +126,12 @@ Running as background services on the automation server:
    - Publishes health information every 60 seconds
    - Includes all check details (pings, grace period, timeouts, etc.)
 
+5. **victron_mqtt_publisher.service** (Energy domain)
+   - Polls Victron Cerbo GX via Modbus TCP every 10 seconds
+   - Publishes battery, grid, PV, loads, and inverter data to `energy/victron/#` MQTT topics
+   - Configuration: `/opt/dell_server_management/device/victron-multiplus-ii/config/.env`
+   - See [device/victron-multiplus-ii/README.md](../device/victron-multiplus-ii/README.md)
+
 ### 3. Network Layer
 
 **Local Network**: All components communicate via standard Ethernet/WiFi network

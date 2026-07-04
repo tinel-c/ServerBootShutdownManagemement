@@ -26,6 +26,9 @@ pytest-mock>=3.10.0
 onvif-zeep>=0.2.1
 WSDiscovery>=2.0.0
 
+# Victron Cerbo GX / Modbus TCP
+pymodbus>=3.6.0
+
 # Utilities
 wakeonlan>=3.0.0
 rich>=13.0.0

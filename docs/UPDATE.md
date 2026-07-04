@@ -70,6 +70,7 @@ sudo chmod 600 /opt/dell_server_management/config/.env
 
 ### Updated 🔄
 - Python scripts (`scripts/`)
+- Device integrations (`device/victron-multiplus-ii/`, …)
 - Systemd service files (`systemd/`)
 - Python dependencies (from `requirements.txt`)
 

@@ -18,6 +18,7 @@ SERVICES=(
     "status-publisher.service"
     "health-monitor.service"
     "tapo-monitor.service"
+    "victron-mqtt-publisher.service"
 )
 
 # Print functions

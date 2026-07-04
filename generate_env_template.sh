@@ -18,7 +18,8 @@ cat > "$TEMPLATE_FILE" << 'EOF'
 # -----------------------------------------------------------------------------
 # MQTT Broker Configuration
 # -----------------------------------------------------------------------------
-MQTT_BROKER_HOST=localhost
+# Linux automation server / SSH target
+MQTT_BROKER_HOST=192.168.2.4
 MQTT_BROKER_PORT=1883
 MQTT_USERNAME=mqtt_user
 MQTT_PASSWORD=mqtt_password

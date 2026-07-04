@@ -68,6 +68,16 @@ if [ -f "$INSTALL_DIR/config/.env" ]; then
     print_info "Configuration backed up to /tmp/dell_server_management_env.bak"
 fi
 
+# Check for existing Victron .env BEFORE backing up the directory
+HAS_EXISTING_VICTRON_ENV=false
+if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
+    print_warn "Found existing Victron .env configuration. Preserving it..."
+    mkdir -p /tmp/dell_server_victron_env.bak
+    cp "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" /tmp/dell_server_victron_env.bak/.env
+    HAS_EXISTING_VICTRON_ENV=true
+    print_info "Victron configuration backed up to /tmp/dell_server_victron_env.bak/.env"
+fi
+
 if [ -d "$INSTALL_DIR" ]; then
     print_warn "Installation directory already exists. Backing up..."
     mv "$INSTALL_DIR" "${INSTALL_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
@@ -90,6 +100,22 @@ if [ "$HAS_EXISTING_ENV" = true ]; then
     # Ensure permissions are still correct
     chmod 600 "$INSTALL_DIR/config/.env"
     print_info "✓ Configuration successfully preserved from previous installation!"
+fi
+
+if [ "$HAS_EXISTING_VICTRON_ENV" = true ]; then
+    print_info "Restoring preserved Victron .env configuration..."
+    mkdir -p "$INSTALL_DIR/device/victron-multiplus-ii/config"
+    cp /tmp/dell_server_victron_env.bak/.env "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+    chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+    print_info "✓ Victron configuration preserved!"
+elif [ ! -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
+    if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env.example" ]; then
+        print_warn "Creating Victron .env from template..."
+        mkdir -p "$INSTALL_DIR/device/victron-multiplus-ii/config"
+        cp "$INSTALL_DIR/device/victron-multiplus-ii/config/.env.example" \
+           "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+        print_warn "IMPORTANT: Edit $INSTALL_DIR/device/victron-multiplus-ii/config/.env (Cerbo GX IP, Unit IDs)"
+    fi
 fi
 
 # Step 4: Create Python virtual environment
@@ -133,6 +159,7 @@ print_warn "IMPORTANT: Review and update configuration files:"
 print_warn "  - $INSTALL_DIR/config/mqtt_config.yaml"
 print_warn "  - $INSTALL_DIR/config/server_config.yaml"
 print_warn "  - $INSTALL_DIR/config/.env"
+print_warn "  - $INSTALL_DIR/device/victron-multiplus-ii/config/.env"
 
 # Step 9: Install systemd services
 print_info "Step 9: Installing systemd services..."
@@ -144,7 +171,11 @@ print_info "Step 10: Setting permissions..."
 chmod +x "$INSTALL_DIR/scripts/boot/"*.py
 chmod +x "$INSTALL_DIR/scripts/shutdown/"*.py
 chmod +x "$INSTALL_DIR/scripts/status/"*.py
+chmod +x "$INSTALL_DIR/device/victron-multiplus-ii/scripts/"*.py
 chmod 600 "$INSTALL_DIR/config/.env"
+if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
+    chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+fi
 
 # Step 11: Test IPMI connectivity
 print_info "Step 11: Testing IPMI connectivity..."
@@ -165,31 +196,32 @@ echo ""
 echo "  3. Enable and start services:"
 echo "     systemctl enable mqtt-boot-listener.service"
 echo "     systemctl enable mqtt-shutdown-listener.service"
-echo "     systemctl enable status-publisher.service
-     systemctl enable health-monitor.service
-     systemctl enable tapo-monitor.service
-     systemctl start mqtt-boot-listener.service
-     systemctl start mqtt-shutdown-listener.service
-     systemctl start status-publisher.service
-     systemctl start health-monitor.service
-     systemctl start tapo-monitor.service
-"
+echo "     systemctl enable status-publisher.service"
+echo "     systemctl enable health-monitor.service"
+echo "     systemctl enable tapo-monitor.service"
+echo "     systemctl enable victron-mqtt-publisher.service"
+echo "     systemctl start mqtt-boot-listener.service"
+echo "     systemctl start mqtt-shutdown-listener.service"
+echo "     systemctl start status-publisher.service"
+echo "     systemctl start health-monitor.service"
+echo "     systemctl start tapo-monitor.service"
+echo "     systemctl start victron-mqtt-publisher.service"
 echo ""
 echo "  4. Check service status:"
 echo "     systemctl status mqtt-boot-listener.service"
 echo "     systemctl status mqtt-shutdown-listener.service"
-echo "     systemctl status status-publisher.service
-     systemctl status health-monitor.service
-     systemctl status tapo-monitor.service
-"
+echo "     systemctl status status-publisher.service"
+echo "     systemctl status health-monitor.service"
+echo "     systemctl status tapo-monitor.service"
+echo "     systemctl status victron-mqtt-publisher.service"
 echo ""
 echo "  5. View logs:"
 echo "     journalctl -u mqtt-boot-listener.service -f"
 echo "     journalctl -u mqtt-shutdown-listener.service -f"
-echo "     journalctl -u status-publisher.service -f
-     journalctl -u health-monitor.service -f
-     journalctl -u tapo-monitor.service -f
-"
+echo "     journalctl -u status-publisher.service -f"
+echo "     journalctl -u health-monitor.service -f"
+echo "     journalctl -u tapo-monitor.service -f"
+echo "     journalctl -u victron-mqtt-publisher.service -f"
 echo ""
 print_info "Installation directory: $INSTALL_DIR"
 print_info "Log file: $LOG_FILE"

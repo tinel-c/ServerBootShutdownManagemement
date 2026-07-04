@@ -64,7 +64,8 @@ systemctl stop mqtt-boot-listener.service \
                mqtt-shutdown-listener.service \
                status-publisher.service \
                health-monitor.service \
-               tapo-monitor.service || true
+               tapo-monitor.service \
+               victron-mqtt-publisher.service || true
 sleep 1
 print_info "Services stopped."
 
@@ -90,12 +91,26 @@ if [ -f "$INSTALL_DIR/config/server_config.yaml" ]; then
     print_info "✓ Backed up server_config.yaml"
 fi
 
+if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
+    mkdir -p "$BACKUP_DIR/victron"
+    cp "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" "$BACKUP_DIR/victron/.env"
+    print_info "✓ Backed up Victron .env"
+fi
+
 print_info "Configuration backed up to: $BACKUP_DIR"
 
 # Step 3: Update Python scripts
 print_step "Step 3: Updating Python scripts..."
 cp -r "$SCRIPT_DIR/scripts/"* "$INSTALL_DIR/scripts/"
 print_info "✓ Python scripts updated"
+
+# Step 3b: Update device integrations (Victron, etc.)
+print_step "Step 3b: Updating device integrations..."
+mkdir -p "$INSTALL_DIR/device"
+if [ -d "$SCRIPT_DIR/device/victron-multiplus-ii" ]; then
+    cp -r "$SCRIPT_DIR/device/victron-multiplus-ii" "$INSTALL_DIR/device/"
+    print_info "✓ Victron MultiPlus-II integration updated"
+fi
 
 # Step 4: Update systemd service files
 print_step "Step 4: Updating systemd services..."
@@ -139,6 +154,20 @@ if [ -f "$BACKUP_DIR/server_config.yaml" ]; then
     print_info "✓ Restored server_config.yaml"
 fi
 
+if [ -f "$BACKUP_DIR/victron/.env" ]; then
+    mkdir -p "$INSTALL_DIR/device/victron-multiplus-ii/config"
+    cp "$BACKUP_DIR/victron/.env" "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+    chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+    print_info "✓ Restored Victron .env"
+elif [ ! -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
+    if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env.example" ]; then
+        mkdir -p "$INSTALL_DIR/device/victron-multiplus-ii/config"
+        cp "$INSTALL_DIR/device/victron-multiplus-ii/config/.env.example" \
+           "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+        print_warn "Created Victron .env from template — edit Cerbo GX settings before starting service"
+    fi
+fi
+
 print_info "Configuration restored successfully!"
 
 # Step 7: Set permissions
@@ -146,8 +175,14 @@ print_step "Step 7: Setting permissions..."
 chmod +x "$INSTALL_DIR/scripts/boot/"*.py
 chmod +x "$INSTALL_DIR/scripts/shutdown/"*.py
 chmod +x "$INSTALL_DIR/scripts/status/"*.py
+if [ -d "$INSTALL_DIR/device/victron-multiplus-ii/scripts" ]; then
+    chmod +x "$INSTALL_DIR/device/victron-multiplus-ii/scripts/"*.py
+fi
 chmod +x "$INSTALL_DIR/"*.sh
 chmod 600 "$INSTALL_DIR/config/.env"
+if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
+    chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
+fi
 print_info "✓ Permissions set"
 
 # Step 8: Restart services
@@ -157,6 +192,12 @@ systemctl restart mqtt-shutdown-listener.service
 systemctl restart status-publisher.service
 systemctl restart health-monitor.service || true
 systemctl restart tapo-monitor.service || true
+if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
+    systemctl enable victron-mqtt-publisher.service || true
+    systemctl restart victron-mqtt-publisher.service || true
+else
+    print_warn "Victron .env missing — victron-mqtt-publisher.service not started"
+fi
 print_info "✓ Services restarted"
 
 # Update complete
@@ -174,7 +215,9 @@ echo "  systemctl status mqtt-shutdown-listener.service"
 echo "  systemctl status status-publisher.service"
 echo "  systemctl status health-monitor.service"
 echo "  systemctl status tapo-monitor.service"
+echo "  systemctl status victron-mqtt-publisher.service"
 echo ""
 print_info "View logs with:"
 echo "  journalctl -u status-publisher.service -f"
+echo "  journalctl -u victron-mqtt-publisher.service -f"
 echo ""

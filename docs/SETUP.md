@@ -269,6 +269,27 @@ server:
 sudo systemctl enable mqtt-boot-listener.service
 sudo systemctl enable mqtt-shutdown-listener.service
 sudo systemctl enable status-publisher.service
+sudo systemctl enable health-monitor.service
+sudo systemctl enable tapo-monitor.service
+sudo systemctl enable victron-mqtt-publisher.service
+```
+
+Configure Victron (Cerbo GX Modbus → MQTT) before starting the publisher:
+
+```bash
+sudo cp device/victron-multiplus-ii/config/.env.example \
+  /opt/dell_server_management/device/victron-multiplus-ii/config/.env
+sudo nano /opt/dell_server_management/device/victron-multiplus-ii/config/.env
+# Set VICTRON_GX_HOST, Unit IDs; MQTT uses /opt/dell_server_management/config/.env
+sudo ./install_victron_service.sh
+```
+
+**Remote deploy from your PC:** see [scripts/server/README.md](../scripts/server/README.md) and [developer/SERVER_DEPLOY.md](developer/SERVER_DEPLOY.md).
+
+On **192.168.2.4**, grant temporary deploy sudo first:
+
+```bash
+cd ~/ServerBootShutdownManagemement && sudo ./scripts/server/grant_temporary_deploy_sudo.sh
 ```
 
 ### Step 2: Start Services
@@ -278,6 +299,7 @@ sudo systemctl enable status-publisher.service
 sudo systemctl start mqtt-boot-listener.service
 sudo systemctl start mqtt-shutdown-listener.service
 sudo systemctl start status-publisher.service
+sudo systemctl start victron-mqtt-publisher.service
 ```
 
 ### Step 3: Verify Services
@@ -287,6 +309,7 @@ sudo systemctl start status-publisher.service
 sudo systemctl status mqtt-boot-listener.service
 sudo systemctl status mqtt-shutdown-listener.service
 sudo systemctl status status-publisher.service
+sudo systemctl status victron-mqtt-publisher.service
 ```
 
 All services should show `active (running)`.

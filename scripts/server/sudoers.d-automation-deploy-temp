@@ -1,0 +1,9 @@
+# Temporary passwordless sudo for automation deploy (tinel @ 192.168.2.4).
+# Installed by: scripts/server/grant_temporary_deploy_sudo.sh
+# Removed by:   scripts/server/revoke_deploy_sudo.sh (or auto via at)
+
+tinel ALL=(root) NOPASSWD: /home/tinel/ServerBootShutdownManagemement/install_victron_service.sh
+tinel ALL=(root) NOPASSWD: /opt/dell_server_management/install_victron_service.sh
+tinel ALL=(root) NOPASSWD: /home/tinel/ServerBootShutdownManagemement/update.sh
+tinel ALL=(root) NOPASSWD: /opt/dell_server_management/update.sh
+tinel ALL=(root) NOPASSWD: /home/tinel/ServerBootShutdownManagemement/scripts/server/revoke_deploy_sudo.sh

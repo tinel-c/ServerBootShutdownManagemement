@@ -23,6 +23,7 @@ SERVICES=(
     "status-publisher.service"
     "health-monitor.service"
     "tapo-monitor.service"
+    "victron-mqtt-publisher.service"
 )
 
 # Print header
@@ -118,19 +119,19 @@ print_quick_commands() {
     echo -e "${CYAN}${BOLD}Quick Commands:${NC}"
     echo ""
     echo "  Start all services:"
-    echo -e "    ${YELLOW}sudo systemctl start mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor${NC}"
+    echo -e "    ${YELLOW}sudo systemctl start mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
     echo ""
     echo "  Stop all services:"
-    echo -e "    ${YELLOW}sudo systemctl stop mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor${NC}"
+    echo -e "    ${YELLOW}sudo systemctl stop mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
     echo ""
     echo "  Restart all services:"
-    echo -e "    ${YELLOW}sudo systemctl restart mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor${NC}"
+    echo -e "    ${YELLOW}sudo systemctl restart mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
     echo ""
     echo "  View live logs:"
     echo -e "    ${YELLOW}sudo journalctl -u status-publisher.service -f${NC}"
     echo ""
     echo "  Enable on boot:"
-    echo -e "    ${YELLOW}sudo systemctl enable mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor${NC}"
+    echo -e "    ${YELLOW}sudo systemctl enable mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
     echo ""
 }
 

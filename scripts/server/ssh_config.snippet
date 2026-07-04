@@ -1,0 +1,9 @@
+# SSH client snippet — merge into ~/.ssh/config (Windows: C:\Users\<you>\.ssh\config)
+#
+# After running setup_ssh_key.ps1 (Windows) or setup_ssh_key.sh (Linux/macOS).
+
+Host serverside
+    HostName 192.168.2.4
+    User tinel
+    IdentityFile ~/.ssh/serverside_192_168_2_4_ed25519
+    IdentitiesOnly yes

@@ -45,9 +45,11 @@ A unified automation ecosystem for managing servers (Dell T310, HP DL360p), cour
 
 ## System Architecture
 
-![System Architecture](docs/architecture_v3_8.png)
+![System Architecture — v3.11.8](docs/architecture_diagram_v4.svg)
 
-The system serves as a **centralized automation hub** running Node-RED (native installation), Mosquitto MQTT broker, and Python management scripts. It coordinates interactions between servers, courtyard hardware, and residential automation devices.
+*Marketing overview (PNG): [docs/architecture_diagram_v4.png](docs/architecture_diagram_v4.png)*
+
+The system serves as a **centralized automation hub** running Node-RED (native installation), Mosquitto MQTT broker, and Python management scripts. It coordinates interactions between servers, courtyard hardware, residential automation devices, and **dual energy integrations** (Victron Cerbo GX + Huawei SUN2000).
 
 ### Multi-Domain Automation System
 
@@ -95,7 +97,10 @@ The platform supports **multiple automation domains** through a scalable, modula
 Status and health monitoring is published back through MQTT to the dashboard for real-time visibility.
 
 **Detailed Documentation**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete system architecture, communication flows, and deployment information.
-**Architecture Diagram**: See [docs/architecture_diagram_v4.png](docs/architecture_diagram_v4.png) for the latest diagram source.
+
+**Architecture diagrams** (v3.11.8):
+- [architecture_diagram_v4.svg](docs/architecture_diagram_v4.svg) — scalable source (recommended for docs)
+- [architecture_diagram_v4.png](docs/architecture_diagram_v4.png) — marketing / slide export
 
 ## Quick Start
 

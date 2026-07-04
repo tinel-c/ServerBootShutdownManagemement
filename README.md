@@ -774,62 +774,88 @@ journalctl -u status-publisher.service -f
 
 ## Project Structure
 
+Installed on the automation server at **`/opt/dell_server_management`** (via `install.sh`). Flow numbering follows [Automation Architecture](docs/AUTOMATION_ARCHITECTURE.md) — each domain uses its own `NNN-*.json` files under `nodered/flows/`.
+
 ```
-ServerBootShutdownMangement/
-├── config/                    # Configuration files
+ServerBootShutdownManagemement/
+├── install.sh                      # Full install (core + Victron + Huawei services)
+├── update.sh                       # Safe in-place upgrade (preserves .env)
+├── uninstall.sh
+├── install_victron_service.sh      # Energy publisher only (also called from install.sh)
+├── install_huawei_service.sh
+├── manage.sh · status.sh · check_env.sh · generate_env_template.sh
+│
+├── config/                         # Server-wide secrets & YAML (gitignored: .env)
+│   ├── .env.example
 │   ├── mqtt_config.yaml
 │   └── server_config.yaml
+│
+├── device/                         # Hardware integrations (Modbus, ESP32, …)
+│   ├── victron-multiplus-ii/       # Cerbo GX → energy/victron/*
+│   ├── huawei-inverter/            # SUN2000 → energy/huawei/*
+│   ├── esp32-sms-gateway/          # Git submodule → SMS/OTA firmware
+│   └── README.md
+│
 ├── scripts/
-│   ├── boot/                  # Boot scripts (WOL, IPMI, iLO)
-│   ├── shutdown/              # Shutdown scripts (graceful, force)
-│   ├── status/                # Status monitoring & health checks
-│   └── utils/                 # Utility modules (MQTT, logging)
-├── systemd/                   # Systemd service files
-├── client/                    # Client PC monitoring application
-│   ├── client_monitor.py      # Main client application
-│   ├── install_client.bat     # Windows installation script
-│   ├── uninstall_client.bat   # Windows uninstallation script
-│   ├── requirements_client.txt
-│   ├── config/
-│   │   ├── client_config.yaml
-│   │   └── .env.example
-│   └── README_CLIENT.md       # Client documentation
-├── nodered/                   # Node-RED dashboard (v2.1 modular)
-│   ├── flows/                 # Modular flow files
-│   │   ├── 00-base-config.json
-│   │   ├── 10-dell-controls.json
-│   │   ├── 11-dell-status.json
-│   │   ├── 12-dell-health.json
-│   │   ├── 20-hp-controls.json
-│   │   ├── 21-hp-status.json
-│   │   ├── 22-hp-health.json
-│   │   ├── 40-client-tracking.json    # NEW: Client presence tracking
-│   │   ├── 41-client-automation.json  # NEW: Server automation
-│   │   ├── 50-telegram-interface.json # NEW: Telegram bot interface
+│   ├── boot/ · shutdown/ · status/ # MQTT listeners & publishers (Python)
+│   ├── utils/                      # Shared MQTT, logging, IPMI helpers
+│   ├── install/                    # common.sh, device_service.sh (shared installers)
+│   ├── release/                    # create_release.{sh,ps1,bat}
+│   └── server/                     # Remote deploy, sudo grants, Huawei WiFi setup
+│
+├── systemd/                        # All units copied to /etc/systemd/system/
+│   ├── mqtt-boot-listener.service
+│   ├── mqtt-shutdown-listener.service
+│   ├── status-publisher.service
+│   ├── health-monitor.service
+│   ├── tapo-monitor.service
+│   ├── victron-mqtt-publisher.service
+│   ├── victron-solar-forecast-publisher.service
+│   └── huawei-mqtt-publisher.service
+│
+├── nodered/
+│   ├── flows/                      # Import in order — see flows/README.md
+│   │   ├── 00-base-config.json     # MQTT broker, dashboard shell
+│   │   ├── 10–12, 20–22           # Dell T310 & HP DL360p (100–199)
+│   │   ├── 40–42                   # Client tracking & automation (40–49)
+│   │   ├── 50-telegram-interface.json
+│   │   ├── 200–212                 # Gates (200–299)
+│   │   ├── 300–321                 # Garden power & lights (300–399)
+│   │   ├── 400–421                 # Irrigation (400–499)
+│   │   ├── 500–514                 # Aquarium, SMS gateway (500–599)
+│   │   ├── 611                     # Cameras (600–699)
+│   │   ├── 800–822                 # Energy: Victron + Huawei (800–899)
+│   │   ├── 90-device-watchdog.json # MQTT heartbeat watchdog (all domains)
 │   │   ├── 90-log-console.json
 │   │   └── README.md
-│   ├── NODE_RED_DEVELOPMENT.md
-│   ├── HEALTH_DASHBOARD_GUIDE.md
-│   ├── TELEGRAM_SETUP.md      # Telegram bot setup guide
-│   └── flows.json             # Legacy (deprecated)
-├── docs/                      # Documentation
-│   ├── archive/               # Historical notes and summaries
-│   ├── developer/             # Agent and developer-specific guides
-│   ├── SETUP.md
-│   ├── MQTT_PROTOCOL.md
-│   ├── ARCHITECTURE.md
-│   ├── TELEGRAM_INTERFACE.md
-│   ├── SMS_INTERFACE.md
-│   ├── CLIENT_MANAGEMENT.md
-│   ├── DEVELOPMENT.md
-│   ├── REFERENCE.md
-│   ├── UPDATE.md
-│   └── TROUBLESHOOTING.md
-├── requirements.txt           # Python dependencies
-├── install.sh                 # Installation script
-├── uninstall.sh               # Uninstallation script
-└── status.sh, manage.sh, ...  # Management scripts
+│   ├── live-connection/            # Backup/sync tooling for live Node-RED
+│   ├── templates/                  # Flow templates for new domains
+│   └── *.md                        # Node-RED development guides
+│
+├── client/                         # Windows client monitor (presence, shutdown, auto-update)
+│
+├── docs/
+│   ├── images/                     # README topic banners
+│   ├── releases/                   # RELEASE_NOTES_v*.md per version
+│   ├── archive/                    # Historical notes
+│   ├── developer/                  # Deploy, env, device submodules
+│   ├── ARCHITECTURE.md · MQTT_PROTOCOL.md · ENERGY_NODE_RED.md
+│   ├── SETUP.md · UPDATE.md · REFERENCE.md · TROUBLESHOOTING.md
+│   └── architecture_diagram_v4.{svg,png}
+│
+├── CHANGELOG.md · RELEASE_HISTORY.md · requirements.txt · LICENSE
+└── (legacy) nodered/flows.json     # Deprecated monolithic export
 ```
+
+**Quick paths**
+
+| Goal | Start here |
+|------|------------|
+| First install | [docs/SETUP.md](docs/SETUP.md) → `sudo ./install.sh` |
+| Energy (Victron / Huawei) | [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), `device/*/README.md` |
+| Node-RED import order | [nodered/flows/README.md](nodered/flows/README.md) |
+| MQTT topic reference | [docs/MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md) |
+| GitHub release | [docs/releases/](docs/releases/) + `scripts/release/create_release.sh` |
 
 ## Documentation
 

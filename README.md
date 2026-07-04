@@ -812,10 +812,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.11.8 (Huawei SUN2000 energy integration)  
+**Version:** 3.11.9 (Install cleanup & architecture diagram)  
 **Last Updated:** 2026-07-04
 
 ## Recent Releases
+
+### v3.11.9 (2026-07-04) - Install cleanup & architecture diagram
+- 🔧 **Unified install** — `install.sh` enables core + Victron + Huawei services; shared `scripts/install/` helpers
+- 📁 **Repo cleanup** — release notes in `docs/releases/`; generic `scripts/release/create_release.*`
+- 📊 **Architecture v4** — SVG + PNG platform diagram (energy, IoT, servers)
+- See [RELEASE_NOTES_v3.11.9.md](docs/releases/RELEASE_NOTES_v3.11.9.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.11.8 (2026-07-04) - Huawei SUN2000 energy integration
 - ☀️ **Huawei SUN2000** Modbus→MQTT publisher over inverter WiFi AP (`energy/huawei/*`)

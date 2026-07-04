@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.9] - 2026-07-04
+
+### Changed - Install, repo cleanup, architecture diagram
+
+- **Install/update**: `install.sh` installs Victron + Huawei services; shared `scripts/install/` helpers; Huawei in `update.sh` / `uninstall.sh`.
+- **Repo**: release notes under `docs/releases/`; generic `scripts/release/create_release.*`; removed agent temp patch/build scripts.
+- **Docs**: [architecture_diagram_v4.svg](docs/architecture_diagram_v4.svg) + PNG; README/ARCHITECTURE updated.
+
 ## [3.11.8] - 2026-07-04
 
 ### Added - Huawei SUN2000 solar (Modbus → MQTT → Node-RED → Telegram)

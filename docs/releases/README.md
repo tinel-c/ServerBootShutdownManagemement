@@ -37,6 +37,7 @@ gh release create vX.Y.Z --title "vX.Y.Z — …" --notes-file docs/releases/REL
 
 | Version | Notes |
 |---------|-------|
+| v3.11.9 | [RELEASE_NOTES_v3.11.9.md](RELEASE_NOTES_v3.11.9.md) — Install cleanup & architecture v4 |
 | v3.11.8 | [RELEASE_NOTES_v3.11.8.md](RELEASE_NOTES_v3.11.8.md) — Huawei SUN2000 energy |
 | v3.11.7 | [RELEASE_NOTES_v3.11.7.md](RELEASE_NOTES_v3.11.7.md) — Victron docs |
 | v3.11.6 | [RELEASE_NOTES_v3.11.6.md](RELEASE_NOTES_v3.11.6.md) — Victron energy |

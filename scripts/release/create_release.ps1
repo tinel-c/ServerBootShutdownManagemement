@@ -30,11 +30,9 @@ if (-not (Test-Path $NotesFile)) {
 
 if (-not $Title) {
     $FirstLine = (Get-Content $NotesFile -TotalCount 1)
-    if ($FirstLine -match '^# v[\d.]+ \(\d{4}-\d{2}-\d{2}\) — (.+)$') {
-        $Title = "$Tag — $($Matches[1])"
-    }
-    elseif ($FirstLine -match '^# v[\d.]+ — (.+)$') {
-        $Title = "$Tag — $($Matches[1])"
+    if ($FirstLine -match '^# v[\d.]+ \(.+\)\s+(.+)$') {
+        $subtitle = $Matches[1] -replace '^[-\u2014\s]+', ''
+        $Title = "$Tag - $subtitle"
     }
     else {
         $Title = $Tag

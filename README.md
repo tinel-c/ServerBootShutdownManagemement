@@ -6,15 +6,58 @@ This project started as a way to remotely boot and shut down two Proxmox servers
 
 Everything talks over **MQTT**. Node-RED provides dashboards and logic. Python systemd services handle hardware control, Modbus polling, and health checks. You operate it from a browser, Telegram, or SMS — and the system can act on its own when clients connect, solar surplus appears, or a device stops reporting.
 
+<p align="center">
+  <img src="docs/images/readme_access.png" alt="Control from anywhere — Dashboard, Telegram, SMS" width="49%" />
+  <img src="docs/images/readme_servers.png" alt="Server management — WoL, iLO, Proxmox" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/images/readme_energy.png" alt="Solar energy — Victron and Huawei via MQTT" width="49%" />
+  <img src="docs/images/readme_home.png" alt="Home and courtyard automation" width="49%" />
+</p>
+
 ## What It Does
 
-| Area | What you get |
-|------|----------------|
-| **Servers** | Wake-on-LAN / IPMI / iLO boot, graceful Proxmox shutdown, live status, HealthChecks.io |
-| **Smart power** | Windows client presence → auto boot when needed, grace-period shutdown when everyone leaves |
-| **Energy** | Victron Cerbo GX + Huawei SUN2000 → MQTT dashboards, Telegram, PV headroom automation |
-| **Home & courtyard** | Gates, irrigation (rain-smart), garden lights, water pump, aquarium, cameras |
-| **Alerts** | Telegram bot, ESP32 SMS gateway, device watchdog (2 min) when telemetry stops |
+Quick map of the five pillars — each has its own Node-RED flow range, MQTT topics, and optional Telegram commands.
+
+### 🖥️ Servers & smart power
+
+![Server Management](docs/images/readme_servers.png)
+
+| Capability | Details |
+|------------|---------|
+| **Remote power** | Wake-on-LAN / IPMI (Dell T310), iLO (HP DL360p), graceful Proxmox shutdown |
+| **Monitoring** | Live status, HealthChecks.io, ping fallback |
+| **Smart automation** | Windows client presence → auto boot; grace-period shutdown when PCs leave |
+
+### ⚡ Energy & solar
+
+![Solar Energy Monitoring](docs/images/readme_energy.png)
+
+| Capability | Details |
+|------------|---------|
+| **Victron** | Cerbo GX / MultiPlus-II → `energy/victron/*`, headroom automation, 7-day dashboard |
+| **Huawei** | SUN2000 grid-tie → `energy/huawei/*`, live PV and daily yield |
+| **Forecast** | Open-Meteo solar forecast · Telegram `/energy_*` and `/huawei_*` |
+
+### 🏡 Home & courtyard
+
+![Home and Courtyard Automation](docs/images/readme_home.png)
+
+| Capability | Details |
+|------------|---------|
+| **Gates** | Main, sliding, secondary — MQTT + Telegram |
+| **Irrigation** | Rain-smart zones, Open-Meteo, dashboard status |
+| **Lights & more** | Garden lights, water pump, aquarium, cameras |
+
+### 📱 Control & alerts
+
+![Control From Anywhere](docs/images/readme_access.png)
+
+| Capability | Details |
+|------------|---------|
+| **Dashboard** | Node-RED Dashboard 2.0 — glass UI, live countdowns |
+| **Telegram** | One bot, domain commands (`/boot`, `/energy_status`, `/huawei_status`, …) |
+| **SMS** | ESP32 gateway · watchdog alerts when telemetry stops (2 min) |
 
 Typical setup: an **Ubuntu automation server** on your LAN (e.g. `192.168.2.4`) running Node-RED, Mosquitto, and the Python publishers in this repo. Managed servers and IoT devices connect over Ethernet or WiFi; energy inverters are polled via Modbus.
 
@@ -35,7 +78,11 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 
 ## Features
 
-### Server Management
+<details open>
+<summary><strong>🖥️ Server Management</strong></summary>
+
+![Server power control](docs/images/readme_servers.png)
+
 - 🚀 **Remote Boot** - Wake-on-LAN (Dell T310) and iLO (HP DL360p) based boot
 - 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
 - 📊 **Status Monitoring** - Real-time server status via Proxmox API with **Ping Fallback** (Dell T310) and iLO (HP DL360p)
@@ -44,7 +91,13 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 📋 **Activity Logging** - Complete audit trail with triggers, commands, and status changes
 - 🔄 **Auto-Retry** - Automatic retry logic for transient connection failures
 
-### Energy Management (v3.11.6+)
+</details>
+
+<details open>
+<summary><strong>⚡ Energy Management (v3.11.6+)</strong></summary>
+
+![Solar and battery monitoring](docs/images/readme_energy.png)
+
 - ⚡ **Victron Cerbo GX / MultiPlus-II** - Modbus TCP → MQTT (`energy/victron/*`)
 - ☀️ **Huawei SUN2000** - Modbus TCP over inverter WiFi AP → MQTT (`energy/huawei/*`) *(v3.11.8+)*
 - 🔋 **Live metrics** - Battery SoC, grid import/export, PV, load, inverter state (Victron); PV strings, active power, daily yield (Huawei)
@@ -54,14 +107,37 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 📱 **Telegram** - Victron `/energy_*` (flow `812`); Huawei `/huawei_status`, `/huawei_help` (flow `822`)
 - 🛡️ **Watchdog** - Telegram alert if `energy/victron/status` or `energy/huawei/status` stops (flow `90`, 2 min timeout)
 
-### Client Management (NEW v2.4.0)
+</details>
+
+<details>
+<summary><strong>🏡 Home, courtyard & domains</strong></summary>
+
+![Courtyard and home IoT](docs/images/readme_home.png)
+
+- 🚪 **Gates** (200–212) — perimeter and garage, MQTT + Telegram
+- 💧 **Irrigation** (420–421) — rain-smart scheduling, Open-Meteo, SMS/Telegram alerts
+- 💡 **Lights & power** (300–321) — garden Sonoff, Tapo monitor
+- 📹 **Cameras** (611) · 🐠 **Aquarium** (500–501) · 💧 **Water pump** (410–411)
+- 📱 **SMS gateway** (510–514) — ESP32, multi-reply HELP, OTA
+
+</details>
+
+<details>
+<summary><strong>💻 Client Management (v2.4.0+)</strong></summary>
+
 - 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
 - 🛑 **Remote Client Shutdown** - Graceful and force shutdown of Windows client PCs
 - 💾 **Application Save** - Automatically saves open applications before shutdown
 - 🔄 **Auto-Update** - Clients self-update from GitHub releases automatically
 - 🎨 **System Tray** - Modern icon with status indicators and update checks
 
-### User Interface & Management
+</details>
+
+<details>
+<summary><strong>🖥️ User interface & management</strong></summary>
+
+![Dashboard, Telegram, and SMS](docs/images/readme_access.png)
+
 - 🖥️ **Premium Dashboard** - Modern glassmorphism-style Node-RED interface with live countdowns
 - 🎛️ **Unified Control Panel** - Manage servers, gates, lights, and sensors from a single interface
 - 📊 **Workflow Optimization** - Processes and measures inputs (sensors, heartbeats) to execute complex automation workflows
@@ -73,6 +149,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 🔒 **Secure** - TLS/SSL support, credential management, secure .env files
 - 📝 **Comprehensive Logging** - Detailed logs for troubleshooting
 - 🔄 **Auto-Restart** - Systemd services with automatic restart
+
+</details>
 
 ## System Architecture
 

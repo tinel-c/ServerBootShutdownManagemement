@@ -153,9 +153,12 @@ During update:
 
 After update:
 - [ ] Verify services are running: `systemctl status status-publisher.service`
+- [ ] **Victron** (if configured): `systemctl status victron-mqtt-publisher.service victron-solar-forecast-publisher.service`
+- [ ] **Victron MQTT**: `mosquitto_sub -h localhost -t 'energy/victron/status' -C 1`
+- [ ] **Node-RED** (v3.11.6+): re-import flows `800`, `811`, `812`, update `50` and `90` — see [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md)
 - [ ] Check logs: `journalctl -u status-publisher.service -n 20`
 - [ ] Test functionality (boot/shutdown commands, status monitoring)
-- [ ] Verify Telegram notifications work
+- [ ] Verify Telegram notifications work (`/help`, `/energy_status`)
 
 ---
 

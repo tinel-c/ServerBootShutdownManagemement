@@ -13,6 +13,15 @@ A unified automation ecosystem for managing servers (Dell T310, HP DL360p), cour
 - 📋 **Activity Logging** - Complete audit trail with triggers, commands, and status changes
 - 🔄 **Auto-Retry** - Automatic retry logic for transient connection failures
 
+### Energy Management (v3.11.6+)
+- ⚡ **Victron Cerbo GX / MultiPlus-II** - Modbus TCP → MQTT (`energy/victron/*`)
+- 🔋 **Live metrics** - Battery SoC, grid import/export, PV, load, inverter state
+- 🤖 **PV headroom automation** - `headroom_w = PV − consumption`, discretionary load start/stop
+- ☀️ **Solar forecast** - Open-Meteo for Lunca Cetătuui (hourly + daily topics)
+- 📊 **Node-RED dashboard** - Energy page with 7-day chart and automation banner (flows `800` / `811`)
+- 📱 **Telegram** - `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help` (flow `812`)
+- 🛡️ **Watchdog** - Telegram alert if `energy/victron/status` stops (flow `90`, 2 min timeout)
+
 ### Client Management (NEW v2.4.0)
 - 💻 **Client PC Monitoring** - Automatic server power management based on client PC presence
 - 🛑 **Remote Client Shutdown** - Graceful and force shutdown of Windows client PCs
@@ -51,7 +60,7 @@ The platform supports **multiple automation domains** through a scalable, modula
 - 📱 **SMS/Notifications** (500-599) - Alerts, notifications, messaging
 - 📹 **Security/Cameras** (600-699) - Camera feeds, motion detection, recordings
 - 🌡️ **HVAC/Climate** (700-799) - Heating, cooling, ventilation control
-- ⚡ **Energy Management** (800-899) - Power monitoring, solar, batteries
+- ⚡ **Energy Management** (800-899) - Victron Cerbo GX: Modbus→MQTT, dashboard, Telegram, watchdog — [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md)
 
 **Key Features:**
 - **Modular Design** - Each domain is independent and self-contained
@@ -412,10 +421,17 @@ Modern, feature-rich dashboard with modular flows for easy maintenance and scala
    flows/40-client-tracking.json  # Client PC presence tracking
    flows/41-client-automation.json # Server automation based on clients
    flows/50-telegram-interface.json # Telegram bot interface (optional)
+   flows/800-energy-base-config.json   # Energy page (import before 811)
+   flows/811-victron-energy-status.json # Victron live dashboard + 7-day chart
+   flows/812-victron-energy-telegram.json # Victron /energy_* Telegram commands
+   flows/90-device-watchdog.json  # Device health + Victron reporting watchdog
    flows/90-log-console.json      # System log console
    ```
 
-5. **Click Deploy** and access dashboard: http://localhost:1880/dashboard/home
+   **Energy (Victron):** import `800` → `811` → `812`; re-import `50` (or `50-patch-victron-energy-help.json`) and `90` with **Replace existing nodes**. See [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md).
+
+5. **Click Deploy** and access dashboard: http://localhost:1880/dashboard/home  
+   Energy page: http://localhost:1880/dashboard/energy
 
 ### Dashboard Features
 
@@ -448,12 +464,13 @@ Each server (Dell T310 & HP DL360p) has dedicated panels:
 - Subscribes to all MQTT response topics
 
 #### Telegram Bot Interface (Optional)
-- 🤖 Control servers via Telegram commands
+- 🤖 Control servers, gates, lights, irrigation, **Victron energy**, and more via Telegram
 - 📊 Real-time status notifications
-- 🔔 Automatic alerts on server state changes
+- 🔔 Automatic alerts on server state changes and device watchdog events
 - 🔐 User authorization support
-- **Commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
-- **See**: [nodered/TELEGRAM_SETUP.md](nodered/TELEGRAM_SETUP.md) for setup instructions
+- **Server commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
+- **Energy commands**: `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help`
+- **See**: [docs/TELEGRAM_INTERFACE.md](docs/TELEGRAM_INTERFACE.md), [nodered/TELEGRAM_SETUP.md](nodered/TELEGRAM_SETUP.md)
 
 **Flow Structure:**
 ```
@@ -463,6 +480,8 @@ nodered/flows/
 ├── 20-22-hp-*.json            # HP DL360p management
 ├── 40-42-client-*.json        # Client tracking & automation
 ├── 50-telegram-interface.json # Telegram bot (optional)
+├── 800-811-victron-*.json   # Victron energy dashboard + Telegram
+├── 90-device-watchdog.json  # MQTT heartbeat watchdog (all devices + Victron)
 └── 90-log-console.json        # System logging
 ```
 
@@ -703,6 +722,8 @@ ServerBootShutdownMangement/
 - [Development Guide](docs/DEVELOPMENT.md) - Development and contribution
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Message specifications
+- [Energy / Node-RED](docs/ENERGY_NODE_RED.md) - Victron dashboard flows 800–812
+- [Victron device README](device/victron-multiplus-ii/README.md) - Cerbo setup, Modbus, systemd install
 - [Telegram Interface](docs/TELEGRAM_INTERFACE.md) - Bot command reference & gateway
 - [SMS Interface](docs/SMS_INTERFACE.md) - SMS command reference & emergency forwarding
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
@@ -779,10 +800,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.11.6 (Victron energy — Cerbo GX dashboard, Telegram, watchdog)  
-**Last Updated:** 2026-04-11
+**Version:** 3.11.7 (Documentation for Victron energy release)  
+**Last Updated:** 2026-07-04
 
 ## Recent Releases
+
+### v3.11.6 (2026-07-04) - Victron energy integration
+- ⚡ **Cerbo GX / MultiPlus-II** Modbus→MQTT publisher + Open-Meteo solar forecast
+- 📊 **Node-RED** flows `800` / `811` / `812` — dashboard, 7-day chart, discretionary load controls
+- 📱 **Telegram** `/energy_*` commands; `/help` updated with Victron section
+- 🛡️ **Watchdog** monitors `energy/victron/status` (2 min); state-change-only alerts for all devices
+- See [RELEASE_NOTES_v3.11.6.md](RELEASE_NOTES_v3.11.6.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.10.6 (2026-04-11) - Irrigation 421 weekdays, season & schedule
 - 📅 **Weekday gates** for automatic Lawn/Flowers; **Mar–Nov** irrigation season; **season-themed** Irrigation days card.

@@ -246,6 +246,17 @@ python3 scripts/status/status_publisher.py  # Run once manually
 | `/shutdown [dell\|hp]` | Graceful shutdown |
 | `/force [dell\|hp]` | Force shutdown (dangerous) |
 
+### Victron energy (v3.11.6+)
+
+| Command | Description |
+|---------|-------------|
+| `/energy_status` | Battery, grid, PV, load, headroom, inverter |
+| `/energy_start` | Start discretionary loads (when PV surplus) |
+| `/energy_stop` | Stop discretionary loads |
+| `/energy_help` | Victron energy help + buttons |
+
+See [TELEGRAM_INTERFACE.md](TELEGRAM_INTERFACE.md) and [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md).
+
 ---
 
 ## 🔄 Update Workflow

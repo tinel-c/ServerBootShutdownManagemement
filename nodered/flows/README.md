@@ -647,6 +647,6 @@ For detailed development guidance, see:
 
 ---
 
-**Last Updated**: February 1, 2026
-**Format Version**: 2.4.0 (SMS Command Interface + Forwarding)
+**Last Updated**: July 4, 2026  
+**Format Version**: 3.11.6 (Victron energy flows 800–812)
 

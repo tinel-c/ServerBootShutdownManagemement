@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.7] - 2026-07-04
+
+### Changed - Documentation (Victron energy v3.11.6)
+
+- **README.md**: Energy Management feature section, Node-RED import order (800–812, 90), Telegram `/energy_*`, v3.11.6 in recent releases.
+- **RELEASE_NOTES_v3.11.6.md**: Documentation index and post-deploy verify commands.
+- **docs/UPDATE.md**, **docs/REFERENCE.md**: Victron upgrade checklist and Telegram energy commands.
+- **nodered/flows/README.md**: Last updated date.
+
 ## [3.11.6] - 2026-07-04
 
 ### Added - Victron Cerbo GX energy (Modbus → MQTT → Node-RED → Telegram)

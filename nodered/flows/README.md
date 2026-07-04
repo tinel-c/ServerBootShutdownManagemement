@@ -21,7 +21,7 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 11. `50-telegram-interface.json` - **Telegram Bot Interface** (optional)
 12. `90-log-console.json`
 
-**Energy (Victron):** after base config, import `800`, `811`, `812`, and update `/help` via `50-telegram-interface.json` or patch `50-patch-victron-energy-help.json` (replace existing nodes). Requires `50-telegram-interface.json`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
+**Energy (Victron):** after base config, import `800`, `811`, `812`, and re-import `50-telegram-interface.json` (replace existing nodes) for `/help`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
 
 **Energy (Huawei):** after `800`, import `821`, `822`; re-import `50` and `90` (replace existing nodes). Requires `huawei-mqtt-publisher.service`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
 

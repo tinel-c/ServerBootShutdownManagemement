@@ -68,7 +68,7 @@ Import **after** `00-base-config.json`. Recommended position in the full stack:
 2. Menu → **Import** → select `nodered/flows/800-energy-base-config.json` → **Import**
 3. Repeat for `811-victron-energy-status.json`
 4. Import `812-victron-energy-telegram.json`
-5. **Update `/help`:** import `50-telegram-interface.json` **or** the smaller patch `50-patch-victron-energy-help.json` (choose **Replace existing nodes** when prompted)
+5. **Update `/help`:** import `50-telegram-interface.json` (choose **Replace existing nodes** when prompted)
 6. **Deploy**
 7. Send `/help` in Telegram — confirm **☀️ VICTRON ENERGY** section appears
 5. Open dashboard: `http://<automation-server>:1880/dashboard/energy`

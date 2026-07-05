@@ -105,7 +105,7 @@ def parse_sensor_status(
     if switch_on is not None:
         merged_extra["switch_on"] = switch_on
 
-    for key in ("Today", "Yesterday", "Period", "Factor", "ApparentPower", "ReactivePower"):
+    for key in ("Today", "Yesterday", "Period", "Factor", "ApparentPower", "ReactivePower", "TotalStartTime"):
         val = energy.get(key)
         if val is not None:
             merged_extra[f"energy_{key.lower()}"] = val

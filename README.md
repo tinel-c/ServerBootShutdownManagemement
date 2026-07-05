@@ -948,9 +948,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📊 **Server dashboard** — full-width health cards, schedule UI, Rolling Log at end; `deploy-media-ui.mjs`
 - See [RELEASE_NOTES_v3.14.0.md](docs/releases/RELEASE_NOTES_v3.14.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
+### v3.17.0 (2026-07-05) - Camera registry, watchdog thumbnails, 5-minute polling
+
+- 📹 **Seven Tapo cameras** — registry, `camera_connect.py`, 5 min health + snapshots
+- 🖼️ **Watchdog thumbnails** — flow 613, HTTP `/camera-snapshots/{slug}.jpg`
+- 📼 **HomeGuard NVR** — `192.168.2.59` documented ([HOMEGUARD_NVR.md](docs/HOMEGUARD_NVR.md))
+
 ### v3.13.0 (2026-07-05) - Energy dashboards, Huawei PV forecast, Tapo cameras
 - 📊 **Energy charts** — Victron/Huawei 7-day SVG with hover tooltips; SoC band fix; Huawei PV forecast (Open-Meteo)
-- 📹 **Tapo cameras** — flows `611`–`613`, `tapo-monitor.service`, [TAPO_CAMERA.md](docs/TAPO_CAMERA.md)
+- 📹 **Tapo cameras** — flows `611`–`613`, `tapo-monitor.service`, 7-camera registry, Watchdog thumbnails, [TAPO_CAMERA.md](docs/TAPO_CAMERA.md), [docs/cameras/REGISTRY.md](docs/cameras/REGISTRY.md)
 - 🚀 **Live deploy** — `deploy-flow-811-821.mjs`, `611`, `612`, `613`
 - See [RELEASE_NOTES_v3.13.0.md](docs/releases/RELEASE_NOTES_v3.13.0.md) and [CHANGELOG.md](CHANGELOG.md)
 

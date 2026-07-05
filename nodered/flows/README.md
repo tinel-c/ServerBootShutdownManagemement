@@ -522,7 +522,7 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 - **Timeout:** 2 minutes without `online` heartbeat (tapo-monitor republishes ~every 60 s)
 - **Explicit offline:** immediate alert when monitor publishes `offline`
 - Telegram alerts on transitions only (via flow 90 `watchdog_telegram_sender`)
-- `tapo-monitor.service` enrolls each camera on SMS Gateway watchdog as `camera_{slug}` (60 s)
+- `tapo-monitor.service` monitors cameras via MQTT health topics (flow 612)
 
 **Import**: After `90-device-watchdog.json` (shares `watchdog_telegram_sender`). Deploy: `node nodered/live-connection/scripts/deploy-flow-612.mjs`
 
@@ -533,10 +533,10 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 
 - Dashboard page `/dashboard/watchdog` — all monitored devices in one view
 - **Node-RED watchdogs** (flow 90): gates, garden, energy, water, SMS gateway
-- **Camera watchdogs** (flow 612): per-slug health with 2 min timeout
+- **Camera watchdogs** (flow 612): per-slug health with 7 min timeout; **snapshots** every 5 min on `garden/camera/{slug}/snapshot` for thumbnails on this page
 - **SMS Gateway hardware** enrollments from `sms/gateway/watchdog/status`
 - Summary pills (online / offline / unknown) and cards grouped by category
-- Refreshes every 30 s; heartbeats update live via MQTT
+- Refreshes every 10 s; heartbeats update live via MQTT
 
 **Deploy:** `node nodered/live-connection/scripts/generate-flow-613.mjs` (after editing registry), then `node nodered/live-connection/scripts/deploy-flow-613.mjs`
 

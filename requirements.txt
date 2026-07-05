@@ -25,6 +25,7 @@ pytest-mock>=3.10.0
 # ONVIF and Camera Integration
 onvif-zeep>=0.2.1
 WSDiscovery>=2.0.0
+Pillow>=10.0.0
 
 # Victron Cerbo GX / Modbus TCP
 pymodbus>=3.6.0

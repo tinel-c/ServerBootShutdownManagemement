@@ -33,19 +33,20 @@ const MQTT_SUBS = [
   { id: "watchdog_ui_in_scala1", name: "SCALA1 status", topic: "water/grundfos/scala1/status" },
   { id: "watchdog_ui_in_sms_gw", name: "SMS gateway status", topic: "sms/gateway/status" },
   { id: "watchdog_ui_in_cameras", name: "Camera health", topic: "garden/camera/+/health" },
+  { id: "watchdog_ui_in_cam_snap", name: "Camera snapshots", topic: "garden/camera/+/snapshot" },
   { id: "watchdog_ui_in_sms_wd", name: "SMS watchdog status", topic: "sms/gateway/watchdog/status" },
 ];
 
 const BUILD_FUNC = `const NR_WATCHDOGS = ${JSON.stringify(NR_WATCHDOGS)};
 
 const CAMERA_LABELS = {
-    interior: 'Interior curte',
-    smallGate: 'Poarta mica',
-    backyard: 'Spate casa',
-    gate2: 'Poarta glisanta 2',
-    gate1: 'Poarta glisanta 1',
-    fataCasa: 'Fata casa',
-    strada: 'Curte strada'
+    backGate: 'Back Gate',
+    casaSpate: 'Casa Spate',
+    frontHouse: 'Front House',
+    gazonCurte: 'Gazon Curte',
+    gradinaLunca: 'Gradina Lunca Cetatuii',
+    smallGateEntrance: 'Small Gate Entrance',
+    streetView: 'Street View Camera',
 };
 
 function displayName(slug) {
@@ -55,18 +56,14 @@ function displayName(slug) {
 }
 
 function resolveState(id, timeoutMin) {
-    const stateKey = id.startsWith('camera_')
-        ? 'watchdog_state_' + id
-        : 'watchdog_state_' + id;
+    const stateKey = 'watchdog_state_' + id;
+    const lastKey = 'watchdog_ui_last_' + id;
     let state = flow.get(stateKey) || 'unknown';
-    const lastKey = id.startsWith('camera_')
-        ? 'watchdog_ui_last_' + id
-        : 'watchdog_ui_last_' + id;
     const lastSeen = flow.get(lastKey);
-    if ((!state || state === 'unknown') && lastSeen) {
-        const ageMin = (Date.now() - lastSeen) / 60000;
-        if (ageMin <= timeoutMin) state = 'online';
-        else state = 'offline';
+    const now = Date.now();
+    if (lastSeen) {
+        const ageMin = (now - lastSeen) / 60000;
+        state = ageMin <= timeoutMin ? 'online' : 'offline';
     }
     return { state, lastSeen: lastSeen || null };
 }
@@ -89,37 +86,58 @@ for (const d of NR_WATCHDOGS) {
 
 for (const slug of Object.keys(CAMERA_LABELS)) {
     const id = 'camera_' + slug;
-    const { state, lastSeen } = resolveState(id, 2);
+    const { state, lastSeen } = resolveState(id, 7);
+    const snap = flow.get('watchdog_snapshot_' + slug);
+    let snapshotSrc = null;
+    if (snap && snap.at) {
+        const base = snap.url || ('/camera-snapshots/' + slug + '.jpg');
+        snapshotSrc = base + (base.indexOf('?') >= 0 ? '&' : '?') + 't=' + encodeURIComponent(snap.at);
+    }
     items.push({
         id,
         name: displayName(slug),
         category: 'Cameras',
         layer: 'Node-RED',
         topic: 'garden/camera/' + slug + '/health',
-        timeoutMin: 2,
+        timeoutMin: 7,
         state,
-        lastSeen
+        lastSeen,
+        snapshotAt: snap && snap.at ? snap.at : null,
+        snapshotSrc
     });
 }
 
 const smsDevices = flow.get('watchdog_sms_devices') || [];
+const activeCameraSlugs = new Set(Object.keys(CAMERA_LABELS));
+const now = Date.now();
 for (const dev of smsDevices) {
     if (!dev || !dev.name) continue;
+    // Cameras are shown via Node-RED layer; skip SMS hardware duplicates.
+    if (dev.name.startsWith('camera_')) continue;
+    const slug = dev.name.slice('camera_'.length);
+    if (activeCameraSlugs.has(slug)) continue;
+    const intervalSec = dev.interval || 60;
+    const ageSec = dev.lastSeen != null
+        ? Math.max(0, Math.round((now - dev.lastSeen) / 1000))
+        : (dev.ageSec != null ? dev.ageSec : null);
+    const online = ageSec != null ? ageSec <= intervalSec : !!dev.online;
     items.push({
         id: 'sms_hw_' + dev.name,
         name: dev.name,
         category: dev.name.startsWith('camera_') ? 'Cameras' : 'SMS Gateway',
         layer: 'SMS Hardware',
         topic: 'sms/gateway/watchdog/heartbeat',
-        timeoutMin: Math.max(1, Math.round((dev.interval || 60) / 60)),
-        timeoutSec: dev.interval || 60,
-        state: dev.online ? 'online' : 'offline',
+        timeoutMin: Math.max(1, Math.round(intervalSec / 60)),
+        timeoutSec: intervalSec,
+        state: online ? 'online' : 'offline',
         lastSeen: dev.lastSeen || null,
-        ageSec: dev.ageSec
+        ageSec
     });
 }
 
 items.sort((a, b) => {
+    if (a.category === 'Cameras' && b.category !== 'Cameras') return -1;
+    if (b.category === 'Cameras' && a.category !== 'Cameras') return 1;
     const c = a.category.localeCompare(b.category);
     if (c !== 0) return c;
     return a.name.localeCompare(b.name);
@@ -133,7 +151,8 @@ const summary = items.reduce((acc, it) => {
 msg.payload = {
     items,
     summary,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    refreshTick: Date.now()
 };
 return msg;`;
 
@@ -162,6 +181,32 @@ if (topic === 'sms/gateway/watchdog/status') {
     return { payload: 'refresh' };
 }
 
+if (topic.startsWith('garden/camera/') && topic.endsWith('/snapshot')) {
+    const slug = topic.split('/')[2];
+    if (slug) {
+        let payload = msg.payload;
+        if (typeof payload === 'string') {
+            try { payload = JSON.parse(payload); } catch (e) { payload = null; }
+        }
+        if (payload && (payload.timestamp || payload.image_url || payload.image_b64)) {
+            const at = payload.timestamp || new Date(now).toISOString();
+            const url = payload.image_url || ('/camera-snapshots/' + slug + '.jpg');
+            if (payload.image_b64 && !payload.image_url) {
+                try {
+                    const dir = '/opt/dell_server_management/data/camera-snapshots';
+                    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+                    const fp = dir + '/' + slug + '.jpg';
+                    const tmp = fp + '.tmp';
+                    fs.writeFileSync(tmp, Buffer.from(payload.image_b64, 'base64'));
+                    fs.renameSync(tmp, fp);
+                } catch (e) { /* optional: tapo-monitor may write files instead */ }
+            }
+            flow.set('watchdog_snapshot_' + slug, { at, url });
+        }
+    }
+    return { payload: 'refresh' };
+}
+
 if (topic.startsWith('garden/camera/') && topic.endsWith('/health')) {
     const slug = topic.split('/')[2];
     if (slug) {
@@ -182,12 +227,31 @@ if (id) {
 
 return null;`;
 
+const SERVE_SNAPSHOT_FUNC = `const SNAP_DIR = '/opt/dell_server_management/data/camera-snapshots';
+let slug = String(msg.req.params.slug || '').replace(/\\.jpg$/i, '');
+if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+    msg.statusCode = 404;
+    msg.payload = 'Not found';
+    return msg;
+}
+const filePath = SNAP_DIR + '/' + slug + '.jpg';
+try {
+    const buf = fs.readFileSync(filePath);
+    msg.statusCode = 200;
+    msg.headers = { 'Content-Type': 'image/jpeg', 'Cache-Control': 'no-store' };
+    msg.payload = buf;
+} catch (e) {
+    msg.statusCode = 404;
+    msg.payload = 'Not found';
+}
+return msg;`;
+
 const UI_TEMPLATE = `<template>
-    <div class="watchdog-dash watchdog-status-root" v-if="msg.payload">
+    <div class="watchdog-dash watchdog-status-root" v-if="msg.payload" :key="msg.payload.refreshTick || msg.payload.updatedAt">
         <div class="wd-header">
             <div>
                 <div class="wd-title">⏱️ Watchdog Status</div>
-                <div class="wd-subtitle">Node-RED · cameras · SMS gateway</div>
+                <div class="wd-subtitle">Node-RED · cameras (5 min snapshots) · SMS gateway</div>
             </div>
             <div class="wd-updated" v-if="msg.payload.updatedAt">Updated {{ formatTime(msg.payload.updatedAt) }}</div>
         </div>
@@ -202,14 +266,16 @@ const UI_TEMPLATE = `<template>
         <div class="wd-categories-wrap">
             <div v-for="(group, category) in groupedItems" :key="category" class="wd-category">
                 <div class="wd-category-title">{{ category }}</div>
-                <div class="wd-grid">
+                <div class="wd-grid" :class="{ 'wd-grid-cameras': category === 'Cameras' }">
                     <div v-for="item in group" :key="item.id"
-                         class="wd-card" :class="item.state" :title="item.topic">
+                         class="wd-card" :class="[item.state, category === 'Cameras' ? 'wd-card-camera' : '']" :title="item.topic">
                         <div class="wd-card-row">
                             <span class="wd-icon">{{ item.state === 'online' ? '🟢' : (item.state === 'offline' ? '🔴' : '⚪') }}</span>
                             <span class="wd-name">{{ item.name }}</span>
                             <span class="wd-state">{{ (item.state || 'unknown').toUpperCase() }}</span>
                         </div>
+                        <img v-if="item.snapshotSrc" :src="item.snapshotSrc" class="wd-thumb" :alt="item.name" loading="lazy" @error="onSnapError(item)" />
+                        <div v-else-if="category === 'Cameras'" class="wd-thumb wd-thumb-empty">No snapshot yet</div>
                         <div class="wd-meta">{{ item.layer }} · {{ item.timeoutSec ? item.timeoutSec + 's' : item.timeoutMin + 'm' }} · {{ formatLast(item) }}</div>
                     </div>
                 </div>
@@ -248,9 +314,13 @@ export default {
             }
         },
         formatLast(item) {
+            if (item.snapshotAt) return 'snap ' + this.formatTime(item.snapshotAt);
             if (item.lastSeen) return this.formatTime(item.lastSeen);
             if (item.ageSec != null) return item.ageSec + 's ago';
             return 'no signal';
+        },
+        onSnapError(item) {
+            item.snapshotSrc = null;
         }
     }
 }
@@ -331,10 +401,36 @@ export default {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 5px;
 }
+.watchdog-dash .wd-grid.wd-grid-cameras {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
 @media (min-width: 1024px) {
-    .watchdog-dash .wd-grid {
+    .watchdog-dash .wd-grid.wd-grid-cameras {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .watchdog-dash .wd-grid:not(.wd-grid-cameras) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+.watchdog-dash .wd-card.wd-card-camera {
+    padding: 10px 10px 8px;
+}
+.watchdog-dash .wd-thumb {
+    display: block;
+    width: 100%;
+    height: 128px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-top: 6px;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+}
+.watchdog-dash .wd-thumb-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    color: #64748b;
 }
 .watchdog-dash .wd-card {
     border-radius: 8px;
@@ -411,7 +507,7 @@ const nodes = [
     type: "ui-page",
     z: "8becda4e1ec6a8b9",
     name: "Watchdog",
-    ui: "b89dd587275b51bf",
+    ui: "ui_base",
     path: "/watchdog",
     icon: "timer-check",
     layout: "grid",
@@ -445,7 +541,7 @@ const nodes = [
     z: "8becda4e1ec6a8b9",
     name: "Refresh watchdog UI",
     props: [{ p: "payload" }],
-    repeat: "30",
+    repeat: "10",
     crontab: "",
     once: true,
     onceDelay: 2,
@@ -466,7 +562,7 @@ const nodes = [
     noerr: 0,
     initialize: "",
     finalize: "",
-    libs: [],
+    libs: [{ var: "fs", module: "fs" }],
     x: 430,
     y: 2440,
     wires: [["func_watchdog_ui_build"]],
@@ -504,6 +600,45 @@ const nodes = [
     y: 2360,
     wires: [[]],
   },
+  {
+    id: "http_in_cam_snap",
+    type: "http in",
+    z: "8becda4e1ec6a8b9",
+    name: "Camera snapshot file",
+    url: "/camera-snapshots/:slug",
+    method: "get",
+    upload: false,
+    swaggerDoc: "",
+    x: 180,
+    y: 2200,
+    wires: [["func_serve_cam_snap"]],
+  },
+  {
+    id: "func_serve_cam_snap",
+    type: "function",
+    z: "8becda4e1ec6a8b9",
+    name: "Serve camera snapshot",
+    func: SERVE_SNAPSHOT_FUNC,
+    outputs: 1,
+    noerr: 0,
+    initialize: "",
+    finalize: "",
+    libs: [{ var: "fs", module: "fs" }],
+    x: 430,
+    y: 2200,
+    wires: [["http_res_cam_snap"]],
+  },
+  {
+    id: "http_res_cam_snap",
+    type: "http response",
+    z: "8becda4e1ec6a8b9",
+    name: "",
+    statusCode: "",
+    headers: {},
+    x: 680,
+    y: 2200,
+    wires: [],
+  },
 ];
 
 let y = 2480;
@@ -515,7 +650,7 @@ for (const sub of MQTT_SUBS) {
     name: sub.name,
     topic: sub.topic,
     qos: "1",
-    datatype: sub.topic.includes("watchdog/status") ? "json" : "auto",
+    datatype: sub.topic.includes("watchdog/status") ? "json" : (sub.topic.includes("/snapshot") ? "json" : "auto"),
     broker: "mqtt_broker_local",
     nl: false,
     rap: true,

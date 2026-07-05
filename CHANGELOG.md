@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.17.0] - 2026-07-05
+
+### Added - Camera registry, watchdog thumbnails, 5-minute polling
+
+- **Seven Tapo cameras** documented in [docs/cameras/REGISTRY.md](docs/cameras/REGISTRY.md) with MAC, model, and MQTT slugs (`backGate`, `casaSpate`, `frontHouse`, `gazonCurte`, `gradinaLunca`, `smallGateEntrance`, `streetView`).
+- **Watchdog thumbnails** (flow **613**): JPEG snapshots on disk, HTTP `/camera-snapshots/{slug}.jpg`, camera cards on `/dashboard/watchdog`.
+- **`tapo_snapshot.py`**, **`camera_probe.py`**, **`camera_connect.py`** — RTSP/ffmpeg fallback, ONVIF probe, connectivity test.
+- **HomeGuard NVR** at `192.168.2.59` — [docs/HOMEGUARD_NVR.md](docs/HOMEGUARD_NVR.md), `homeguard_nvr.py` API client stub, `probe_homeguard_nvr.py`.
+
+### Changed
+
+- **`tapo-monitor`**: health/status every **5 min** (`CAMERA_HEALTH_INTERVAL_SEC=300`); snapshots every **5 min**; publishes `garden/camera/{slug}/status` JSON.
+- **Flows 611–613**: updated camera labels; flow **612** watchdog timeout **7 min**; flow **613** 10 s UI refresh + 5 min snapshot subtitle.
+- **Config**: [config/cameras.env.example](config/cameras.env.example), `apply_cameras_env.py` for live server deploy.
+
+### Fixed
+
+- **Telegram `/help`** (prior commit `9c147fe`): flow 50 deploy rewires bot config to live `fcd48adffba5ec7c`.
+
 ## [3.16.0] - 2026-07-05
 
 ### Added - Tasmota energy consumers & Garden Power Hut

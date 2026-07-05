@@ -21,6 +21,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "utils"))
 from mqtt_client import MQTTClientWrapper
 from config_loader import get_config
 from logger import get_logger
+from tapo_snapshot import (
+    build_snapshot_payload,
+    capture_camera_jpeg,
+    resize_jpeg,
+    save_snapshot_jpeg,
+    slug_from_mqtt_prefix,
+)
+from camera_probe import normalize_mac, probe_onvif
 
 try:
     from onvif import ONVIFCamera
@@ -30,17 +38,11 @@ except ImportError:
 
 logger = get_logger(__name__)
 
-WATCHDOG_ENROLL_TOPIC = "sms/gateway/watchdog/enroll"
-WATCHDOG_HEARTBEAT_TOPIC = "sms/gateway/watchdog/heartbeat"
-WATCHDOG_INTERVAL_SEC = 60
+DEFAULT_SNAPSHOT_INTERVAL_SEC = 300
+DEFAULT_SNAPSHOT_MAX_WIDTH = 480
+DEFAULT_SNAPSHOT_DIR = "/opt/dell_server_management/data/camera-snapshots"
+DEFAULT_HEALTH_INTERVAL_SEC = 300
 
-
-def _watchdog_slug(mqtt_prefix: str) -> str:
-    return mqtt_prefix.rstrip("/").split("/")[-1]
-
-
-def _watchdog_name(mqtt_prefix: str) -> str:
-    return f"camera_{_watchdog_slug(mqtt_prefix)}"
 
 class TapoCameraMonitor:
     """Monitors a single Tapo camera for events."""
@@ -58,6 +60,8 @@ class TapoCameraMonitor:
                 'mqtt_prefix',
                 f"garden/camera/{config.get('name', 'camera').lower().replace(' ', '_')}"
             ),
+            'model': config.get('model'),
+            'mac': config.get('mac'),
         }]
         self.name = config.get('name') or self.endpoints[0]['name']
         
@@ -66,6 +70,7 @@ class TapoCameraMonitor:
         self.connected = False
         self.event_service = None
         self.pullpoint = None
+        self.snapshot_dir = os.environ.get("CAMERA_SNAPSHOT_DIR", DEFAULT_SNAPSHOT_DIR)
 
     def _health_topics(self) -> List[str]:
         return [f"{ep['mqtt_prefix']}/health" for ep in self.endpoints]
@@ -73,17 +78,58 @@ class TapoCameraMonitor:
     def _event_topics(self) -> List[Tuple[str, str]]:
         return [(ep['name'], f"{ep['mqtt_prefix']}/event") for ep in self.endpoints]
 
+    def _snapshot_topics(self) -> List[Tuple[str, str, str]]:
+        """Return (slug, camera_name, mqtt_topic) per endpoint."""
+        rows = []
+        for ep in self.endpoints:
+            prefix = ep["mqtt_prefix"]
+            rows.append((slug_from_mqtt_prefix(prefix), ep["name"], f"{prefix}/snapshot"))
+        return rows
+
     def _publish_health(self, state: str) -> None:
         for topic in self._health_topics():
             self.mqtt_client.publish(topic, state, retain=True)
-        if state == "online":
-            self._publish_watchdog_heartbeats()
 
-    def _publish_watchdog_heartbeats(self) -> None:
-        for ep in self.endpoints:
-            payload = json.dumps({"name": _watchdog_name(ep["mqtt_prefix"])})
-            self.mqtt_client.publish(WATCHDOG_HEARTBEAT_TOPIC, payload)
-        
+    def _publish_endpoint_health(self, endpoint: Dict[str, Any], state: str) -> None:
+        topic = f"{endpoint['mqtt_prefix']}/health"
+        self.mqtt_client.publish(topic, state, retain=True)
+
+    def _publish_status(self, endpoint: Dict[str, Any], probe: Dict[str, Any]) -> None:
+        slug = slug_from_mqtt_prefix(endpoint["mqtt_prefix"])
+        expected_mac = normalize_mac(endpoint.get("mac"))
+        observed_mac = probe.get("mac_observed")
+        payload = {
+            "timestamp": datetime.now().isoformat(),
+            "slug": slug,
+            "name": endpoint.get("name"),
+            "ip": self.ip,
+            "online": bool(probe.get("online")),
+            "model": probe.get("model") or endpoint.get("model"),
+            "manufacturer": probe.get("manufacturer"),
+            "serial": probe.get("serial"),
+            "firmware": probe.get("firmware"),
+            "mac_expected": expected_mac,
+            "mac_observed": observed_mac,
+            "mac_match": (
+                expected_mac == observed_mac
+                if expected_mac and observed_mac
+                else None
+            ),
+            "error": probe.get("error"),
+        }
+        topic = f"{endpoint['mqtt_prefix']}/status"
+        self.mqtt_client.publish(topic, payload)
+
+    def _probe_endpoint(self, endpoint: Dict[str, Any]) -> Dict[str, Any]:
+        return probe_onvif(
+            self.ip,
+            self.username,
+            self.password,
+            port=self.port,
+        )
+
+    def _health_interval_sec(self) -> int:
+        return int(os.environ.get("CAMERA_HEALTH_INTERVAL_SEC", DEFAULT_HEALTH_INTERVAL_SEC))
     def connect(self) -> bool:
         """Establish ONVIF connection to the camera."""
         try:
@@ -123,10 +169,9 @@ class TapoCameraMonitor:
                             logger.error(f"❌ Camera '{self.name}' Authority Failure! IMPORTANT: Check if you are using the 'Camera Account' (created in Tapo App -> Device Settings -> Advanced -> Camera Account) and NOT your Tapo App email/password.")
                         
                         logger.warning(f"⚠️ Camera '{self.name}' ONVIF events are unsupported or unauthorized. Falling back to health monitoring only.")
-                        # Stay in a simple health loop
+                        # Stay in a simple health loop (interval from health_status_loop)
                         while self.running and self.connected:
-                            time.sleep(60)
-                            self._publish_health("online")
+                            time.sleep(self._health_interval_sec())
                         continue
                     else:
                         raise e
@@ -140,10 +185,6 @@ class TapoCameraMonitor:
                         
                         for msg in messages.NotificationMessage:
                             self._process_message(msg)
-                            
-                        # Periodically refresh health status
-                        if int(time.time()) % 60 == 0:
-                             self._publish_health("online")
                              
                     except Exception as e:
                         # Log specific ONVIF errors or timeouts
@@ -156,6 +197,91 @@ class TapoCameraMonitor:
                 self.connected = False
                 self._publish_health("offline")
                 time.sleep(10)
+
+    def snapshot_loop(self) -> None:
+        """Publish JPEG thumbnails for watchdog dashboard (default every 5 min)."""
+        interval = int(os.environ.get("CAMERA_SNAPSHOT_INTERVAL_SEC", DEFAULT_SNAPSHOT_INTERVAL_SEC))
+        if interval <= 0:
+            return
+
+        max_width = int(os.environ.get("CAMERA_SNAPSHOT_MAX_WIDTH", DEFAULT_SNAPSHOT_MAX_WIDTH))
+        # Stagger cameras slightly so they do not all hit ONVIF at once.
+        time.sleep((hash(self.ip or self.name) % max(interval, 1)) * 0.25)
+
+        while self.running:
+            if self.connected and self.camera:
+                try:
+                    raw = capture_camera_jpeg(
+                        self.camera,
+                        self.ip,
+                        self.username,
+                        self.password,
+                    )
+                    if raw:
+                        jpeg = resize_jpeg(raw, max_width)
+                        for slug, camera_name, topic in self._snapshot_topics():
+                            image_url = save_snapshot_jpeg(slug, jpeg, self.snapshot_dir)
+                            payload = build_snapshot_payload(
+                                slug,
+                                camera_name,
+                                datetime.now().isoformat(),
+                                image_url,
+                            )
+                            self.mqtt_client.publish(topic, payload)
+                            logger.info(
+                                f"Snapshot published for '{camera_name}' ({slug}) "
+                                f"→ {topic} ({len(jpeg)} bytes)"
+                            )
+                except Exception as e:
+                    logger.warning(f"Snapshot failed for '{self.name}' ({self.ip}): {e!r}")
+
+            for _ in range(interval):
+                if not self.running:
+                    return
+                time.sleep(1)
+
+    def health_status_loop(self) -> None:
+        """Probe ONVIF and publish health + status JSON (default every 5 min)."""
+        interval = self._health_interval_sec()
+        if interval <= 0:
+            return
+
+        time.sleep((hash(self.ip or self.name) % max(interval, 1)) * 0.15)
+
+        while self.running:
+            any_online = False
+            for endpoint in self.endpoints:
+                probe = self._probe_endpoint(endpoint)
+                slug = slug_from_mqtt_prefix(endpoint["mqtt_prefix"])
+                if probe.get("online"):
+                    any_online = True
+                    if not self.connected:
+                        try:
+                            self.camera = ONVIFCamera(
+                                self.ip, self.port, self.username, self.password
+                            )
+                            self.event_service = self.camera.create_events_service()
+                            self.connected = True
+                        except Exception:
+                            self.connected = False
+                    self._publish_endpoint_health(endpoint, "online")
+                    logger.info(f"Status OK for '{endpoint['name']}' ({slug}) @ {self.ip}")
+                else:
+                    self._publish_endpoint_health(endpoint, "offline")
+                    logger.warning(
+                        f"Status FAIL for '{endpoint['name']}' ({slug}) @ {self.ip}: "
+                        f"{probe.get('error')}"
+                    )
+                self._publish_status(endpoint, probe)
+
+            if not any_online:
+                self.connected = False
+                self.camera = None
+
+            for _ in range(interval):
+                if not self.running:
+                    return
+                time.sleep(1)
 
     @staticmethod
     def _classify_event_type(topic: str) -> str:
@@ -232,6 +358,8 @@ def _merge_camera_configs(cameras: List[Dict[str, Any]]) -> List[Dict[str, Any]]
                 'mqtt_prefix',
                 f"garden/camera/{cam.get('name', 'camera').lower().replace(' ', '_')}"
             ),
+            'model': cam.get('model'),
+            'mac': cam.get('mac'),
         }
         if key not in merged:
             merged[key] = {
@@ -267,22 +395,6 @@ class TapoMonitorService:
         self.threads = []
         self.running = False
         
-    def _enroll_camera_watchdogs(self) -> None:
-        """Register each camera slug on the SMS Gateway hardware watchdog."""
-        seen = set()
-        for cam_config in self.cameras:
-            for ep in cam_config.get("endpoints") or []:
-                prefix = ep.get("mqtt_prefix")
-                if not prefix:
-                    continue
-                name = _watchdog_name(prefix)
-                if name in seen:
-                    continue
-                seen.add(name)
-                payload = json.dumps({"name": name, "interval": WATCHDOG_INTERVAL_SEC})
-                self.mqtt_client.publish(WATCHDOG_ENROLL_TOPIC, payload)
-                logger.info(f"Watchdog enrolled: {name} ({WATCHDOG_INTERVAL_SEC}s)")
-        
     def start(self):
         """Start monitoring all cameras."""
         logger.info(
@@ -294,8 +406,6 @@ class TapoMonitorService:
             logger.error("Failed to connect to MQTT broker. Exiting.")
             return
 
-        self._enroll_camera_watchdogs()
-
         self.running = True
         
         for cam_config in self.cameras:
@@ -306,6 +416,22 @@ class TapoMonitorService:
             thread.daemon = True
             thread.start()
             self.threads.append(thread)
+
+            snap_thread = threading.Thread(
+                target=monitor.snapshot_loop,
+                name=f"Snapshot-{monitor.name}",
+            )
+            snap_thread.daemon = True
+            snap_thread.start()
+            self.threads.append(snap_thread)
+
+            health_thread = threading.Thread(
+                target=monitor.health_status_loop,
+                name=f"Health-{monitor.name}",
+            )
+            health_thread.daemon = True
+            health_thread.start()
+            self.threads.append(health_thread)
             
         logger.info("Service started successfully.")
         

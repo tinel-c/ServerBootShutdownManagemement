@@ -718,6 +718,28 @@ garden/camera/front/health online
 
 ---
 
+### Camera Snapshot (watchdog thumbnail)
+
+**Topic:** `garden/camera/{slug}/snapshot`
+
+**Payload:** JSON (not retained; published about every **5 min** per camera while online)
+
+```json
+{
+  "timestamp": "ISO8601",
+  "slug": "interior",
+  "camera_name": "Interior curte",
+  "content_type": "image/jpeg",
+  "image_url": "/camera-snapshots/interior.jpg"
+}
+```
+
+JPEG files are written under `data/camera-snapshots/` on the automation server. Node-RED flow **613** serves them at `http://<host>:1880/camera-snapshots/{slug}.jpg` and shows thumbnails on the **Watchdog** dashboard.
+
+Configure interval via `CAMERA_SNAPSHOT_INTERVAL_SEC` (default `300`, `0` disables).
+
+---
+
 ### Camera Event
 
 **Topic:** `garden/camera/{slug}/event`

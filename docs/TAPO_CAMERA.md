@@ -23,9 +23,8 @@ Node-RED flow 611
         │
 Node-RED flow 612 (watchdog)
         ├── Per-camera 2 min timeout on garden/camera/{slug}/health
+        ├── Thumbnails on flow 613 from garden/camera/{slug}/snapshot (~5 min)
         └── Telegram online/offline (transitions)
-        │
-SMS Gateway watchdog (camera_{slug}, 60 s heartbeat from tapo-monitor)
 ```
 
 ## Prerequisites
@@ -39,17 +38,20 @@ SMS Gateway watchdog (camera_{slug}, 60 s heartbeat from tapo-monitor)
 
 ### Automation server
 
-1. Configure cameras in `.env` (see [config/cameras.env.example](../config/cameras.env.example) for the 7-camera site layout):
+1. Configure cameras in `.env` — **phase 1:** four cameras in [config/cameras.env.example](../config/cameras.env.example); full registry in [docs/cameras/REGISTRY.md](cameras/REGISTRY.md):
 
 ```bash
-# Example — Interior curte (discovered C510W @ 192.168.2.37)
-CAMERA_1_NAME="Interior curte"
-CAMERA_1_IP=192.168.2.37
-CAMERA_1_PORT=2020
+CAMERA_HEALTH_INTERVAL_SEC=300   # status probe every 5 minutes
+CAMERA_1_NAME="Back Gate"
+CAMERA_1_IP=192.168.2.34
+CAMERA_1_MODEL=C310
+CAMERA_1_MAC=5C-E9-31-E0-21-93
 CAMERA_1_USER=your_camera_account
 CAMERA_1_PASS=your_camera_password
-CAMERA_1_MQTT_PREFIX="garden/camera/interior"
+CAMERA_1_MQTT_PREFIX="garden/camera/backGate"
 ```
+
+Verify: `python3 scripts/status/camera_connect.py`
 
 ## Network discovery
 
@@ -66,17 +68,19 @@ python3 scripts/utils/camera_network_scan.py --subnet 192.168.2 --user tinelc --
 python3 scripts/utils/camera_discovery.py
 ```
 
-**Site scan (2026-07-05):**
+**Site scan (2026-07-05, phase 1):**
 
-| IP | Model | MQTT slug | Notes |
-|----|-------|-----------|-------|
-| 192.168.2.10 | Tapo C500 | smallGate | Poarta mica |
-| 192.168.2.32 | Tapo C310 | backyard | Spate casa |
-| 192.168.2.34 | Tapo C310 | gate2 / gate1 | Poarta glisanta 2 (+ glisanta 1 alias, merged by IP) |
-| 192.168.2.36 | Tapo C310 | fataCasa | Fata casa |
-| 192.168.2.37 | Tapo C510W | interior | Interior curte (was .38) |
-| 192.168.2.59 | Tapo (RTSP) | strada | Curte strada — **enable ONVIF** in Tapo app |
-| — | — | — | Retired: .35, .38 |
+| IP | Model | MQTT slug | Name |
+|----|-------|-----------|------|
+| 192.168.2.34 | Tapo C310 | backGate | Back Gate |
+| 192.168.2.32 | Tapo C310 | casaSpate | Casa Spate |
+| 192.168.2.36 | Tapo C310 | frontHouse | Front House |
+| 192.168.2.37 | Tapo C510W | gradinaLunca | Gradina Lunca Cetatuii |
+| 192.168.2.38 | Tapo TC65 | gazonCurte | Gazon Curte |
+| 192.168.2.10 | Tapo C500 | smallGateEntrance | Small Gate Entrance |
+| 192.168.2.35 | Tapo C310 | streetView | Street View Camera |
+
+Additional cameras (interior, small gate, strada, etc.) will be added in phase 2 — see [cameras/REGISTRY.md](cameras/REGISTRY.md).
 
 `tapo-monitor` merges multiple `CAMERA_N_*` entries that share the same IP into one ONVIF session and publishes health/events to each `CAMERA_N_MQTT_PREFIX`.
 
@@ -107,12 +111,25 @@ Prints suggested `CAMERA_N_*` lines for cameras found via WS-Discovery.
 
 | Topic | Payload | Notes |
 |-------|---------|-------|
-| `garden/camera/{slug}/health` | `online` or `offline` | Retained; republished ~every 60 s while online |
+| `garden/camera/{slug}/health` | `online` or `offline` | Retained; republished every **5 min** while online (`CAMERA_HEALTH_INTERVAL_SEC`) |
+| `garden/camera/{slug}/status` | JSON | ONVIF probe result (model, serial, MAC match) every **5 min** |
 | `garden/camera/{slug}/event` | JSON | See [MQTT_PROTOCOL.md](MQTT_PROTOCOL.md#tapo-camera-messages) |
-| `sms/gateway/watchdog/enroll` | `{"name":"camera_{slug}","interval":60}` | Sent once at tapo-monitor startup |
-| `sms/gateway/watchdog/heartbeat` | `{"name":"camera_{slug}"}` | Each online health publish |
+| `garden/camera/{slug}/snapshot` | JSON | JPEG thumbnail metadata + `image_url` every **5 min** |
 
 `{slug}` comes from `CAMERA_N_MQTT_PREFIX` (last path segment) or auto-generated from the camera name.
+
+Camera health is monitored by Node-RED flow **612** and shown on the **Watchdog** dashboard (flow **613**) with thumbnails from `snapshot` messages (served via HTTP from `data/camera-snapshots/`). Full camera list: [docs/cameras/REGISTRY.md](cameras/REGISTRY.md). HomeGuard NVR: [docs/HOMEGUARD_NVR.md](HOMEGUARD_NVR.md).
+
+Optional env (in `config/.env`):
+
+```bash
+CAMERA_HEALTH_INTERVAL_SEC=300  # ONVIF status probe (default 5 min)
+CAMERA_SNAPSHOT_INTERVAL_SEC=300  # thumbnail capture (default 5 min)
+CAMERA_SNAPSHOT_MAX_WIDTH=480     # thumbnail width in pixels
+CAMERA_SNAPSHOT_DIR=/opt/dell_server_management/data/camera-snapshots
+```
+
+Requires **ffmpeg** on the automation server (`apt install ffmpeg`). Snapshots use RTSP (`stream1` / `stream2`) when ONVIF GetSnapshotUri is unavailable on Tapo firmware.
 
 ## Verification
 
@@ -174,6 +191,8 @@ you will get **online/offline** on the dashboard but **no motion events**. Optio
 | File | Purpose |
 |------|---------|
 | `scripts/status/tapo_monitor.py` | ONVIF → MQTT |
+| `scripts/status/camera_connect.py` | ONVIF connectivity test |
+| `scripts/status/camera_probe.py` | Shared ONVIF/MAC probe helpers |
 | `systemd/tapo-monitor.service` | systemd unit |
 | `nodered/flows/611-camera-management.json` | Dashboard + notifications |
 | `scripts/utils/camera_discovery.py` | Network discovery |

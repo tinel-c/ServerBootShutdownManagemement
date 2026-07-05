@@ -1,0 +1,17 @@
+{
+  "synced_at": "2026-01-01T12:00:00",
+  "cloud_region": "eu",
+  "device_count": 1,
+  "devices": [
+    {
+      "id": "bfxxxxxxxxxxxxxxxx",
+      "name": "PC Power Switch",
+      "product_id": "rtbhfbuii82scjrp",
+      "local_key": "xxxxxxxxxxxxxxxx",
+      "ip": "192.168.2.193",
+      "version": "3.5",
+      "online": true,
+      "source": "cloud+scan"
+    }
+  ]
+}

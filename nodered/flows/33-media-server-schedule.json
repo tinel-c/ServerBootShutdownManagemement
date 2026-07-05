@@ -1,0 +1,196 @@
+[
+    {
+        "id": "media_sched_init",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Init media schedule defaults",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.2,
+        "topic": "",
+        "x": 200,
+        "y": 1100,
+        "wires": [
+            [
+                "media_sched_init_fn",
+                "media_sched_refresh_fn"
+            ]
+        ]
+    },
+    {
+        "id": "media_sched_init_fn",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Set default schedule",
+        "func": "if (flow.get('media_sched_boot_hour') == null) flow.set('media_sched_boot_hour', 8);\nif (flow.get('media_sched_boot_minute') == null) flow.set('media_sched_boot_minute', 0);\nif (flow.get('media_sched_shutdown_hour') == null) flow.set('media_sched_shutdown_hour', 23);\nif (flow.get('media_sched_shutdown_minute') == null) flow.set('media_sched_shutdown_minute', 30);\nif (flow.get('media_scheduler_enabled') == null) flow.set('media_scheduler_enabled', true);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "media_sched_refresh_inject",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Refresh schedule UI",
+        "props": [],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.5,
+        "topic": "",
+        "x": 190,
+        "y": 1280,
+        "wires": [
+            [
+                "media_sched_refresh_fn"
+            ]
+        ]
+    },
+    {
+        "id": "media_sched_refresh_fn",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Build schedule UI state",
+        "func": "msg.payload = {\n  media_scheduler_enabled: flow.get('media_scheduler_enabled') !== false,\n  media_sched_boot_hour: Number(flow.get('media_sched_boot_hour') ?? 8),\n  media_sched_boot_minute: Number(flow.get('media_sched_boot_minute') ?? 0),\n  media_sched_shutdown_hour: Number(flow.get('media_sched_shutdown_hour') ?? 23),\n  media_sched_shutdown_minute: Number(flow.get('media_sched_shutdown_minute') ?? 30)\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 1280,
+        "wires": [
+            [
+                "media_sched_ui_template"
+            ]
+        ]
+    },
+    {
+        "id": "media_sched_tick",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Scheduler tick 60s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 180,
+        "y": 1160,
+        "wires": [
+            [
+                "media_sched_daily_fn"
+            ]
+        ]
+    },
+    {
+        "id": "media_sched_daily_fn",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Daily media server scheduler",
+        "func": "if (flow.get('media_sched_boot_hour') == null) flow.set('media_sched_boot_hour', 8);\nif (flow.get('media_sched_boot_minute') == null) flow.set('media_sched_boot_minute', 0);\nif (flow.get('media_sched_shutdown_hour') == null) flow.set('media_sched_shutdown_hour', 23);\nif (flow.get('media_sched_shutdown_minute') == null) flow.set('media_sched_shutdown_minute', 30);\n\nconst enabled = flow.get('media_scheduler_enabled') !== false;\nif (!enabled) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'Scheduler off' });\n    return [null, null];\n}\n\nconst now = new Date();\nconst h = now.getHours();\nconst mi = now.getMinutes();\nconst ymd = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');\n\nconst bootH = Number(flow.get('media_sched_boot_hour'));\nconst bootM = Number(flow.get('media_sched_boot_minute'));\nconst shutH = Number(flow.get('media_sched_shutdown_hour'));\nconst shutM = Number(flow.get('media_sched_shutdown_minute'));\n\nif (h === bootH && mi === bootM) {\n    const key = 'media_sched_fired_boot_' + ymd;\n    if (flow.get(key)) return [null, null];\n    flow.set(key, true);\n    node.status({ fill: 'green', shape: 'dot', text: 'Boot scheduled' });\n    return [{\n        topic: 'media/server/command/boot',\n        payload: { action: 'boot', method: 'tuya_power', timestamp: new Date().toISOString(), request_id: 'sched-boot-' + Date.now() }\n    }, null];\n}\n\nif (h === shutH && mi === shutM) {\n    const key = 'media_sched_fired_shutdown_' + ymd;\n    if (flow.get(key)) return [null, null];\n    flow.set(key, true);\n    node.status({ fill: 'orange', shape: 'dot', text: 'Shutdown scheduled' });\n    return [null, {\n        topic: 'media/server/command/shutdown',\n        payload: { action: 'shutdown', type: 'graceful', timestamp: new Date().toISOString(), request_id: 'sched-shutdown-' + Date.now() }\n    }];\n}\n\nreturn [null, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1160,
+        "wires": [
+            [
+                "media_sched_mqtt_boot"
+            ],
+            [
+                "media_sched_mqtt_shutdown"
+            ]
+        ]
+    },
+    {
+        "id": "media_sched_mqtt_boot",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Schedule Boot",
+        "topic": "",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 760,
+        "y": 1140,
+        "wires": []
+    },
+    {
+        "id": "media_sched_mqtt_shutdown",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Schedule Shutdown",
+        "topic": "",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 780,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "media_sched_ui_template",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "590309fda6555eae",
+        "name": "Media Schedule Config",
+        "order": 22,
+        "width": 0,
+        "height": 0,
+        "format": "<div style=\"margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif;\">\n  <div style=\"background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 32px rgba(0,0,0,0.4);\">\n    <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;\">\n      <div style=\"display:flex;align-items:center;gap:12px;\">\n        <div style=\"width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.3em;box-shadow:0 4px 12px rgba(99,102,241,0.35);\">📅</div>\n        <div>\n          <div style=\"color:#f8fafc;font-weight:700;font-size:1.05em;letter-spacing:0.02em;\">Media Server Schedule</div>\n          <div style=\"color:#64748b;font-size:0.75em;margin-top:2px;\">Daily automatic boot &amp; graceful shutdown</div>\n        </div>\n      </div>\n      <label style=\"display:flex;align-items:center;gap:10px;cursor:pointer;background:rgba(255,255,255,0.06);padding:8px 14px;border-radius:24px;border:1px solid rgba(255,255,255,0.08);\">\n        <span :style=\"{color: enabled ? '#10b981' : '#94a3b8', fontWeight: 700, fontSize: '0.8em', letterSpacing: '0.06em'}\">{{ enabled ? 'ENABLED' : 'DISABLED' }}</span>\n        <input type=\"checkbox\" v-model=\"enabled\" @change=\"save\" style=\"accent-color:#10b981;width:18px;height:18px;cursor:pointer;\" />\n      </label>\n    </div>\n    <div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;\">\n      <div style=\"background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.28);border-radius:10px;padding:14px;\">\n        <div style=\"display:flex;align-items:center;gap:8px;margin-bottom:10px;\">\n          <span style=\"font-size:1.1em;\">⚡</span>\n          <span style=\"color:#6ee7b7;font-size:0.8em;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;\">Boot Time</span>\n        </div>\n        <div style=\"display:flex;align-items:center;gap:8px;\">\n          <input type=\"number\" min=\"0\" max=\"23\" v-model.number=\"bootH\" @change=\"save\" style=\"flex:1;min-width:0;padding:10px;border-radius:8px;border:1px solid rgba(16,185,129,0.35);background:rgba(15,23,42,0.8);color:#ecfdf5;font-family:Consolas,monospace;font-size:1.2em;font-weight:700;text-align:center;\" />\n          <span style=\"color:#64748b;font-size:1.4em;font-weight:300;\">:</span>\n          <input type=\"number\" min=\"0\" max=\"59\" v-model.number=\"bootM\" @change=\"save\" style=\"flex:1;min-width:0;padding:10px;border-radius:8px;border:1px solid rgba(16,185,129,0.35);background:rgba(15,23,42,0.8);color:#ecfdf5;font-family:Consolas,monospace;font-size:1.2em;font-weight:700;text-align:center;\" />\n        </div>\n        <div style=\"margin-top:8px;color:#64748b;font-size:0.72em;\">Tuya PCIe power button</div>\n      </div>\n      <div style=\"background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.28);border-radius:10px;padding:14px;\">\n        <div style=\"display:flex;align-items:center;gap:8px;margin-bottom:10px;\">\n          <span style=\"font-size:1.1em;\">🛑</span>\n          <span style=\"color:#fdba74;font-size:0.8em;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;\">Shutdown Time</span>\n        </div>\n        <div style=\"display:flex;align-items:center;gap:8px;\">\n          <input type=\"number\" min=\"0\" max=\"23\" v-model.number=\"shutH\" @change=\"save\" style=\"flex:1;min-width:0;padding:10px;border-radius:8px;border:1px solid rgba(249,115,22,0.35);background:rgba(15,23,42,0.8);color:#fff7ed;font-family:Consolas,monospace;font-size:1.2em;font-weight:700;text-align:center;\" />\n          <span style=\"color:#64748b;font-size:1.4em;font-weight:300;\">:</span>\n          <input type=\"number\" min=\"0\" max=\"59\" v-model.number=\"shutM\" @change=\"save\" style=\"flex:1;min-width:0;padding:10px;border-radius:8px;border:1px solid rgba(249,115,22,0.35);background:rgba(15,23,42,0.8);color:#fff7ed;font-family:Consolas,monospace;font-size:1.2em;font-weight:700;text-align:center;\" />\n        </div>\n        <div style=\"margin-top:8px;color:#64748b;font-size:0.72em;\">SSH graceful shutdown</div>\n      </div>\n    </div>\n    <div style=\"margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);display:flex;flex-wrap:wrap;gap:8px;\">\n      <span style=\"font-size:0.72em;color:#94a3b8;background:rgba(255,255,255,0.04);padding:5px 10px;border-radius:6px;\">🕐 {{ pad(bootH) }}:{{ pad(bootM) }} boot</span>\n      <span style=\"font-size:0.72em;color:#94a3b8;background:rgba(255,255,255,0.04);padding:5px 10px;border-radius:6px;\">🕐 {{ pad(shutH) }}:{{ pad(shutM) }} shutdown</span>\n    </div>\n  </div>\n</div>\n<script>\nexport default {\n  data() {\n    return { enabled: true, bootH: 8, bootM: 0, shutH: 23, shutM: 30 }\n  },\n  mounted() { this.syncFromMsg() },\n  watch: { 'msg.payload'() { this.syncFromMsg() } },\n  methods: {\n    pad(n) { return String(Number(n) || 0).padStart(2, '0') },\n    syncFromMsg() {\n      const p = this.msg && this.msg.payload ? this.msg.payload : {}\n      if (p.media_scheduler_enabled !== undefined) this.enabled = !!p.media_scheduler_enabled\n      if (p.media_sched_boot_hour !== undefined) this.bootH = Number(p.media_sched_boot_hour)\n      if (p.media_sched_boot_minute !== undefined) this.bootM = Number(p.media_sched_boot_minute)\n      if (p.media_sched_shutdown_hour !== undefined) this.shutH = Number(p.media_sched_shutdown_hour)\n      if (p.media_sched_shutdown_minute !== undefined) this.shutM = Number(p.media_sched_shutdown_minute)\n    },\n    save() {\n      this.send({\n        payload: {\n          media_scheduler_enabled: this.enabled,\n          media_sched_boot_hour: this.bootH,\n          media_sched_boot_minute: this.bootM,\n          media_sched_shutdown_hour: this.shutH,\n          media_sched_shutdown_minute: this.shutM\n        }\n      })\n    }\n  }\n}\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 200,
+        "y": 1240,
+        "wires": [
+            [
+                "media_sched_ui_save_fn"
+            ]
+        ]
+    },
+    {
+        "id": "media_sched_ui_save_fn",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Save schedule to flow",
+        "func": "const p = msg.payload || {};\nif (p.media_scheduler_enabled !== undefined) flow.set('media_scheduler_enabled', !!p.media_scheduler_enabled);\nif (p.media_sched_boot_hour !== undefined) flow.set('media_sched_boot_hour', Number(p.media_sched_boot_hour));\nif (p.media_sched_boot_minute !== undefined) flow.set('media_sched_boot_minute', Number(p.media_sched_boot_minute));\nif (p.media_sched_shutdown_hour !== undefined) flow.set('media_sched_shutdown_hour', Number(p.media_sched_shutdown_hour));\nif (p.media_sched_shutdown_minute !== undefined) flow.set('media_sched_shutdown_minute', Number(p.media_sched_shutdown_minute));\nnode.status({ fill: 'green', shape: 'dot', text: 'Schedule saved' });\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 1240,
+        "wires": []
+    }
+]

@@ -29,10 +29,10 @@ The Telegram interface allows remote control and monitoring of servers, gates, l
 ### 🖥️ Server Management
 | Command | Description |
 |---------|-------------|
-| `/boot [dell\|hp]` | Boot a server (default: dell) |
-| `/shutdown [dell\|hp]` | Graceful shutdown (default: dell) |
-| `/force [dell\|hp]` | Immediate power-off |
-| `/status` | Get all server statuses |
+| `/boot [dell\|hp\|media]` | Boot a server (default: dell) |
+| `/shutdown [dell\|hp\|media]` | Graceful shutdown (default: dell) |
+| `/force [dell\|hp\|media]` | Immediate power-off |
+| `/status` | Get all server statuses (Dell, HP, media) |
 
 ### 🚪 Gate Automation
 | Command | Description |

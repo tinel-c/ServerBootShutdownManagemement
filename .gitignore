@@ -26,6 +26,7 @@ wheels/
 # Environment variables
 .env
 config/.env
+config/tuya_devices.json
 device/**/include/passwords.h
 device/**/src/password.h
 device/**/.env
@@ -58,3 +59,4 @@ htmlcov/
 # Temporary files
 *.tmp
 temp/
+tmp_live_flows.json

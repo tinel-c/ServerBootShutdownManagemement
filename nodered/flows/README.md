@@ -15,11 +15,19 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 5. `20-hp-controls.json`
 6. `21-hp-status.json`
 7. `22-hp-health.json`
-8. `40-client-tracking.json`
-9. `41-client-automation.json`
-10. `42-client-shutdown.json`
-11. `50-telegram-interface.json` - **Telegram Bot Interface** (optional)
-12. `90-log-console.json`
+8. `30-media-server-controls.json`
+9. `31-media-server-status.json`
+10. `32-media-server-health.json`
+11. `33-media-server-schedule.json`
+12. `40-client-tracking.json`
+13. `41-client-automation.json`
+14. `42-client-shutdown.json`
+15. `50-telegram-interface.json` - **Telegram Bot Interface** (optional)
+16. `90-log-console.json`
+
+**Media server:** flows `30`–`33` after HP health (`22`). Live Server page uses group `590309fda6555eae` — deploy with `deploy-media-ui.mjs`. See [docs/MEDIA_SERVER.md](../../docs/MEDIA_SERVER.md).
+
+If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scripts/fix-duplicate-ui-base.mjs`
 
 **Energy (Victron):** after base config, import `800`, `811`, `812`, and re-import `50-telegram-interface.json` (replace existing nodes) for `/help`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
 
@@ -158,6 +166,60 @@ This directory contains feature-based, modular Node-RED flows for the Server Boo
 
 **MQTT Topics**:
 - Subscribes: `hp/dl360p/health`
+
+---
+
+### 30-media-server-controls.json
+**Media Server Control Buttons**
+
+- Boot (Tuya PCIe power pulse)
+- Graceful shutdown (SSH)
+- Reset (Tuya reset pulse)
+- Force shutdown (Tuya ATX power)
+- MQTT command enrichment (`request_id`, `timestamp`)
+- Command response toast (`media/server/response`)
+
+**Dependencies**: `590309fda6555eae` (Server management group on **Server** page), `mqtt_broker_local`, `ui_base`
+
+**Dashboard**: Server tab → http://192.168.2.4:1880/dashboard/page2
+
+**MQTT Topics**:
+- `media/server/command/boot`
+- `media/server/command/shutdown`
+
+---
+
+### 31-media-server-status.json
+**Media Server Status Display**
+
+- Subscribes `media/server/status`
+- Online/offline badge with uptime, power state, and state-change tracking
+
+**Dependencies**: `590309fda6555eae`, `mqtt_broker_local`
+
+---
+
+### 32-media-server-health.json
+**Media Server Healthchecks.io Dashboard**
+
+- Subscribes `media/server/health`
+- Full-width card layout (same template as Dell/HP health monitors)
+
+**Dependencies**: `590309fda6555eae`, `mqtt_broker_local`
+
+---
+
+### 33-media-server-schedule.json
+**Media Server Daily Schedule**
+
+- Configurable boot/shutdown times (dashboard UI, flow context)
+- 60s scheduler tick publishes MQTT boot/shutdown commands
+
+**Defaults**: boot `08:00`, shutdown `23:30`
+
+**Dependencies**: `590309fda6555eae`, `mqtt_broker_local`
+
+**Deploy (live):** `node nodered/live-connection/scripts/deploy-media-ui.mjs` (includes layout fix for Server page)
 
 ---
 
@@ -741,6 +803,6 @@ For detailed development guidance, see:
 
 ---
 
-**Last Updated**: July 4, 2026  
-**Format Version**: 3.13.0 (Energy charts + PV forecast, Tapo flows 611–613)
+**Last Updated**: July 5, 2026  
+**Format Version**: 3.14.0 (Media server flows 30–33, Tuya linking, Server dashboard layout)
 

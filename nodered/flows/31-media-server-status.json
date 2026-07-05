@@ -1,0 +1,53 @@
+[
+    {
+        "id": "mqtt_in_media_status",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Media Server Status",
+        "topic": "media/server/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 660,
+        "wires": [["func_media_status_metadata"]]
+    },
+    {
+        "id": "func_media_status_metadata",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Media Status Metadata",
+        "func": "flow.set('status_media_server_status', msg.payload);\n\nlet metadataKey = \"status_metadata_media_server_status\";\nlet metadata = flow.get(metadataKey) || {\n    lastReportedMs: null,\n    lastChangedMs: null,\n    previousState: \"Unknown\",\n    currentState: \"Unknown\"\n};\n\nlet newState = msg.payload.server_state;\nlet nowMs = msg.payload.timestamp ? new Date(msg.payload.timestamp).getTime() : Date.now();\n\nmetadata.lastReportedMs = nowMs;\n\nif (newState !== metadata.currentState) {\n    metadata.previousState = metadata.currentState;\n    metadata.currentState = newState;\n    metadata.lastChangedMs = nowMs;\n}\n\nflow.set(metadataKey, metadata);\nmsg.metadata = metadata;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 660,
+        "wires": [["template_media_status"]]
+    },
+    {
+        "id": "template_media_status",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "590309fda6555eae",
+        "name": "Media Status UI",
+        "order": 20,
+        "width": 0,
+        "height": 0,
+        "format": "<div style=\"margin:0;padding:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;\"><div style=\"background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border-radius:12px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);\">\n    <div style=\"text-align:center;color:#64748b;font-size:0.72em;margin-bottom:10px;letter-spacing:0.08em;text-transform:uppercase;\">Ubuntu @ 192.168.2.185 · Tuya PCIe</div>\n    <div style=\"display:flex;align-items:center;justify-content:center;margin-bottom:14px;\">\n        <div :style=\"statusBadgeStyle\" style=\"padding: 12px 32px; border-radius: 24px; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.3);\">\n            <div :style=\"statusDotStyle\" style=\"width: 12px; height: 12px; border-radius: 50%; animation: pulse 2s ease-in-out infinite;\"></div>\n            <span style=\"font-weight: 700; font-size: 1.3em; letter-spacing: 0.5px; text-transform: uppercase;\">{{msg.payload.server_state || 'UNKNOWN'}}</span>\n        </div>\n    </div>\n    <div v-if=\"msg.payload.uptime\" style=\"text-align: center; color: #94a3b8; font-size: 0.9em; margin-bottom: 14px; font-family: monospace;\">{{msg.payload.uptime}}</div>\n    <div style=\"display: grid; gap: 12px;\">\n        <div style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; border-left: 3px solid #22c55e;\">\n            <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                <span style=\"color: #94a3b8; font-size: 0.9em;\">⚡ Power (SSH/Tuya)</span>\n                <span style=\"color: #e2e8f0; font-weight: 600; text-transform: capitalize;\">{{msg.payload.power_status || '—'}}</span>\n            </div>\n        </div>\n        <div style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;\">\n            <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                <span style=\"color: #94a3b8; font-size: 0.9em;\">📡 Last Report</span>\n                <span style=\"color: #e2e8f0; font-family: monospace; font-weight: 600;\">{{formatDelta(msg.metadata.lastReportedMs)}}</span>\n            </div>\n        </div>\n        <div style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; border-left: 3px solid #8b5cf6;\">\n            <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                <span style=\"color: #94a3b8; font-size: 0.9em;\">⏱️ State Changed</span>\n                <span style=\"color: #e2e8f0; font-family: monospace; font-weight: 600;\">{{formatDelta(msg.metadata.lastChangedMs)}}</span>\n            </div>\n        </div>\n        <div v-if=\"msg.metadata.previousState !== 'Unknown'\" style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; border-left: 3px solid #64748b;\">\n            <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                <span style=\"color: #94a3b8; font-size: 0.9em;\">🔄 Previous State</span>\n                <span style=\"color: #cbd5e1; font-style: italic; text-transform: capitalize;\">{{msg.metadata.previousState}}</span>\n            </div>\n        </div>\n    </div>\n</div></div>\n<style>@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }</style>\n<script>\nexport default {\n    data() { return { now: Date.now(), timer: null } },\n    mounted() { this.timer = setInterval(() => { this.now = Date.now() }, 1000) },\n    unmounted() { clearInterval(this.timer) },\n    methods: {\n        formatDelta(ms) {\n            if (!ms) return 'Never'\n            const s = Math.floor((this.now - ms) / 1000)\n            if (s < 2) return 'Just now'\n            if (s < 60) return s + 's ago'\n            if (s < 3600) return Math.floor(s / 60) + 'm ago'\n            if (s < 86400) return Math.floor(s / 3600) + 'h ago'\n            return new Date(ms).toLocaleDateString()\n        }\n    },\n    computed: {\n        statusBadgeStyle() {\n            const st = (this.msg.payload.server_state || 'unknown').toLowerCase()\n            if (st === 'online' || st === 'up') return { background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', boxShadow: '0 4px 20px rgba(16,185,129,0.4)' }\n            if (st === 'offline' || st === 'down') return { background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', boxShadow: '0 4px 20px rgba(239,68,68,0.4)' }\n            return { background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff' }\n        },\n        statusDotStyle() { return { background: '#fff', boxShadow: '0 0 8px #fff' } }\n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 640,
+        "y": 660,
+        "wires": [[]]
+    }
+]

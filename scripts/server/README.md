@@ -87,5 +87,6 @@ python ~/ServerBootShutdownManagemement/device/huawei-inverter/scripts/modbus_pr
 | [sudoers.d-automation-deploy-temp](sudoers.d-automation-deploy-temp) | Script-only temp sudoers rules |
 | [install_deploy_sudoers.sh](install_deploy_sudoers.sh) | Permanent script-only sudo (optional) |
 | [setup_ssh_key.ps1](setup_ssh_key.ps1) | SSH key setup (dev PC) |
+| [setup_media_server_ssh.sh](setup_media_server_ssh.sh) | SSH key automation server → media server |
 | [deploy_victron_remote.ps1](deploy_victron_remote.ps1) | Sync + install Victron |
 | [setup_huawei_wifi.sh](setup_huawei_wifi.sh) | Netplan USB WiFi → SUN2000 AP |

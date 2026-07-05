@@ -2,7 +2,7 @@
 """
 MQTT boot listener for Multi-Server Management System.
 Listens for boot commands via MQTT and executes appropriate boot method.
-Supports Dell T310 (IPMI) and HP DL360p (iLO) servers.
+Supports Dell T310 (IPMI), HP DL360p (iLO), and Media Server (linux_tuya).
 """
 
 import sys
@@ -83,7 +83,7 @@ class BootListener:
             
             # Validate boot method
             method = message.get('method', 'wol')
-            if method not in ['wol', 'ipmi', 'ilo']:
+            if method not in ['wol', 'ipmi', 'ilo', 'tuya_power', 'tuya_reset']:
                 logger.warning(f"Invalid boot method: {method}")
                 return None
             
@@ -103,7 +103,7 @@ class BootListener:
         
         Args:
             server_name: Name of the server to boot
-            method: Boot method ('wol', 'ipmi', or 'ilo')
+            method: Boot method ('wol', 'ipmi', 'ilo', 'tuya_power', or 'tuya_reset')
             
         Returns:
             True if boot successful, False otherwise
@@ -168,6 +168,34 @@ class BootListener:
                 else:
                     logger.warning(f"{server_name} boot verification timed out")
                     return False
+
+            elif method in ['tuya_power', 'tuya_reset']:
+                if server_config.get('type') != 'linux_tuya':
+                    logger.error(f"Method {method} is only valid for linux_tuya servers")
+                    return False
+
+                wait_timeout = server_config.get('boot', {}).get('wait_timeout', 300)
+
+                if method == 'tuya_reset':
+                    logger.info(f"Executing Tuya RESET for {server_name}")
+                    if not manager.reset():
+                        logger.error(f"Tuya reset failed for {server_name}")
+                        return False
+                else:
+                    logger.info(f"Executing Tuya POWER boot for {server_name}")
+                    if manager.get_power_status() == "on" and manager.is_reachable():
+                        logger.info(f"{server_name} is already online")
+                        return True
+                    if not manager.power_on():
+                        logger.error(f"Tuya power on failed for {server_name}")
+                        return False
+
+                logger.info(f"Waiting for {server_name} to come online (timeout {wait_timeout}s)...")
+                if manager.wait_for_power_state("on", timeout=wait_timeout):
+                    logger.info(f"{server_name} booted successfully")
+                    return True
+                logger.warning(f"{server_name} boot verification timed out")
+                return False
             
             # For WOL, we can also try to verify Proxmox if configured
             if method == 'wol' and 'proxmox' in server_config:

@@ -169,7 +169,7 @@
         "id": "ui_group_aquarium",
         "type": "ui-group",
         "name": "Acvariu",
-        "page": "ui_page_home",
+        "page": "7fd05c7d064cc1bd",
         "width": "6",
         "height": "1",
         "order": 1,

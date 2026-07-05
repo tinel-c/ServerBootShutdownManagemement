@@ -35,3 +35,4 @@ bleak>=0.21.0
 # Utilities
 wakeonlan>=3.0.0
 rich>=13.0.0
+tinytuya>=1.13.0

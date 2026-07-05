@@ -61,6 +61,7 @@ The automation server is an Ubuntu VM that hosts all management components:
   - **Control Panels**: Boot and shutdown buttons for each server
     - Dell T310: WoL/IPMI boot, graceful/force shutdown
     - HP DL360p: iLO boot, graceful/force shutdown
+    - Media server: Tuya PCIe boot/reset, SSH graceful shutdown, Tuya force off
   - **Status Display**: Real-time server state with metadata tracking
   - **Health Monitoring**: Comprehensive health check cards with 16+ data points
   - **Client Monitoring**: Track active client PCs in real-time

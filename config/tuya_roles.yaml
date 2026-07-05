@@ -1,0 +1,22 @@
+# Tuya device roles — used by scripts/tuya/sync_devices.py --apply-role
+# Match is case-insensitive on device name; product_id is exact.
+
+roles:
+  media_server:
+    description: "PCIe PC power card for media server boot/reset"
+    match_name_contains:
+      - pc
+      - computer
+      - media
+      - server
+      - power
+    match_product_ids:
+      - rtbhfbuii82scjrp
+      - ycsoojvkvwipbubo
+      - h6pglenun37dzsgo
+      - 0wwwgfhmcjepvs10
+    env_mapping:
+      device_id: MEDIA_SERVER_TUYA_DEVICE_ID
+      local_key: MEDIA_SERVER_TUYA_LOCAL_KEY
+      ip: MEDIA_SERVER_TUYA_IP
+      version: MEDIA_SERVER_TUYA_VERSION

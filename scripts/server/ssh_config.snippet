@@ -7,3 +7,10 @@ Host serverside
     User tinel
     IdentityFile ~/.ssh/serverside_192_168_2_4_ed25519
     IdentitiesOnly yes
+
+# Media server — key generated on automation server by setup_media_server_ssh.sh
+Host media-server
+    HostName 192.168.2.185
+    User tinel
+    IdentityFile ~/.ssh/media_server_192_168_2_185_ed25519
+    IdentitiesOnly yes

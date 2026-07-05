@@ -2,7 +2,7 @@
 """
 MQTT shutdown listener for Multi-Server Management System.
 Listens for shutdown commands via MQTT and executes appropriate shutdown method.
-Supports Dell T310 (IPMI) and HP DL360p (iLO) servers.
+Supports Dell T310 (IPMI), HP DL360p (iLO), and Media Server (linux_tuya).
 """
 
 import sys
@@ -120,6 +120,13 @@ class ShutdownListener:
             
             if shutdown_type == 'graceful':
                 logger.info(f"Executing GRACEFUL shutdown for {server_name}...")
+
+                if server_config.get('type') == 'linux_tuya':
+                    graceful_timeout = server_config.get('shutdown', {}).get('graceful_timeout', 120)
+                    if not manager.graceful_shutdown():
+                        logger.error(f"SSH graceful shutdown failed for {server_name}")
+                        return False
+                    return manager.wait_for_power_state("off", timeout=graceful_timeout)
                 
                 # Special handling for servers with Proxmox configuration
                 if 'proxmox' in server_config:
@@ -145,6 +152,9 @@ class ShutdownListener:
                 
             elif shutdown_type == 'force':
                 logger.warning(f"Executing FORCE shutdown for {server_name}...")
+
+                if server_config.get('type') == 'linux_tuya':
+                    return manager.tuya.power_off(force=True)
                 
                 # Use the manager directly for force shutdown
                 return manager.power_off(force=True)

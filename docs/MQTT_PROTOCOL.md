@@ -15,6 +15,8 @@ The system uses MQTT for remote commands, status updates, and telemetry. Most co
 | `dell/t310/command/boot` | Boot server | 1 |
 | `dell/t310/command/shutdown` | Shutdown server | 1 |
 | `dell/t310/command/status` | Request immediate status | 1 |
+| `media/server/command/boot` | Boot media server (Tuya PCIe) | 1 |
+| `media/server/command/shutdown` | Shutdown media server (SSH / Tuya force) | 1 |
 
 ### Status Topics (Server → Client)
 
@@ -23,6 +25,9 @@ The system uses MQTT for remote commands, status updates, and telemetry. Most co
 | `dell/t310/status` | Server status updates | 1 |
 | `dell/t310/response` | Command responses | 1 |
 | `dell/t310/logs` | Log messages | 0 |
+| `media/server/status` | Media server status | 1 |
+| `media/server/health` | Healthchecks.io checks | 1 |
+| `media/server/response` | Command responses | 1 |
 
 ### Client PC Topics (Client ↔ Server)
 

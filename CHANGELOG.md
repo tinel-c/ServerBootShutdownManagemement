@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.14.0] - 2026-07-05
+
+### Added - Media server, Tuya account linking, Server dashboard UI
+
+- **Media server** (`linux_tuya`): SSH graceful shutdown + Tuya PCIe boot/reset/force @ `192.168.2.185`; MQTT `media/server/*`; Healthchecks.io; flows `30`–`33` on Server page; [docs/MEDIA_SERVER.md](docs/MEDIA_SERVER.md).
+- **Tuya linking**: `scripts/tuya/sync_devices.py`, `tuya_link.sh`, `config/tuya_roles.yaml`; [docs/TUYA_ACCOUNT_LINK.md](docs/TUYA_ACCOUNT_LINK.md).
+- **Live deploy**: `deploy-media-ui.mjs`, `fix-dashboard-layout.mjs`, `08-server-dashboard-config.json`.
+
+### Changed
+
+- **Server dashboard** — media health full-width (Dell/HP template); schedule card in Server management; Rolling Log at end; removed redundant last-command panel.
+- **Telegram** — `media` target in `12-server-telegram.json`.
+- **Docs**: [nodered/flows/README.md](nodered/flows/README.md), [docs/UPDATE.md](docs/UPDATE.md), [docs/TELEGRAM_INTERFACE.md](docs/TELEGRAM_INTERFACE.md), [RELEASE_NOTES_v3.14.0.md](docs/releases/RELEASE_NOTES_v3.14.0.md).
+
 ## [3.13.0] - 2026-07-05
 
 ### Added - Energy dashboards, Huawei PV forecast, Tapo cameras

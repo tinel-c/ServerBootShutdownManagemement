@@ -160,6 +160,8 @@ After update:
 - [ ] **Node-RED** (v3.11.6+): re-import flows `800`, `811`, `812`, update `50` and `90` — see [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md)
 - [ ] **Node-RED** (v3.11.8+): re-import flows `821`, `822`, update `50` and `90` for Huawei — see [ENERGY_NODE_RED.md](ENERGY_NODE_RED.md)
 - [ ] **Node-RED** (v3.13.0+): energy charts + Huawei PV forecast — deploy `deploy-flow-811-821.mjs`; Tapo flows `611`–`613` — see [TAPO_CAMERA.md](TAPO_CAMERA.md)
+- [ ] **Media server** (v3.14.0+): Tuya link + `apply-role media_server`; SSH setup; deploy `deploy-media-ui.mjs` — see [MEDIA_SERVER.md](MEDIA_SERVER.md), [TUYA_ACCOUNT_LINK.md](TUYA_ACCOUNT_LINK.md)
+- [ ] **MQTT**: `mosquitto_sub -h localhost -t 'media/server/status' -C 1`
 - [ ] Check logs: `journalctl -u status-publisher.service -n 20`
 - [ ] Test functionality (boot/shutdown commands, status monitoring)
 - [ ] Verify Telegram notifications work (`/help`, `/energy_status`, `/huawei_status`)

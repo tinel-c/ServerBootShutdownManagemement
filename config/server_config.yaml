@@ -53,6 +53,38 @@ servers:
       status_interval: 30  # seconds
       health_check_interval: 60  # seconds
 
+  # Ubuntu Media Server with Tuya PCIe power card
+  - name: "Media Server"
+    type: "linux_tuya"
+    mqtt_prefix: "media/server"
+    healthcheck_names: "${MEDIA_SERVER_HEALTHCHECKS}"
+
+    ssh:
+      host: "${MEDIA_SERVER_HOST}"
+      user: "${MEDIA_SERVER_SSH_USER}"
+      key_path: "${MEDIA_SERVER_SSH_KEY}"
+      port: 22
+
+    tuya:
+      device_id: "${MEDIA_SERVER_TUYA_DEVICE_ID}"
+      local_key: "${MEDIA_SERVER_TUYA_LOCAL_KEY}"
+      ip: "${MEDIA_SERVER_TUYA_IP}"
+      version: "${MEDIA_SERVER_TUYA_VERSION}"
+      dps_power: "${MEDIA_SERVER_TUYA_DPS_POWER}"
+      dps_reset: "${MEDIA_SERVER_TUYA_DPS_RESET}"
+      dps_force_reset: "${MEDIA_SERVER_TUYA_DPS_FORCE_RESET}"
+      dps_status: "${MEDIA_SERVER_TUYA_DPS_STATUS}"
+
+    shutdown:
+      graceful_timeout: 120
+
+    boot:
+      wait_timeout: 300
+
+    monitoring:
+      status_interval: 30
+      health_check_interval: 60
+
 # Client PC Automation Settings
 client_automation:
   enabled: true

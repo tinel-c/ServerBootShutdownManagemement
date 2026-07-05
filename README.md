@@ -83,8 +83,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 
 ![Server power control](docs/images/readme_servers.png)
 
-- 🚀 **Remote Boot** - Wake-on-LAN (Dell T310) and iLO (HP DL360p) based boot
-- 🛑 **Remote Shutdown** - Graceful VM shutdown and force shutdown options
+- 🚀 **Remote Boot** - Wake-on-LAN (Dell T310), iLO (HP DL360p), Tuya PCIe (media server)
+- 🛑 **Remote Shutdown** - Graceful VM shutdown, SSH (media server), force shutdown options
 - 📊 **Status Monitoring** - Real-time server status via Proxmox API with **Ping Fallback** (Dell T310) and iLO (HP DL360p)
 - 🏥 **Health Monitoring** - HealthChecks.io integration with API v3 support
 - 🤖 **Smart Automation** - Client-aware boot, 5-minute grace periods, **10-minute shutdown guard**, command cooldown protection
@@ -166,7 +166,7 @@ The diagram above shows the same hub-and-spoke model: one automation server, man
 The platform supports **multiple automation domains** through a scalable, modular architecture:
 
 **Available Domains:**
-- 🖥️ **Server Management** (100-199) - Boot/shutdown for Dell T310 & HP DL360p (flows `10`–`22`); client PCs (`40`–`42`)
+- 🖥️ **Server Management** (100-199) - Dell T310 & HP DL360p (flows `10`–`22`); **media server** Ubuntu + Tuya PCIe (flows `30`–`33`); client PCs (`40`–`42`)
 - 🚪 **Gate Automation** (200-299) - Perimeter gates, garage doors, access control
 - 💡 **Lighting Control** (300-399) - Indoor/outdoor lights, scenes, scheduling
 - 💧 **Irrigation System** (400-499) - Multi-zone watering with weather integration
@@ -203,6 +203,11 @@ The platform supports **multiple automation domains** through a scalable, modula
   - **Boot**: iLO power-on command
   - **Status**: iLO with automatic retry
   - **Shutdown**: Proxmox API for graceful VM shutdown
+- **Media server** (Ubuntu @ `192.168.2.185`, v3.14.0+):
+  - **Boot**: Tuya PCIe power / reset pulse
+  - **Shutdown**: SSH graceful shutdown; Tuya force power-off
+  - **Status**: Ping + Tuya relay state; Healthchecks.io health feed
+  - See [docs/MEDIA_SERVER.md](docs/MEDIA_SERVER.md), [docs/TUYA_ACCOUNT_LINK.md](docs/TUYA_ACCOUNT_LINK.md)
 
 Status and health monitoring is published back through MQTT to the dashboard for real-time visibility.
 
@@ -536,7 +541,7 @@ Modern, feature-rich dashboard with modular flows for easy maintenance and scala
 ### Dashboard Features
 
 #### Per-Server Control Panels
-Each server (Dell T310 & HP DL360p) has dedicated panels:
+Each server (Dell T310, HP DL360p, and **media server**) has dedicated panels on the **Server** page (`/dashboard/page2`):
 - **Control Buttons**:
   - 🟢 BOOT SERVER - Wake server using appropriate method (WOL/IPMI/iLO)
   - 🟠 PROXMOX SHUTDOWN - Graceful VM + host shutdown
@@ -557,7 +562,7 @@ Each server (Dell T310 & HP DL360p) has dedicated panels:
   - Color-coded borders (green=up, red=down, orange=warning)
 
 #### System Log Console
-- Terminal-style display with dark background
+- Terminal-style display at the **bottom** of the Server page
 - Color-coded by log level (INFO/WARNING/ERROR/CRITICAL)
 - Rolling buffer (last 50 entries)
 - Auto-scroll to latest entries
@@ -568,7 +573,7 @@ Each server (Dell T310 & HP DL360p) has dedicated panels:
 - 📊 Real-time status notifications
 - 🔔 Automatic alerts on server state changes and device watchdog events
 - 🔐 User authorization support
-- **Server commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help`
+- **Server commands**: `/boot`, `/shutdown`, `/force`, `/status`, `/help` (targets: `dell`, `hp`, `media`)
 - **Energy commands (Victron)**: `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help`
 - **Energy commands (Huawei)**: `/huawei_status`, `/huawei_help`
 - **See**: [docs/TELEGRAM_INTERFACE.md](docs/TELEGRAM_INTERFACE.md), [nodered/TELEGRAM_SETUP.md](nodered/TELEGRAM_SETUP.md)
@@ -579,6 +584,7 @@ nodered/flows/
 ├── 00-base-config.json        # Core configuration
 ├── 10-12-dell-*.json          # Dell T310 management
 ├── 20-22-hp-*.json            # HP DL360p management
+├── 30-33-media-*.json         # Media server (SSH + Tuya PCIe)
 ├── 40-42-client-*.json        # Client tracking & automation
 ├── 50-telegram-interface.json # Telegram bot (optional)
 ├── 800-812-victron-*.json   # Victron energy dashboard + Telegram
@@ -802,6 +808,7 @@ ServerBootShutdownManagemement/
 │   ├── flows/                      # Import in order — see flows/README.md
 │   │   ├── 00-base-config.json     # MQTT broker, dashboard shell
 │   │   ├── 10–12, 20–22           # Dell T310 & HP DL360p (100–199)
+│   │   ├── 30–33                   # Media server (SSH + Tuya PCIe)
 │   │   ├── 40–42                   # Client tracking & automation (40–49)
 │   │   ├── 50-telegram-interface.json
 │   │   ├── 200–212                 # Gates (200–299)
@@ -887,7 +894,7 @@ ServerBootShutdownManagemement/
 ## Requirements
 
 ### Hardware (pick what you use)
-- **Servers:** Dell T310 (WoL/IPMI + Proxmox) and/or HP DL360p (iLO + Proxmox)
+- **Servers:** Dell T310 (WoL/IPMI + Proxmox), HP DL360p (iLO + Proxmox), and/or media server (SSH + Tuya PCIe)
 - **Automation host:** Ubuntu VM/PC on the LAN (runs this repo’s Python services and Node-RED)
 - **Optional:** Victron Cerbo GX, Huawei SUN2000, ESP32 SMS gateway, Tasmota/Sonoff IoT, Tapo cameras
 
@@ -928,10 +935,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.13.0  
+**Version:** 3.14.0  
 **Last Updated:** 2026-07-05
 
 ## Recent Releases
+
+### v3.14.0 (2026-07-05) - Media server, Tuya linking, Server dashboard UI
+- 🖥️ **Media server** — SSH shutdown + Tuya PCIe boot/reset; flows `30`–`33`; [MEDIA_SERVER.md](docs/MEDIA_SERVER.md)
+- 🔌 **Tuya account linking** — sync all Smart Life devices; role-based `.env`; [TUYA_ACCOUNT_LINK.md](docs/TUYA_ACCOUNT_LINK.md)
+- 📊 **Server dashboard** — full-width health cards, schedule UI, Rolling Log at end; `deploy-media-ui.mjs`
+- See [RELEASE_NOTES_v3.14.0.md](docs/releases/RELEASE_NOTES_v3.14.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.13.0 (2026-07-05) - Energy dashboards, Huawei PV forecast, Tapo cameras
 - 📊 **Energy charts** — Victron/Huawei 7-day SVG with hover tooltips; SoC band fix; Huawei PV forecast (Open-Meteo)

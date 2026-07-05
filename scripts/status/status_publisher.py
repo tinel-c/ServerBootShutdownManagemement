@@ -179,20 +179,28 @@ class StatusPublisher:
         }
         
         try:
-            # For Dell T310, use Proxmox API instead of IPMI (which is unreliable)
-            if server_name == "Dell T310" and server_config.get('proxmox'):
-                power_status = self.get_server_status_from_proxmox(server_name, server_config)
-            else:
-                # For other servers, use IPMI/iLO wrapper
+            server_type = server_config.get('type', 'unknown')
+
+            if server_type == 'linux_tuya':
                 power_status = manager.get_power_status()
-            
-            status["power_status"] = power_status
-            
-            if power_status == "on":
-                status["server_state"] = "online"
-                
-            elif power_status == "off":
-                status["server_state"] = "offline"
+                status["power_status"] = power_status
+                if power_status == "on":
+                    status["server_state"] = "online"
+                    status["uptime"] = manager.get_uptime()
+                elif power_status == "off":
+                    status["server_state"] = "offline"
+            else:
+                if server_name == "Dell T310" and server_config.get('proxmox'):
+                    power_status = self.get_server_status_from_proxmox(server_name, server_config)
+                else:
+                    power_status = manager.get_power_status()
+
+                status["power_status"] = power_status
+
+                if power_status == "on":
+                    status["server_state"] = "online"
+                elif power_status == "off":
+                    status["server_state"] = "offline"
             
         except Exception as e:
             logger.error(f"Error getting status for {server_name}: {e}")

@@ -245,5 +245,22 @@ Run probe on server: `source /opt/dell_server_management/venv/bin/activate && py
 
 ---
 
-*Last updated 2026-07-04 — Modbus probe successful.*
+## PV forecast model (Node-RED flow 821)
+
+Maps Open-Meteo shortwave radiation to expected inverter power for a **20-panel** array: **string 1 west**, **string 2 east** (10 panels each).
+
+```text
+P_est = P_rated × (G / 1000) × η
+P_est_string1 = P_est × w_west / (w_east + w_west)
+P_est_string2 = P_est × w_east / (w_east + w_west)
+```
+
+- **G** from `energy/victron/forecast/solar/current` (same Open-Meteo publisher as Victron)
+- **Actual** from string V×I in `energy/huawei/status`
+- Python reference: [lib/pv_forecast_model.py](lib/pv_forecast_model.py)
+- Dashboard: [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md)
+
+---
+
+*Last updated 2026-07-05 — PV forecast model on flow 821.*
 

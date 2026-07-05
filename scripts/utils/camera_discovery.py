@@ -12,10 +12,13 @@ from rich.table import Table
 from rich.progress import Progress
 
 try:
-    from WSDiscovery import WSDiscovery
+    from wsdiscovery.discovery import ThreadedWSDiscovery as WSDiscovery
 except ImportError:
-    print("❌ Error: WSDiscovery not installed. Run: pip install WSDiscovery")
-    sys.exit(1)
+    try:
+        from WSDiscovery import WSDiscovery
+    except ImportError:
+        print("❌ Error: WSDiscovery not installed. Run: pip install WSDiscovery")
+        sys.exit(1)
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "utils"))

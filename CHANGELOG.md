@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.13.0] - 2026-07-05
+
+### Added - Energy dashboards, Huawei PV forecast, Tapo cameras
+
+- **Victron 811 / Huawei 821**: readable 7-day SVG charts (thin lines, axis labels, hover tooltips); Victron SoC band scale fix; Huawei chart 0 W at bottom; Energy page icon `battery-charging-100`.
+- **Huawei PV forecast**: Open-Meteo irradiance → expected power model (`device/huawei-inverter/lib/pv_forecast_model.py`); string 1 west / string 2 east; dashboard forecast card on flow 821.
+- **Tapo cameras**: flows `611` (dashboard), `612` (watchdog), `613` (watchdog status UI); `tapo-monitor.service`; [docs/TAPO_CAMERA.md](docs/TAPO_CAMERA.md).
+- **Live deploy**: `nodered/live-connection/scripts/deploy-flow-811-821.mjs`, `deploy-flow-611.mjs`, `612`, `613`.
+
+### Changed
+
+- **Flow 800**: Energy page uses live Dashboard 2.0 UI base IDs; Huawei UI group on `/energy`.
+- **Docs**: [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), [nodered/flows/README.md](nodered/flows/README.md), [MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md), release notes [RELEASE_NOTES_v3.13.0.md](docs/releases/RELEASE_NOTES_v3.13.0.md).
+
 ## [3.11.9] - 2026-07-04
 
 ### Changed - Install, repo cleanup, architecture diagram

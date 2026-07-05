@@ -37,6 +37,8 @@ gh release create vX.Y.Z --title "vX.Y.Z — …" --notes-file docs/releases/REL
 
 | Version | Notes |
 |---------|-------|
+| v3.13.0 | [RELEASE_NOTES_v3.13.0.md](RELEASE_NOTES_v3.13.0.md) — Energy charts, Huawei PV forecast, Tapo cameras |
+| v3.12.0 | [RELEASE_NOTES_v3.12.0.md](RELEASE_NOTES_v3.12.0.md) — Grundfos SCALA1 scaffolding (planned) |
 | v3.11.9 | [RELEASE_NOTES_v3.11.9.md](RELEASE_NOTES_v3.11.9.md) — Install cleanup & architecture v4 |
 | v3.11.8 | [RELEASE_NOTES_v3.11.8.md](RELEASE_NOTES_v3.11.8.md) — Huawei SUN2000 energy |
 | v3.11.7 | [RELEASE_NOTES_v3.11.7.md](RELEASE_NOTES_v3.11.7.md) — Victron docs |

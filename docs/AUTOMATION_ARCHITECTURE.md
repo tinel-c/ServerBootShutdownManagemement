@@ -112,6 +112,7 @@ Examples:
 - `790-799`: HVAC utilities
 
 #### Energy Management (800-899)
+- `600-699`: Tapo cameras (`611-camera-management.json`, `612-camera-watchdog.json`, `613-watchdog-status-dashboard.json`)
 - `800-809`: Base energy infrastructure (`800-energy-base-config.json`)
 - `810-819`: Victron Cerbo GX (`811-victron-energy-status.json`, `812-victron-energy-telegram.json`)
 - `820-829`: Huawei SUN2000 solar (`821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`)

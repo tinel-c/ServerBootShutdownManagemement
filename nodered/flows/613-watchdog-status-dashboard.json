@@ -1,0 +1,291 @@
+[
+    {
+        "id": "watchdog_status_comment",
+        "type": "comment",
+        "z": "8becda4e1ec6a8b9",
+        "name": "═══════════════ WATCHDOG STATUS DASHBOARD (613) ═══════════════",
+        "info": "## Watchdog Status Dashboard\n\nUnified view of all monitored devices:\n- Flow 90 MQTT watchdogs\n- Flow 612 camera watchdogs\n- SMS Gateway hardware watchdog enrollments",
+        "x": 340,
+        "y": 2280,
+        "wires": []
+    },
+    {
+        "id": "ui_page_watchdog_status",
+        "type": "ui-page",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Watchdog",
+        "ui": "b89dd587275b51bf",
+        "path": "/watchdog",
+        "icon": "timer-check",
+        "layout": "grid",
+        "theme": "39a2cf2c0af73875",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 10,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_watchdog_status",
+        "type": "ui-group",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Watchdog Overview",
+        "page": "ui_page_watchdog_status",
+        "order": 1,
+        "width": "12",
+        "height": "1",
+        "showTitle": false,
+        "className": "watchdog-status-group"
+    },
+    {
+        "id": "inject_watchdog_ui_refresh",
+        "type": "inject",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Refresh watchdog UI",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 2,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 2360,
+        "wires": [
+            [
+                "func_watchdog_ui_build"
+            ]
+        ]
+    },
+    {
+        "id": "func_watchdog_ui_touch",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Watchdog heartbeat touch",
+        "func": "const NR_WATCHDOGS = [{\"id\":\"watchdog_maingate\",\"name\":\"Main Gate\",\"category\":\"Gates\",\"topic\":\"MainGate/STAT/reccurentStatusRelay4\",\"timeoutMin\":3},{\"id\":\"watchdog_sliding\",\"name\":\"Primary Sliding Gate\",\"category\":\"Gates\",\"topic\":\"tele/LuncaCetatuiiSlidingGateAutomation/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_secondary\",\"name\":\"Secondary Sliding Gate\",\"category\":\"Gates\",\"topic\":\"tele/portaSecundara/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_irrigation\",\"name\":\"Irrigation System\",\"category\":\"Garden\",\"topic\":\"tele/IrigationSystem/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_pump\",\"name\":\"Water Pump\",\"category\":\"Garden\",\"topic\":\"tele/pompaApa/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_garden_power\",\"name\":\"Garden Power\",\"category\":\"Garden\",\"topic\":\"tele/sonoffPower320D_afara/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_garden_lights\",\"name\":\"Garden Lights\",\"category\":\"Garden\",\"topic\":\"tele/GardenAutomationLights/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_front_house\",\"name\":\"Front House Power\",\"category\":\"Garden\",\"topic\":\"tele/frontHousePower/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_aquarium\",\"name\":\"Aquarium Light\",\"category\":\"Garden\",\"topic\":\"tele/sursaAcvariu/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_victron\",\"name\":\"Victron Energy\",\"category\":\"Energy\",\"topic\":\"energy/victron/status\",\"timeoutMin\":2},{\"id\":\"watchdog_huawei\",\"name\":\"Huawei Solar\",\"category\":\"Energy\",\"topic\":\"energy/huawei/status\",\"timeoutMin\":2},{\"id\":\"watchdog_scala1\",\"name\":\"Grundfos SCALA1\",\"category\":\"Water\",\"topic\":\"water/grundfos/scala1/status\",\"timeoutMin\":2},{\"id\":\"watchdog_sms_gateway\",\"name\":\"SMS Gateway\",\"category\":\"Comms\",\"topic\":\"sms/gateway/status\",\"timeoutMin\":5}];\n\nconst TOPIC_TO_ID = {};\nfor (const d of NR_WATCHDOGS) TOPIC_TO_ID[d.topic] = d.id;\n\nconst topic = msg.topic || '';\nconst now = Date.now();\n\nif (topic === 'sms/gateway/watchdog/status') {\n    let list = msg.payload;\n    if (typeof list === 'string') {\n        try { list = JSON.parse(list); } catch (e) { list = []; }\n    }\n    if (!Array.isArray(list)) list = [];\n    const normalized = list.map(dev => ({\n        name: dev.name,\n        interval: dev.interval || 60,\n        online: !!dev.online,\n        ageSec: dev.age != null ? Number(dev.age) : null,\n        lastSeen: dev.age != null ? now - Number(dev.age) * 1000 : null\n    }));\n    flow.set('watchdog_sms_devices', normalized);\n    return { payload: 'refresh' };\n}\n\nif (topic.startsWith('garden/camera/') && topic.endsWith('/health')) {\n    const slug = topic.split('/')[2];\n    if (slug) {\n        flow.set('watchdog_ui_last_camera_' + slug, now);\n        const state = String(msg.payload || '').toLowerCase();\n        if (state === 'online' || state === 'offline') {\n            flow.set('watchdog_state_camera_' + slug, state);\n        }\n    }\n    return { payload: 'refresh' };\n}\n\nconst id = TOPIC_TO_ID[topic];\nif (id) {\n    flow.set('watchdog_ui_last_' + id, now);\n    return { payload: 'refresh' };\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 2440,
+        "wires": [
+            [
+                "func_watchdog_ui_build"
+            ]
+        ]
+    },
+    {
+        "id": "func_watchdog_ui_build",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Build watchdog UI payload",
+        "func": "const NR_WATCHDOGS = [{\"id\":\"watchdog_maingate\",\"name\":\"Main Gate\",\"category\":\"Gates\",\"topic\":\"MainGate/STAT/reccurentStatusRelay4\",\"timeoutMin\":3},{\"id\":\"watchdog_sliding\",\"name\":\"Primary Sliding Gate\",\"category\":\"Gates\",\"topic\":\"tele/LuncaCetatuiiSlidingGateAutomation/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_secondary\",\"name\":\"Secondary Sliding Gate\",\"category\":\"Gates\",\"topic\":\"tele/portaSecundara/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_irrigation\",\"name\":\"Irrigation System\",\"category\":\"Garden\",\"topic\":\"tele/IrigationSystem/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_pump\",\"name\":\"Water Pump\",\"category\":\"Garden\",\"topic\":\"tele/pompaApa/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_garden_power\",\"name\":\"Garden Power\",\"category\":\"Garden\",\"topic\":\"tele/sonoffPower320D_afara/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_garden_lights\",\"name\":\"Garden Lights\",\"category\":\"Garden\",\"topic\":\"tele/GardenAutomationLights/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_front_house\",\"name\":\"Front House Power\",\"category\":\"Garden\",\"topic\":\"tele/frontHousePower/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_aquarium\",\"name\":\"Aquarium Light\",\"category\":\"Garden\",\"topic\":\"tele/sursaAcvariu/STATE\",\"timeoutMin\":11},{\"id\":\"watchdog_victron\",\"name\":\"Victron Energy\",\"category\":\"Energy\",\"topic\":\"energy/victron/status\",\"timeoutMin\":2},{\"id\":\"watchdog_huawei\",\"name\":\"Huawei Solar\",\"category\":\"Energy\",\"topic\":\"energy/huawei/status\",\"timeoutMin\":2},{\"id\":\"watchdog_scala1\",\"name\":\"Grundfos SCALA1\",\"category\":\"Water\",\"topic\":\"water/grundfos/scala1/status\",\"timeoutMin\":2},{\"id\":\"watchdog_sms_gateway\",\"name\":\"SMS Gateway\",\"category\":\"Comms\",\"topic\":\"sms/gateway/status\",\"timeoutMin\":5}];\n\nconst CAMERA_LABELS = {\n    interior: 'Interior curte',\n    smallGate: 'Poarta mica',\n    backyard: 'Spate casa',\n    gate2: 'Poarta glisanta 2',\n    gate1: 'Poarta glisanta 1',\n    fataCasa: 'Fata casa',\n    strada: 'Curte strada'\n};\n\nfunction displayName(slug) {\n    if (CAMERA_LABELS[slug]) return CAMERA_LABELS[slug];\n    return slug.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nfunction resolveState(id, timeoutMin) {\n    const stateKey = id.startsWith('camera_')\n        ? 'watchdog_state_' + id\n        : 'watchdog_state_' + id;\n    let state = flow.get(stateKey) || 'unknown';\n    const lastKey = id.startsWith('camera_')\n        ? 'watchdog_ui_last_' + id\n        : 'watchdog_ui_last_' + id;\n    const lastSeen = flow.get(lastKey);\n    if ((!state || state === 'unknown') && lastSeen) {\n        const ageMin = (Date.now() - lastSeen) / 60000;\n        if (ageMin <= timeoutMin) state = 'online';\n        else state = 'offline';\n    }\n    return { state, lastSeen: lastSeen || null };\n}\n\nconst items = [];\n\nfor (const d of NR_WATCHDOGS) {\n    const { state, lastSeen } = resolveState(d.id, d.timeoutMin);\n    items.push({\n        id: d.id,\n        name: d.name,\n        category: d.category,\n        layer: 'Node-RED',\n        topic: d.topic,\n        timeoutMin: d.timeoutMin,\n        state,\n        lastSeen\n    });\n}\n\nfor (const slug of Object.keys(CAMERA_LABELS)) {\n    const id = 'camera_' + slug;\n    const { state, lastSeen } = resolveState(id, 2);\n    items.push({\n        id,\n        name: displayName(slug),\n        category: 'Cameras',\n        layer: 'Node-RED',\n        topic: 'garden/camera/' + slug + '/health',\n        timeoutMin: 2,\n        state,\n        lastSeen\n    });\n}\n\nconst smsDevices = flow.get('watchdog_sms_devices') || [];\nfor (const dev of smsDevices) {\n    if (!dev || !dev.name) continue;\n    items.push({\n        id: 'sms_hw_' + dev.name,\n        name: dev.name,\n        category: dev.name.startsWith('camera_') ? 'Cameras' : 'SMS Gateway',\n        layer: 'SMS Hardware',\n        topic: 'sms/gateway/watchdog/heartbeat',\n        timeoutMin: Math.max(1, Math.round((dev.interval || 60) / 60)),\n        timeoutSec: dev.interval || 60,\n        state: dev.online ? 'online' : 'offline',\n        lastSeen: dev.lastSeen || null,\n        ageSec: dev.ageSec\n    });\n}\n\nitems.sort((a, b) => {\n    const c = a.category.localeCompare(b.category);\n    if (c !== 0) return c;\n    return a.name.localeCompare(b.name);\n});\n\nconst summary = items.reduce((acc, it) => {\n    acc[it.state] = (acc[it.state] || 0) + 1;\n    return acc;\n}, { online: 0, offline: 0, unknown: 0 });\n\nmsg.payload = {\n    items,\n    summary,\n    updatedAt: new Date().toISOString()\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 2360,
+        "wires": [
+            [
+                "ui_watchdog_status_board"
+            ]
+        ]
+    },
+    {
+        "id": "ui_watchdog_status_board",
+        "type": "ui-template",
+        "z": "8becda4e1ec6a8b9",
+        "group": "ui_group_watchdog_status",
+        "name": "Watchdog status board",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<template>\n    <div class=\"watchdog-dash watchdog-status-root\" v-if=\"msg.payload\">\n        <div class=\"wd-header\">\n            <div>\n                <div class=\"wd-title\">⏱️ Watchdog Status</div>\n                <div class=\"wd-subtitle\">Node-RED · cameras · SMS gateway</div>\n            </div>\n            <div class=\"wd-updated\" v-if=\"msg.payload.updatedAt\">Updated {{ formatTime(msg.payload.updatedAt) }}</div>\n        </div>\n\n        <div class=\"wd-summary\">\n            <div class=\"wd-pill online\">🟢 {{ msg.payload.summary.online || 0 }}</div>\n            <div class=\"wd-pill offline\">🔴 {{ msg.payload.summary.offline || 0 }}</div>\n            <div class=\"wd-pill unknown\">⚪ {{ msg.payload.summary.unknown || 0 }}</div>\n            <div class=\"wd-pill total\">{{ (msg.payload.items || []).length }} total</div>\n        </div>\n\n        <div class=\"wd-categories-wrap\">\n            <div v-for=\"(group, category) in groupedItems\" :key=\"category\" class=\"wd-category\">\n                <div class=\"wd-category-title\">{{ category }}</div>\n                <div class=\"wd-grid\">\n                    <div v-for=\"item in group\" :key=\"item.id\"\n                         class=\"wd-card\" :class=\"item.state\" :title=\"item.topic\">\n                        <div class=\"wd-card-row\">\n                            <span class=\"wd-icon\">{{ item.state === 'online' ? '🟢' : (item.state === 'offline' ? '🔴' : '⚪') }}</span>\n                            <span class=\"wd-name\">{{ item.name }}</span>\n                            <span class=\"wd-state\">{{ (item.state || 'unknown').toUpperCase() }}</span>\n                        </div>\n                        <div class=\"wd-meta\">{{ item.layer }} · {{ item.timeoutSec ? item.timeoutSec + 's' : item.timeoutMin + 'm' }} · {{ formatLast(item) }}</div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</template>\n\n<script>\nexport default {\n    computed: {\n        groupedItems() {\n            const groups = {};\n            const items = (this.msg && this.msg.payload && this.msg.payload.items) || [];\n            for (const item of items) {\n                const cat = item.category || 'Other';\n                if (!groups[cat]) groups[cat] = [];\n                groups[cat].push(item);\n            }\n            return groups;\n        }\n    },\n    methods: {\n        formatTime(value) {\n            if (!value) return '--:--:--';\n            try {\n                const d = typeof value === 'number' ? new Date(value) : new Date(value);\n                return d.toLocaleTimeString('en-US', {\n                    hour12: false,\n                    hour: '2-digit',\n                    minute: '2-digit',\n                    second: '2-digit'\n                });\n            } catch (e) {\n                return '--:--:--';\n            }\n        },\n        formatLast(item) {\n            if (item.lastSeen) return this.formatTime(item.lastSeen);\n            if (item.ageSec != null) return item.ageSec + 's ago';\n            return 'no signal';\n        }\n    }\n}\n</script>\n\n<style>\n.watchdog-dash.watchdog-status-root {\n    background: #ffffff;\n    border-radius: 12px;\n    border: 1px solid #e2e8f0;\n    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);\n    padding: 12px 14px 14px;\n    color: #0f172a;\n    font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n    box-sizing: border-box;\n    overflow: visible;\n    height: auto;\n    min-height: 0;\n    max-height: none;\n}\n.watchdog-dash .wd-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: flex-start;\n    flex-wrap: wrap;\n    gap: 8px;\n    margin-bottom: 10px;\n    padding-bottom: 8px;\n    border-bottom: 1px solid #e2e8f0;\n}\n.watchdog-dash .wd-title { font-weight: 700; font-size: 1rem; color: #0f172a; }\n.watchdog-dash .wd-subtitle { font-size: 0.72rem; color: #64748b; margin-top: 2px; }\n.watchdog-dash .wd-updated { font-size: 0.72rem; color: #64748b; white-space: nowrap; }\n.watchdog-dash .wd-summary {\n    display: flex;\n    flex-wrap: wrap;\n    gap: 6px;\n    margin-bottom: 12px;\n}\n.watchdog-dash .wd-pill {\n    font-size: 0.72rem;\n    font-weight: 600;\n    padding: 4px 9px;\n    border-radius: 999px;\n    border: 1px solid #e2e8f0;\n    background: #f8fafc;\n}\n.watchdog-dash .wd-pill.online { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }\n.watchdog-dash .wd-pill.offline { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }\n.watchdog-dash .wd-pill.unknown { color: #475569; }\n.watchdog-dash .wd-pill.total { color: #334155; }\n.watchdog-dash .wd-categories-wrap {\n    display: grid;\n    grid-template-columns: 1fr;\n    gap: 8px;\n}\n@media (min-width: 768px) {\n    .watchdog-dash .wd-categories-wrap {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n    }\n}\n@media (min-width: 1200px) {\n    .watchdog-dash .wd-categories-wrap {\n        grid-template-columns: repeat(3, minmax(0, 1fr));\n    }\n}\n.watchdog-dash .wd-category { margin-bottom: 0; }\n.watchdog-dash .wd-category-title {\n    font-size: 0.68rem;\n    font-weight: 700;\n    text-transform: uppercase;\n    letter-spacing: 0.06em;\n    color: #64748b;\n    margin-bottom: 6px;\n}\n.watchdog-dash .wd-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));\n    gap: 5px;\n}\n@media (min-width: 1024px) {\n    .watchdog-dash .wd-grid {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n    }\n}\n.watchdog-dash .wd-card {\n    border-radius: 8px;\n    padding: 8px 10px;\n    border: 1px solid #e2e8f0;\n    background: #f8fafc;\n    border-left: 3px solid #94a3b8;\n}\n.watchdog-dash .wd-card.online { background: #ecfdf5; border-color: #a7f3d0; border-left-color: #059669; }\n.watchdog-dash .wd-card.offline { background: #fef2f2; border-color: #fecaca; border-left-color: #dc2626; }\n.watchdog-dash .wd-card.unknown { background: #f8fafc; border-left-color: #94a3b8; }\n.watchdog-dash .wd-card-row {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    min-width: 0;\n    margin-bottom: 3px;\n}\n.watchdog-dash .wd-icon { flex-shrink: 0; font-size: 0.85rem; line-height: 1; }\n.watchdog-dash .wd-name {\n    flex: 1;\n    min-width: 0;\n    font-weight: 700;\n    font-size: 0.76rem;\n    color: #0f172a;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.watchdog-dash .wd-state {\n    flex-shrink: 0;\n    font-size: 0.62rem;\n    font-weight: 700;\n    letter-spacing: 0.03em;\n    color: #475569;\n}\n.watchdog-dash .wd-card.online .wd-state { color: #047857; }\n.watchdog-dash .wd-card.offline .wd-state { color: #b91c1c; }\n.watchdog-dash .wd-meta {\n    font-size: 0.64rem;\n    color: #64748b;\n    line-height: 1.25;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.nrdb-ui-group.watchdog-status-group,\n.nrdb-ui-group.watchdog-status-group .nrdb-ui-group-content,\n.nrdb-ui-group.watchdog-status-group .nrdb-ui-widget-content,\n.nrdb-ui-group.watchdog-status-group .v-card-text,\n.nrdb-ui-group.watchdog-status-group .nrdb-ui-widget {\n    overflow: visible !important;\n    max-height: none !important;\n    height: auto !important;\n}\n.nrdb-ui-page .nrdb-ui-group.watchdog-status-group {\n    overflow: visible !important;\n}\n</style>",
+        "storeOutMessages": true,
+        "fwdInMessages": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 960,
+        "y": 2360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "watchdog_ui_in_maingate",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Main gate HB",
+        "topic": "MainGate/STAT/reccurentStatusRelay4",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2480,
+        "wires": [
+            [
+                "func_watchdog_ui_touch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_ui_in_tasmota",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Tasmota STATE",
+        "topic": "tele/+/STATE",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2530,
+        "wires": [
+            [
+                "func_watchdog_ui_touch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_ui_in_energy",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Energy status",
+        "topic": "energy/+/status",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2580,
+        "wires": [
+            [
+                "func_watchdog_ui_touch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_ui_in_scala1",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "SCALA1 status",
+        "topic": "water/grundfos/scala1/status",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2630,
+        "wires": [
+            [
+                "func_watchdog_ui_touch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_ui_in_sms_gw",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "SMS gateway status",
+        "topic": "sms/gateway/status",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2680,
+        "wires": [
+            [
+                "func_watchdog_ui_touch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_ui_in_cameras",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Camera health",
+        "topic": "garden/camera/+/health",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2730,
+        "wires": [
+            [
+                "func_watchdog_ui_touch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_ui_in_sms_wd",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "SMS watchdog status",
+        "topic": "sms/gateway/watchdog/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2780,
+        "wires": [
+            [
+                "func_watchdog_ui_touch"
+            ]
+        ]
+    }
+]

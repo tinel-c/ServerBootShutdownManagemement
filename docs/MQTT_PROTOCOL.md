@@ -639,6 +639,71 @@ See [device/grundfos-scala1/README.md](../device/grundfos-scala1/README.md).
 
 ---
 
+## Tapo Camera Messages
+
+Motion and person detection from Tapo cameras via `tapo-monitor.service`. Topic prefix is configurable per camera (`CAMERA_N_MQTT_PREFIX`, default `garden/camera/{slug}`).
+
+Setup: [TAPO_CAMERA.md](TAPO_CAMERA.md)
+
+### Camera Health
+
+**Topic:** `garden/camera/{slug}/health`
+
+**Payload:** plain text — `online` or `offline` (retained)
+
+**Watchdog (flow 612):** Each slug is monitored independently. Missing `online` for **2 minutes** triggers an offline Telegram alert. Explicit `offline` alerts immediately. `tapo-monitor` also heartbeats the SMS Gateway watchdog as `camera_{slug}` every ~60 s.
+
+**Example:**
+
+```text
+garden/camera/front/health online
+```
+
+---
+
+### Camera Event
+
+**Topic:** `garden/camera/{slug}/event`
+
+**Schema:**
+
+```json
+{
+  "timestamp": "ISO8601 timestamp",
+  "camera_name": "string",
+  "event": "motion | person | unknown",
+  "state": "active | inactive",
+  "raw_topic": "string",
+  "details": {}
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | string | Event time (ISO8601) |
+| `camera_name` | string | Display name from `CAMERA_N_NAME` |
+| `event` | string | Detection type |
+| `state` | string | `active` when motion/person starts; Node-RED alerts on active only |
+| `raw_topic` | string | ONVIF topic (e.g. `RuleEngine/CellMotionDetector/Motion`) |
+| `details` | object | ONVIF SimpleItem fields (`IsMotion`, `IsInside`, etc.) |
+
+**Example (motion active):**
+
+```json
+{
+  "timestamp": "2026-07-05T09:30:00",
+  "camera_name": "Front Gate",
+  "event": "motion",
+  "state": "active",
+  "raw_topic": "RuleEngine/CellMotionDetector/Motion",
+  "details": { "IsMotion": "true" }
+}
+```
+
+---
+
 ## SMS Gateway Messages
 
 ### Send SMS Command

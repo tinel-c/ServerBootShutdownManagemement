@@ -17,7 +17,11 @@
         "topic": "garden/camera/+/event",
         "qos": "1",
         "datatype": "json",
-        "broker": "mqtt_broker_config",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
         "x": 160,
         "y": 140,
         "wires": [
@@ -34,7 +38,11 @@
         "topic": "garden/camera/+/health",
         "qos": "1",
         "datatype": "auto",
-        "broker": "mqtt_broker_config",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
         "x": 160,
         "y": 180,
         "wires": [
@@ -108,7 +116,8 @@
         "wires": [
             [
                 "telegram_link_out",
-                "func_rolling_log_logic"
+                "func_rolling_log_logic",
+                "func_emit_camera_status"
             ]
         ]
     },
@@ -117,8 +126,8 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Process Camera Health",
-        "func": "const topic = msg.topic;\nconst state = msg.payload;\nconst cameraName = topic.split('/')[2].replace(/_/g, ' ').toUpperCase();\n\nconst healthStore = flow.get('camera_health') || {};\nconst prevState = healthStore[cameraName];\n\nhealthStore[cameraName] = {\n    state: state,\n    time: new Date().toISOString()\n};\nflow.set('camera_health', healthStore);\n\n// Notify on state change\nif (prevState && prevState.state !== state) {\n    const icon = state === 'online' ? '✅' : '❌';\n    msg.payload = {\n        type: 'message',\n        content: `${icon} *Camera Status Change*\\n` +\n                 `📷 Camera: ${cameraName}\\n` +\n                 `📊 Status: ${state.toUpperCase()}`,\n        parse_mode: 'Markdown'\n    };\n    return msg;\n}\n\nreturn null;",
-        "outputs": 1,
+        "func": "const SLUG_LABELS = {\n    interior: 'Interior curte',\n    smallGate: 'Poarta mica',\n    backyard: 'Spate casa',\n    gate2: 'Poarta glisanta 2',\n    gate1: 'Poarta glisanta 1',\n    fataCasa: 'Fata casa',\n    strada: 'Curte strada'\n};\n\nfunction displayName(slug) {\n    if (SLUG_LABELS[slug]) return SLUG_LABELS[slug];\n    return slug.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nfunction buildDashboardPayload() {\n    const healthStore = flow.get('camera_health') || {};\n    const lastEvents = flow.get('camera_last_events') || {};\n    const eventLog = flow.get('camera_event_log') || [];\n    const cameras = Object.keys(healthStore).map(slug => {\n        const health = healthStore[slug];\n        const name = health.name || displayName(slug);\n        const event = lastEvents[name] || lastEvents[slug] || null;\n        return {\n            slug,\n            name,\n            state: health.state,\n            healthTime: health.time,\n            lastEvent: event\n        };\n    });\n    cameras.sort((a, b) => a.name.localeCompare(b.name));\n    return [\n        { payload: eventLog },\n        { payload: { cameras, updatedAt: new Date().toISOString() } }\n    ];\n}\n\nconst topic = msg.topic;\nconst state = String(msg.payload || '').toLowerCase();\nconst slug = topic.split('/')[2];\nconst cameraName = displayName(slug);\n\nconst healthStore = flow.get('camera_health') || {};\nconst prevState = healthStore[slug];\n\nhealthStore[slug] = {\n    name: cameraName,\n    state: state,\n    time: new Date().toISOString()\n};\nflow.set('camera_health', healthStore);\n\nlet telegramMsg = null;\nif (prevState && prevState.state !== state) {\n    const icon = state === 'online' ? '✅' : '❌';\n    telegramMsg = {\n        topic: topic,\n        payload: {\n            type: 'message',\n            content: `${icon} *Camera Status Change*\\n` +\n                     `📷 Camera: ${cameraName}\\n` +\n                     `📊 Status: ${state.toUpperCase()}`,\n            parse_mode: 'Markdown'\n        }\n    };\n}\n\nconst dashboardMsgs = buildDashboardPayload();\nreturn [telegramMsg, dashboardMsgs[0], dashboardMsgs[1]];",
+        "outputs": 3,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -127,8 +136,13 @@
         "y": 180,
         "wires": [
             [
-                "telegram_link_out",
                 "func_rolling_log_logic"
+            ],
+            [
+                "ui_camera_event_log"
+            ],
+            [
+                "ui_camera_status"
             ]
         ]
     },
@@ -137,7 +151,7 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Handle /camera_status",
-        "func": "const healthStore = flow.get('camera_health') || {};\nconst lastEvents = flow.get('camera_last_events') || {};\n\nlet statusText = `📷 *TAPO CAMERA SYSTEM STATUS*\\n` +\n                 `━━━━━━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\nconst cameras = Object.keys(healthStore);\n\nif (cameras.length === 0) {\n    statusText += \"_No cameras currently reporting status._\";\n} else {\n    cameras.forEach(name => {\n        const health = healthStore[name];\n        const event = lastEvents[name];\n        const icon = health.state === 'online' ? '🟢' : '🔴';\n        \n        statusText += `${icon} *${name}*\\n` +\n                      `   • Status: ${health.state.toUpperCase()}\\n`;\n        \n        if (event) {\n            const eventTime = new Date(event.time).toLocaleTimeString('ro-RO');\n            statusText += `   • Last ${event.type}: ${eventTime}\\n`;\n        }\n        \n        statusText += `\\n`;\n    });\n}\n\nmsg.payload = {\n    chatId: msg.telegram.chatId,\n    type: 'message',\n    content: statusText,\n    parse_mode: 'Markdown'\n};\n\nreturn msg;",
+        "func": "const healthStore = flow.get('camera_health') || {};\nconst lastEvents = flow.get('camera_last_events') || {};\n\nlet statusText = `📷 *TAPO CAMERA SYSTEM STATUS*\\n` +\n                 `━━━━━━━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\nconst slugs = Object.keys(healthStore);\n\nif (slugs.length === 0) {\n    statusText += \"_No cameras currently reporting status._\";\n} else {\n    slugs.sort((a, b) => (healthStore[a].name || a).localeCompare(healthStore[b].name || b));\n    slugs.forEach(slug => {\n        const health = healthStore[slug];\n        const name = health.name || slug;\n        const event = lastEvents[name] || lastEvents[slug];\n        const icon = health.state === 'online' ? '🟢' : '🔴';\n        \n        statusText += `${icon} *${name}*\\n` +\n                      `   • Status: ${health.state.toUpperCase()}\\n`;\n        \n        if (event) {\n            const eventTime = new Date(event.time).toLocaleTimeString('ro-RO');\n            statusText += `   • Last ${event.type}: ${eventTime}\\n`;\n        }\n        \n        statusText += `\\n`;\n    });\n}\n\nmsg.payload = {\n    chatId: msg.telegram.chatId,\n    type: 'message',\n    content: statusText,\n    parse_mode: 'Markdown'\n};\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -211,10 +225,10 @@
         "order": 1,
         "width": "12",
         "height": "10",
-        "format": "<template>\n    <div class=\"camera-log-container\">\n        <div class=\"log-header\">\n            <span class=\"title\">📹 Camera Event Log</span>\n            <span class=\"subtitle\">Last {{ eventLog.length }} activities</span>\n        </div>\n        <div class=\"log-scroll\">\n            <div v-if=\"eventLog.length === 0\" class=\"log-empty\">\n                <div style=\"text-align: center; padding: 40px; opacity: 0.5;\">\n                    <div style=\"font-size: 2em; margin-bottom: 10px;\">📷</div>\n                    <div>No camera events yet</div>\n                </div>\n            </div>\n            <div v-else>\n                <div v-for=\"(item, index) in eventLog\" :key=\"index\" \n                     :class=\"['log-entry', 'type-' + item.type]\">\n                    <div class=\"entry-icon\">\n                        <span v-if=\"item.type === 'person'\">👤</span>\n                        <span v-else-if=\"item.type === 'motion'\">🏃</span>\n                        <span v-else-if=\"item.type === 'health' && item.status === 'online'\">🟢</span>\n                        <span v-else-if=\"item.type === 'health' && item.status === 'offline'\">🔴</span>\n                        <span v-else>🔔</span>\n                    </div>\n                    <div class=\"entry-content\">\n                        <div class=\"camera-name\">{{ item.camera }}</div>\n                        <div class=\"entry-message\">{{ item.message }}</div>\n                    </div>\n                    <div class=\"entry-time\">\n                        {{ formatTime(item.time) }}\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</template>\n\n<script>\nexport default {\n    data() {\n        return {\n            eventLog: []\n        }\n    },\n    methods: {\n        formatTime(timeString) {\n            if (!timeString) return '--:--:--';\n            try {\n                const date = new Date(timeString);\n                return date.toLocaleTimeString('en-US', {\n                    hour12: false,\n                    hour: '2-digit',\n                    minute: '2-digit',\n                    second: '2-digit'\n                });\n            } catch (e) {\n                return '--:--:--';\n            }\n        }\n    },\n    watch: {\n        msg(newMsg) {\n            if (newMsg && newMsg.payload && Array.isArray(newMsg.payload)) {\n                // Only update if the array has actually changed\n                const newLog = newMsg.payload.slice();\n                if (JSON.stringify(this.eventLog) !== JSON.stringify(newLog)) {\n                    this.eventLog = newLog;\n                }\n            }\n        }\n    }\n}\n</script>\n\n<style scoped>\n.camera-log-container {\n    background: rgba(255, 255, 255, 0.05);\n    backdrop-filter: blur(10px);\n    -webkit-backdrop-filter: blur(10px);\n    border-radius: 12px;\n    border: 1px solid rgba(255, 255, 255, 0.1);\n    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);\n    padding: 15px;\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;\n    color: #e0e0e0;\n}\n\n.log-header {\n    margin-bottom: 20px;\n    border-bottom: 1px solid rgba(255, 255, 255, 0.1);\n    padding-bottom: 10px;\n}\n\n.log-header .title {\n    display: block;\n    font-weight: 600;\n    font-size: 1.1rem;\n    color: #fff;\n}\n\n.log-header .subtitle {\n    font-size: 0.8rem;\n    opacity: 0.6;\n}\n\n.log-scroll {\n    flex: 1;\n    overflow-y: auto;\n    padding-right: 5px;\n}\n\n/* Custom scrollbar */\n.log-scroll::-webkit-scrollbar {\n    width: 6px;\n}\n.log-scroll::-webkit-scrollbar-track {\n    background: rgba(255, 255, 255, 0.02);\n}\n.log-scroll::-webkit-scrollbar-thumb {\n    background: rgba(255, 255, 255, 0.15);\n    border-radius: 10px;\n}\n\n.log-entry {\n    display: flex;\n    align-items: center;\n    padding: 10px 12px;\n    margin-bottom: 8px;\n    background: rgba(255, 255, 255, 0.03);\n    border-radius: 8px;\n    border-left: 3px solid rgba(255, 255, 255, 0.1);\n    transition: transform 0.2s;\n}\n\n.log-entry:hover {\n    background: rgba(255, 255, 255, 0.06);\n    transform: translateX(3px);\n}\n\n.log-entry.type-person { border-left-color: #bb86fc; }\n.log-entry.type-motion { border-left-color: #03dac6; }\n.log-entry.type-health { border-left-color: #ffb74d; }\n\n.entry-icon {\n    font-size: 1.4rem;\n    margin-right: 15px;\n    min-width: 24px;\n    display: flex;\n    justify-content: center;\n}\n\n.entry-content {\n    flex: 1;\n}\n\n.camera-name {\n    font-size: 0.85rem;\n    font-weight: 600;\n    text-transform: uppercase;\n    letter-spacing: 0.5px;\n    color: #03dac6;\n    margin-bottom: 2px;\n}\n\n.entry-message {\n    font-size: 0.95rem;\n    opacity: 0.9;\n}\n\n.entry-time {\n    font-size: 0.8rem;\n    opacity: 0.5;\n    font-variant-numeric: tabular-nums;\n}\n\n.log-empty {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    height: 100%;\n}\n</style>",
-        "storeOutMessages": false,
+        "format": "<template>\n    <div class=\"camera-dash camera-log-root\">\n        <div class=\"log-header\">\n            <span class=\"title\">📹 Camera Event Log</span>\n            <span class=\"subtitle\">Last {{ (msg.payload || []).length }} activities</span>\n        </div>\n        <div class=\"log-scroll\">\n            <div v-if=\"!(msg.payload && msg.payload.length)\" class=\"log-empty\">\n                <div class=\"log-empty-inner\">\n                    <div class=\"log-empty-icon\">📷</div>\n                    <div>No camera events yet</div>\n                </div>\n            </div>\n            <div v-else>\n                <div v-for=\"(item, index) in (msg.payload || [])\" :key=\"index\"\n                     :class=\"['log-entry', 'type-' + item.type]\">\n                    <div class=\"entry-icon\">\n                        <span v-if=\"item.type === 'person'\">👤</span>\n                        <span v-else-if=\"item.type === 'motion'\">🏃</span>\n                        <span v-else-if=\"item.type === 'health' && item.status === 'online'\">🟢</span>\n                        <span v-else-if=\"item.type === 'health' && item.status === 'offline'\">🔴</span>\n                        <span v-else>🔔</span>\n                    </div>\n                    <div class=\"entry-content\">\n                        <div class=\"entry-row-top\">\n                            <div class=\"camera-name\">{{ item.camera }}</div>\n                            <div class=\"entry-time\">{{ formatTime(item.time) }}</div>\n                        </div>\n                        <div class=\"entry-message\">{{ item.message }}</div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</template>\n\n<script>\nexport default {\n    methods: {\n        formatTime(timeString) {\n            if (!timeString) return '--:--:--';\n            try {\n                return new Date(timeString).toLocaleTimeString('en-US', {\n                    hour12: false,\n                    hour: '2-digit',\n                    minute: '2-digit',\n                    second: '2-digit'\n                });\n            } catch (e) {\n                return '--:--:--';\n            }\n        }\n    }\n}\n</script>\n\n<style>\n.camera-dash.camera-log-root {\n    background: #ffffff;\n    border-radius: 12px;\n    border: 1px solid #e2e8f0;\n    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);\n    padding: 16px;\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n    font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n    color: #0f172a;\n    box-sizing: border-box;\n}\n.camera-dash.camera-log-root .log-header {\n    margin-bottom: 16px;\n    border-bottom: 1px solid #e2e8f0;\n    padding-bottom: 10px;\n}\n.camera-dash.camera-log-root .log-header .title {\n    display: block;\n    font-weight: 700;\n    font-size: 1.05rem;\n    color: #0f172a;\n}\n.camera-dash.camera-log-root .log-header .subtitle {\n    font-size: 0.8rem;\n    color: #64748b;\n    margin-top: 2px;\n}\n.camera-dash.camera-log-root .log-scroll {\n    flex: 1;\n    overflow-y: auto;\n    padding-right: 4px;\n}\n.camera-dash.camera-log-root .log-entry {\n    display: flex;\n    align-items: flex-start;\n    gap: 12px;\n    padding: 10px 12px;\n    margin-bottom: 8px;\n    background: #f8fafc;\n    border-radius: 8px;\n    border: 1px solid #e2e8f0;\n    border-left: 4px solid #94a3b8;\n}\n.camera-dash.camera-log-root .log-entry.type-person { border-left-color: #7c3aed; background: #faf5ff; }\n.camera-dash.camera-log-root .log-entry.type-motion { border-left-color: #0d9488; background: #f0fdfa; }\n.camera-dash.camera-log-root .log-entry.type-health { border-left-color: #d97706; background: #fffbeb; }\n.camera-dash.camera-log-root .entry-icon {\n    font-size: 1.3rem;\n    min-width: 28px;\n    text-align: center;\n    flex-shrink: 0;\n    line-height: 1.3;\n}\n.camera-dash.camera-log-root .entry-content {\n    flex: 1;\n    min-width: 0;\n}\n.camera-dash.camera-log-root .entry-row-top {\n    display: flex;\n    align-items: baseline;\n    justify-content: space-between;\n    gap: 12px;\n    margin-bottom: 4px;\n}\n.camera-dash.camera-log-root .camera-name {\n    font-size: 0.82rem;\n    font-weight: 700;\n    text-transform: uppercase;\n    letter-spacing: 0.04em;\n    color: #0f766e;\n    min-width: 0;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n}\n.camera-dash.camera-log-root .entry-time {\n    font-size: 0.78rem;\n    color: #64748b;\n    font-variant-numeric: tabular-nums;\n    flex-shrink: 0;\n    white-space: nowrap;\n}\n.camera-dash.camera-log-root .entry-message {\n    font-size: 0.92rem;\n    color: #334155;\n    line-height: 1.35;\n    word-break: break-word;\n}\n.camera-dash.camera-log-root .log-empty {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    min-height: 120px;\n}\n.camera-dash.camera-log-root .log-empty-inner { text-align: center; color: #64748b; }\n.camera-dash.camera-log-root .log-empty-icon { font-size: 2em; margin-bottom: 8px; }\n</style>",
+        "storeOutMessages": true,
         "fwdInMessages": false,
-        "resendOnRefresh": false,
+        "resendOnRefresh": true,
         "templateScope": "local",
         "x": 980,
         "y": 140,
@@ -228,22 +242,148 @@
         "z": "tab_dashboard",
         "name": "Camera Activity Log",
         "page": "ui_page_cameras",
-        "order": 1,
+        "order": 2,
         "width": "12",
-        "height": "1",
+        "height": "11",
         "showTitle": true,
         "className": ""
+    },
+    {
+        "id": "ui_group_camera_status",
+        "type": "ui-group",
+        "z": "tab_dashboard",
+        "name": "Camera Status",
+        "page": "ui_page_cameras",
+        "order": 1,
+        "width": "12",
+        "height": "9",
+        "showTitle": true,
+        "className": ""
+    },
+    {
+        "id": "ui_camera_status",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_camera_status",
+        "name": "Camera Status Cards",
+        "order": 1,
+        "width": "12",
+        "height": "8",
+        "format": "<template>\n    <div class=\"camera-dash camera-status-root\">\n        <div class=\"status-header\">\n            <span class=\"title\">📷 Tapo Cameras</span>\n            <span class=\"subtitle\" v-if=\"msg.payload && msg.payload.updatedAt\">\n                Updated {{ formatTime(msg.payload.updatedAt) }}\n            </span>\n        </div>\n        <div v-if=\"!(msg.payload && msg.payload.cameras && msg.payload.cameras.length)\" class=\"status-empty\">\n            No cameras reporting — check tapo-monitor.service and CAMERA_N_* in .env\n        </div>\n        <div v-else class=\"status-grid\">\n            <div v-for=\"(cam, index) in ((msg.payload && msg.payload.cameras) || [])\" :key=\"index\"\n                 class=\"status-card\" :class=\"cam.state === 'online' ? 'online' : 'offline'\">\n                <div class=\"card-icon\">{{ cam.state === 'online' ? '🟢' : '🔴' }}</div>\n                <div class=\"card-body\">\n                    <div class=\"card-name\">{{ cam.name }}</div>\n                    <div class=\"card-state\">{{ (cam.state || 'unknown').toUpperCase() }}</div>\n                    <div class=\"card-meta\" v-if=\"cam.lastEvent\">\n                        Last {{ cam.lastEvent.type }}: {{ formatTime(cam.lastEvent.time) }}\n                    </div>\n                    <div class=\"card-meta muted\" v-else>No detections yet</div>\n                </div>\n            </div>\n        </div>\n    </div>\n</template>\n\n<script>\nexport default {\n    methods: {\n        formatTime(timeString) {\n            if (!timeString) return '--:--:--';\n            try {\n                return new Date(timeString).toLocaleTimeString('en-US', {\n                    hour12: false,\n                    hour: '2-digit',\n                    minute: '2-digit',\n                    second: '2-digit'\n                });\n            } catch (e) {\n                return '--:--:--';\n            }\n        }\n    }\n}\n</script>\n\n<style>\n.camera-dash.camera-status-root {\n    background: #ffffff;\n    border-radius: 12px;\n    border: 1px solid #e2e8f0;\n    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);\n    padding: 16px;\n    color: #0f172a;\n    font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n    box-sizing: border-box;\n    min-height: 100%;\n    height: auto;\n    overflow: visible;\n}\n.camera-dash.camera-status-root .status-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: baseline;\n    flex-wrap: wrap;\n    gap: 8px;\n    margin-bottom: 14px;\n    border-bottom: 1px solid #e2e8f0;\n    padding-bottom: 10px;\n}\n.camera-dash.camera-status-root .status-header .title {\n    font-weight: 700;\n    font-size: 1.05rem;\n    color: #0f172a;\n}\n.camera-dash.camera-status-root .status-header .subtitle {\n    font-size: 0.75rem;\n    color: #64748b;\n}\n.camera-dash.camera-status-root .status-empty {\n    text-align: center;\n    padding: 24px;\n    color: #64748b;\n    font-size: 0.9rem;\n}\n.camera-dash.camera-status-root .status-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));\n    gap: 12px;\n}\n.camera-dash.camera-status-root .status-card {\n    display: flex;\n    gap: 12px;\n    padding: 12px 14px;\n    border-radius: 10px;\n    background: #f8fafc;\n    border: 1px solid #e2e8f0;\n    border-left: 4px solid #64748b;\n}\n.camera-dash.camera-status-root .status-card.online {\n    background: #ecfdf5;\n    border-color: #a7f3d0;\n    border-left-color: #059669;\n}\n.camera-dash.camera-status-root .status-card.offline {\n    background: #fef2f2;\n    border-color: #fecaca;\n    border-left-color: #dc2626;\n}\n.camera-dash.camera-status-root .card-icon { font-size: 1.4rem; line-height: 1; }\n.camera-dash.camera-status-root .card-name {\n    font-weight: 700;\n    font-size: 0.85rem;\n    color: #0f172a;\n    letter-spacing: 0.02em;\n}\n.camera-dash.camera-status-root .status-card.online .card-name { color: #065f46; }\n.camera-dash.camera-status-root .status-card.offline .card-name { color: #991b1b; }\n.camera-dash.camera-status-root .card-state {\n    font-size: 0.78rem;\n    font-weight: 600;\n    color: #475569;\n    margin: 4px 0;\n}\n.camera-dash.camera-status-root .status-card.online .card-state { color: #047857; }\n.camera-dash.camera-status-root .status-card.offline .card-state { color: #b91c1c; }\n.camera-dash.camera-status-root .card-meta { font-size: 0.75rem; color: #475569; }\n.camera-dash.camera-status-root .card-meta.muted { color: #94a3b8; font-style: italic; }\n</style>",
+        "storeOutMessages": true,
+        "fwdInMessages": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 980,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "func_emit_camera_status",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Emit camera status",
+        "func": "const SLUG_LABELS = {\n    interior: 'Interior curte',\n    smallGate: 'Poarta mica',\n    backyard: 'Spate casa',\n    gate2: 'Poarta glisanta 2',\n    gate1: 'Poarta glisanta 1',\n    fataCasa: 'Fata casa',\n    strada: 'Curte strada'\n};\n\nfunction displayName(slug) {\n    if (SLUG_LABELS[slug]) return SLUG_LABELS[slug];\n    return slug.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nconst healthStore = flow.get('camera_health') || {};\nconst lastEvents = flow.get('camera_last_events') || {};\nconst eventLog = flow.get('camera_event_log') || [];\n\nconst cameras = Object.keys(healthStore).map(slug => {\n    const health = healthStore[slug];\n    const name = health.name || displayName(slug);\n    return {\n        slug,\n        name,\n        state: health.state,\n        healthTime: health.time,\n        lastEvent: lastEvents[name] || lastEvents[slug] || null\n    };\n});\ncameras.sort((a, b) => a.name.localeCompare(b.name));\n\nreturn [\n    { payload: eventLog },\n    { payload: { cameras, updatedAt: new Date().toISOString() } }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 180,
+        "wires": [
+            [
+                "ui_camera_event_log"
+            ],
+            [
+                "ui_camera_status"
+            ]
+        ]
+    },
+    {
+        "id": "inject_camera_refresh",
+        "type": "inject",
+        "z": "tab_dashboard",
+        "name": "Refresh camera dashboard",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 2,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 320,
+        "wires": [
+            [
+                "func_refresh_camera_dashboard"
+            ]
+        ]
+    },
+    {
+        "id": "func_refresh_camera_dashboard",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Refresh camera dashboard",
+        "func": "const SLUG_LABELS = {\n    interior: 'Interior curte',\n    smallGate: 'Poarta mica',\n    backyard: 'Spate casa',\n    gate2: 'Poarta glisanta 2',\n    gate1: 'Poarta glisanta 1',\n    fataCasa: 'Fata casa',\n    strada: 'Curte strada'\n};\n\nfunction displayName(slug) {\n    if (SLUG_LABELS[slug]) return SLUG_LABELS[slug];\n    return slug.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nconst healthStore = flow.get('camera_health') || {};\nconst lastEvents = flow.get('camera_last_events') || {};\nconst eventLog = flow.get('camera_event_log') || [];\n\nconst cameras = Object.keys(healthStore).map(slug => {\n    const health = healthStore[slug];\n    const name = health.name || displayName(slug);\n    const event = lastEvents[name] || lastEvents[slug] || null;\n    return {\n        slug,\n        name,\n        state: health.state,\n        healthTime: health.time,\n        lastEvent: event\n    };\n});\ncameras.sort((a, b) => a.name.localeCompare(b.name));\n\nreturn [\n    { payload: eventLog },\n    { payload: { cameras, updatedAt: new Date().toISOString() } }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 320,
+        "wires": [
+            [
+                "ui_camera_event_log"
+            ],
+            [
+                "ui_camera_status"
+            ]
+        ]
     },
     {
         "id": "ui_page_cameras",
         "type": "ui-page",
         "z": "tab_dashboard",
         "name": "Cameras",
-        "ui": "ui_base",
-        "path": "/cameras",
-        "icon": "videocam",
+        "ui": "b89dd587275b51bf",
+        "path": "/page6",
+        "icon": "camera-iris",
         "layout": "grid",
-        "theme": "default",
-        "order": 6
+        "theme": "39a2cf2c0af73875",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 9,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
     }
 ]

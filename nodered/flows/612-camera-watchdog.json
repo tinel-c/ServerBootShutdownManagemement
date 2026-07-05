@@ -1,0 +1,256 @@
+[
+    {
+        "id": "camera_watchdog_comment",
+        "type": "comment",
+        "z": "8becda4e1ec6a8b9",
+        "name": "═══════════════ CAMERA WATCHDOGS (DOMAIN 612) ═══════════════",
+        "info": "## Camera Watchdogs (Flow 612)\n\nMonitors each Tapo camera via `garden/camera/{slug}/health`.\n\n- **Heartbeat:** `online` payload from tapo-monitor (~every 60 s)\n- **Timeout:** 2 minutes without `online`\n- **Explicit offline:** immediate alert when monitor publishes `offline`\n- **Alerts:** Telegram (transitions only), via flow 90 sender\n\nAlso enrolled on SMS Gateway watchdog as `camera_{slug}` (60 s interval) from tapo-monitor.",
+        "x": 340,
+        "y": 2100,
+        "wires": []
+    },
+    {
+        "id": "watchdog_cameras_in",
+        "type": "mqtt in",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Camera health (all)",
+        "topic": "garden/camera/+/health",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 300,
+        "y": 2160,
+        "wires": [
+            [
+                "watchdog_cameras_prepare"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_prepare",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Route camera health",
+        "func": "const SLUG_LABELS = {\n    interior: 'Interior curte',\n    smallGate: 'Poarta mica',\n    backyard: 'Spate casa',\n    gate2: 'Poarta glisanta 2',\n    gate1: 'Poarta glisanta 1',\n    fataCasa: 'Fata casa',\n    strada: 'Curte strada'\n};\n\nfunction displayName(slug) {\n    if (SLUG_LABELS[slug]) return SLUG_LABELS[slug];\n    return slug.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nconst parts = (msg.topic || '').split('/');\nconst slug = parts[2];\nif (!slug) return null;\n\nconst state = String(msg.payload || '').toLowerCase().trim();\nmsg.cameraSlug = slug;\nmsg.cameraName = SLUG_LABELS[slug] || displayName(slug);\nmsg.watchdogKey = 'watchdog_state_camera_' + slug;\n\nif (state === 'online') {\n    return [msg, null];\n}\nif (state === 'offline') {\n    msg.offlineReason = 'reported';\n    return [null, msg];\n}\nreturn null;",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 2160,
+        "wires": [
+            [
+                "watchdog_cameras_trigger"
+            ],
+            [
+                "watchdog_cameras_hydrate"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_trigger",
+        "type": "trigger",
+        "z": "8becda4e1ec6a8b9",
+        "name": "2 min per camera",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "2",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "min",
+        "reset": "",
+        "bytopic": "topic",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 760,
+        "y": 2140,
+        "wires": [
+            [
+                "watchdog_cameras_switch"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_switch",
+        "type": "switch",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Online / timeout",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 970,
+        "y": 2140,
+        "wires": [
+            [
+                "watchdog_cameras_hydrate"
+            ],
+            [
+                "watchdog_cameras_hydrate_timeout"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_hydrate",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Hydrate camera meta",
+        "func": "const SLUG_LABELS = {\n    interior: 'Interior curte',\n    smallGate: 'Poarta mica',\n    backyard: 'Spate casa',\n    gate2: 'Poarta glisanta 2',\n    gate1: 'Poarta glisanta 1',\n    fataCasa: 'Fata casa',\n    strada: 'Curte strada'\n};\n\nfunction displayName(slug) {\n    if (SLUG_LABELS[slug]) return SLUG_LABELS[slug];\n    return slug.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nif (msg.cameraSlug && msg.cameraName) return msg;\n\nconst parts = (msg.topic || '').split('/');\nconst slug = parts[2];\nif (!slug) return null;\n\nmsg.cameraSlug = slug;\nmsg.cameraName = SLUG_LABELS[slug] || displayName(slug);\nmsg.watchdogKey = 'watchdog_state_camera_' + slug;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1190,
+        "y": 2120,
+        "wires": [
+            [
+                "watchdog_cameras_route_after_hydrate"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_route_after_hydrate",
+        "type": "switch",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Online vs offline alert",
+        "property": "offlineReason",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 1420,
+        "y": 2120,
+        "wires": [
+            [
+                "watchdog_cameras_filter_offline"
+            ],
+            [
+                "watchdog_cameras_filter_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_hydrate_timeout",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Hydrate (timeout)",
+        "func": "const SLUG_LABELS = {\n    interior: 'Interior curte',\n    smallGate: 'Poarta mica',\n    backyard: 'Spate casa',\n    gate2: 'Poarta glisanta 2',\n    gate1: 'Poarta glisanta 1',\n    fataCasa: 'Fata casa',\n    strada: 'Curte strada'\n};\n\nfunction displayName(slug) {\n    if (SLUG_LABELS[slug]) return SLUG_LABELS[slug];\n    return slug.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nconst parts = (msg.topic || '').split('/');\nconst slug = parts[2];\nif (!slug) return null;\n\nmsg.cameraSlug = slug;\nmsg.cameraName = SLUG_LABELS[slug] || displayName(slug);\nmsg.watchdogKey = 'watchdog_state_camera_' + slug;\nmsg.offlineReason = 'timeout';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1200,
+        "y": 2200,
+        "wires": [
+            [
+                "watchdog_cameras_filter_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_filter_online",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Notify online (transition)",
+        "func": "const key = msg.watchdogKey;\nif (!key) return null;\nconst prev = flow.get(key);\nif (prev === 'online') return null;\nflow.set(key, 'online');\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1650,
+        "y": 2100,
+        "wires": [
+            [
+                "watchdog_cameras_build_online"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_filter_offline",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Notify offline (transition)",
+        "func": "const key = msg.watchdogKey;\nif (!key) return null;\nconst prev = flow.get(key);\nif (prev === 'offline') return null;\nflow.set(key, 'offline');\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1650,
+        "y": 2180,
+        "wires": [
+            [
+                "watchdog_cameras_build_offline"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_build_online",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Telegram camera online",
+        "func": "msg.payload = {\n    chatId: 991635368,\n    type: 'message',\n    content: `🟢 *Camera ONLINE*\\n\\n📷 ${msg.cameraName}\\nTopic: ${msg.topic}`,\n    parse_mode: 'Markdown'\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1890,
+        "y": 2100,
+        "wires": [
+            [
+                "watchdog_telegram_sender"
+            ]
+        ]
+    },
+    {
+        "id": "watchdog_cameras_build_offline",
+        "type": "function",
+        "z": "8becda4e1ec6a8b9",
+        "name": "Telegram camera offline",
+        "func": "const reason = msg.offlineReason === 'reported'\n    ? 'Tapo monitor reported offline (ONVIF unreachable).'\n    : 'No online heartbeat for 2 minutes. Check tapo-monitor.service and camera ONVIF.';\n\nmsg.payload = {\n    chatId: 991635368,\n    type: 'message',\n    content: `🔴 *Camera OFFLINE*\\n\\n📷 ${msg.cameraName}\\n${reason}\\nTopic: ${msg.topic}`,\n    parse_mode: 'Markdown'\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1890,
+        "y": 2180,
+        "wires": [
+            [
+                "watchdog_telegram_sender"
+            ]
+        ]
+    }
+]

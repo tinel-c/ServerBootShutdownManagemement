@@ -103,7 +103,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 🔋 **Live metrics** - Battery SoC, grid import/export, PV, load, inverter state (Victron); PV strings, active power, daily yield (Huawei)
 - 🤖 **PV headroom automation** - `headroom_w = PV − consumption`, discretionary load start/stop (Victron)
 - ☀️ **Solar forecast** - Open-Meteo for Lunca Cetătui (hourly + daily topics, Victron)
-- 📊 **Node-RED dashboard** - Energy page with Victron 7-day chart (flows `800` / `811`) and Huawei live cards (`821`)
+- 📊 **Node-RED dashboard** - Energy page (`battery-charging-100` icon): Victron 7-day chart with hover tooltips; Huawei 7-day chart + **PV forecast** (Open-Meteo vs measured, string 1 west / string 2 east)
 - 📱 **Telegram** - Victron `/energy_*` (flow `812`); Huawei `/huawei_status`, `/huawei_help` (flow `822`)
 - 🛡️ **Watchdog** - Telegram alert if `energy/victron/status` or `energy/huawei/status` stops (flow `90`, 2 min timeout)
 
@@ -117,7 +117,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 🚪 **Gates** (200–212) — perimeter and garage, MQTT + Telegram
 - 💧 **Irrigation** (420–421) — rain-smart scheduling, Open-Meteo, SMS/Telegram alerts
 - 💡 **Lights & power** (300–321) — garden Sonoff, Tapo monitor
-- 📹 **Cameras** (611) · 🐠 **Aquarium** (500–501) · 💧 **Water pump** (410–411, Tasmota)
+- 📹 **Cameras** (611–613) — Tapo ONVIF dashboard, per-camera watchdog, unified watchdog UI · 🐠 **Aquarium** (500–501) · 💧 **Water pump** (410–411, Tasmota)
 - 🔜 **Grundfos SCALA1** (412–413) — *planned* BLE booster; see [docs/GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md)
 - 📱 **SMS gateway** (510–514) — ESP32, multi-reply HELP, OTA
 
@@ -928,10 +928,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.11.9  
-**Last Updated:** 2026-07-04
+**Version:** 3.13.0  
+**Last Updated:** 2026-07-05
 
 ## Recent Releases
+
+### v3.13.0 (2026-07-05) - Energy dashboards, Huawei PV forecast, Tapo cameras
+- 📊 **Energy charts** — Victron/Huawei 7-day SVG with hover tooltips; SoC band fix; Huawei PV forecast (Open-Meteo)
+- 📹 **Tapo cameras** — flows `611`–`613`, `tapo-monitor.service`, [TAPO_CAMERA.md](docs/TAPO_CAMERA.md)
+- 🚀 **Live deploy** — `deploy-flow-811-821.mjs`, `611`, `612`, `613`
+- See [RELEASE_NOTES_v3.13.0.md](docs/releases/RELEASE_NOTES_v3.13.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.12.0 (2026-07-04) - Planned: Grundfos SCALA1 scaffolding
 - 🔜 **Grundfos SCALA1** — BLE probe, MQTT publisher skeleton, flows `412`/`413`, docs (not production until GATT capture on site)

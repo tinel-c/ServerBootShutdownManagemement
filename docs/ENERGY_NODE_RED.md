@@ -77,16 +77,17 @@ Import **after** `00-base-config.json`. Recommended position in the full stack:
 
 ### `800-energy-base-config.json`
 
-- **UI page:** Energy (`/energy`, icon `solar_power`)
-- **UI group:** Victron Energy (12 columns)
-- **Context init:** creates empty `global.victron_energy_state` on startup
+- **UI page:** Energy (`/energy`, icon `battery-charging-100`)
+- **UI groups:** Victron Energy, Huawei Solar (12 columns each)
+- **Live dashboard:** page binds to UI base `b89dd587275b51bf` and theme `39a2cf2c0af73875` (same as Gate, Cameras, Watchdog on the automation server)
+- **Context init:** creates empty `global.victron_energy_state` and `global.huawei_energy_state` on startup
 
 ### `811-victron-energy-status.json`
 
 - **Subscribes:** `energy/victron/status`, `energy/victron/forecast/solar/current`, `energy/victron/forecast/solar/daily` (QoS 1, JSON)
 - **Publishes:** `energy/victron/command/discretionary/start|stop`, retained `energy/victron/automation/discretionary_load/state` (dashboard buttons)
 - **Stores:** `global.victron_energy_state`, flow `victron_week_history` (7-day, 15 min buckets), discretionary load state, forecast cache
-- **Displays:** live metrics, automation headroom banner, **7-day SVG chart** (PV, load, grid, headroom, inverter out, SoC), solar forecast chips, Start/Stop discretionary load buttons
+- **Displays:** live metrics, automation headroom banner, **7-day SVG chart** (PV, load, grid, headroom, inverter out, SoC) with thin lines, axis labels, crosshair hover tooltips; SoC in lower band (100% at top); solar forecast chips; Start/Stop discretionary load buttons
 
 ### `812-victron-energy-telegram.json`
 
@@ -102,8 +103,8 @@ Import **after** `00-base-config.json`. Recommended position in the full stack:
 | Header | Inverter state badge, grid-lost alert, last update |
 | Summary cards | Battery SoC, grid L1, consumption L1, PV AC output |
 | Automation | Headroom (PV − load), `can_add_load`, Start/Stop discretionary buttons, ON/OFF badge |
-| 7-day chart | PV, load, grid, headroom, inverter AC out, SoC (15 min buckets, flow context) |
-| Solar forecast | Current irradiance, today’s sum, day/night (Open-Meteo) |
+| 7-day chart | PV, load, grid, headroom, inverter AC out, SoC (15 min buckets); hover for values at nearest bucket |
+| Solar forecast | Current irradiance (W/m²), today’s sum, day/night (Open-Meteo) |
 | Battery | Voltage, charge/discharge power |
 | Load & VE.Bus | Output L1, input L1, AC out power |
 | Inverter | State code, AC in V/P, DC bus |
@@ -135,6 +136,16 @@ Initialized by flow **800**; updated on every `energy/victron/status` message in
 | “Node configuration error” on import | Import `800-energy-base-config.json` before `811` |
 | Stale values | Publisher poll interval (default 10 s); Cerbo Modbus connectivity |
 | Empty MPPT section | Normal if no MPPT on VE.Direct; AC-coupled PV still shown under PV cards |
+
+### Live deploy (automation server)
+
+From a workstation with Node-RED Admin API access (`NODE_RED_BASE_URL`, default `http://192.168.2.4:1880`):
+
+```bash
+node nodered/live-connection/scripts/deploy-flow-811-821.mjs
+```
+
+Merges flows **800**, **811**, and **821** into the running editor (replace-by-node-id). Use after editing energy flow JSON in git.
 
 ---
 
@@ -192,9 +203,27 @@ Re-import **`50-telegram-interface.json`** (Replace existing nodes) for `/help` 
 
 #### `821-huawei-energy-status.json`
 
-- **Subscribes:** `energy/huawei/status` (QoS 1, JSON)
-- **Stores:** `global.huawei_energy_state`
-- **Displays:** model/serial, PV strings, active power, grid frequency, daily yield
+- **Subscribes:** `energy/huawei/status`, `energy/victron/forecast/solar/current`, `energy/victron/forecast/solar/radiation_wm2` (QoS 1; forecast shared with Victron Open-Meteo publisher)
+- **Stores:** `global.huawei_energy_state`, flow `huawei_week_history` (7-day, 15 min buckets)
+- **Displays:** model/serial, PV strings (**string 1 · west**, **string 2 · east**), active power, grid frequency, daily yield, **7-day active-power chart** (hover tooltips), **PV forecast card** (expected vs actual from irradiance model)
+
+#### PV forecast model
+
+Site wiring: **20 panels** — string 1 west, string 2 east (10 panels per string).
+
+```text
+P_est = P_rated × (G / 1000) × η
+P_est_string1 = P_est × w_west / (w_east + w_west)
+P_est_string2 = P_est × w_east / (w_east + w_west)
+```
+
+- **G** — Open-Meteo shortwave radiation (`energy/victron/forecast/solar/current` or scalar `…/radiation_wm2`)
+- **η** — system efficiency (default 0.85)
+- **w_east / w_west** — Gaussian orientation weights by local hour (Europe/Bucharest)
+
+Reference implementation: [device/huawei-inverter/lib/pv_forecast_model.py](../device/huawei-inverter/lib/pv_forecast_model.py)
+
+Actual power per string: **V × I** from `energy/huawei/status`. Performance % = actual total / expected total.
 
 #### `822-huawei-energy-telegram.json`
 
@@ -220,6 +249,8 @@ Initialized by flow **800**; updated on every `energy/huawei/status` message in 
 | Dashboard shows “Waiting for energy/huawei/status” | `systemctl status huawei-mqtt-publisher.service`; WiFi to inverter AP; `mosquitto_sub -t 'energy/huawei/status'` |
 | Modbus connect failed | `device/huawei-inverter/scripts/modbus_probe.py`; verify `192.168.200.1:6607` from automation server |
 | “Node configuration error” on import | Import `800-energy-base-config.json` before `821` |
+| Huawei section missing on Energy page | Ensure flow 800 includes `ui_group_huawei_energy` and page `ui` = live UI base (`b89dd587275b51bf`) |
+| PV forecast expected = 0 W | Check `energy/victron/forecast/solar/current`; `victron-solar-forecast-publisher.service` |
 
 ---
 

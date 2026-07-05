@@ -95,8 +95,8 @@ def probe_http(ip: str, user: str, password: str) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Probe HomeGuard NVR")
     parser.add_argument("--ip", default="192.168.2.59")
-    parser.add_argument("--user", default="tinelc")
-    parser.add_argument("--password", default="tinelc")
+    parser.add_argument("--user", default="", help="NVR username (optional)")
+    parser.add_argument("--password", default="", help="NVR password (optional)")
     args = parser.parse_args()
     probe_http(args.ip, args.user, args.password)
     probe_rtsp(args.ip, args.user, args.password)

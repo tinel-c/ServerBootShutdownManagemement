@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.17.1] - 2026-07-05
+
+### Fixed
+
+- **Gazon Curte (TC65)** ONVIF probe — dedicated Camera Account credentials on server `config/.env` (`CAMERA_4_*`); all seven cameras now pass `camera_connect.py`.
+
+### Changed
+
+- **Credential hygiene:** removed hardcoded Tapo/NVR usernames and passwords from `scripts/server/apply_cameras_env.py`, `config/cameras.env.example`, docs, and `probe_homeguard_nvr.py` defaults. Deploy script **preserves** existing `CAMERA_N_USER` / `CAMERA_N_PASS` from server `.env` when re-applying camera metadata.
+- **Docs:** [TAPO_CAMERA.md](docs/TAPO_CAMERA.md), [docs/cameras/REGISTRY.md](docs/cameras/REGISTRY.md) — credentials live only in server `config/.env` (not committed).
+
 ## [3.17.0] - 2026-07-05
 
 ### Added - Camera registry, watchdog thumbnails, 5-minute polling

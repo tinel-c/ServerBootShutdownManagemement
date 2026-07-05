@@ -38,7 +38,7 @@ Canonical list of cameras on the **192.168.2.0/24** LAN. Tapo devices use `tapo-
 
 - **Location:** lawn / yard
 - **Hardware:** Tapo TC65 @ `192.168.2.38`
-- **Note:** TC65 is a pan/tilt model; confirm ONVIF is enabled. Observed LAN MAC is `A8:29:48:96:3A:E0` (differs from label sticker `A8:23:…` — use ARP). If health probe reports **Authority failure**, recreate the Camera Account in the Tapo app for this device.
+- **Note:** TC65 is a pan/tilt model; confirm ONVIF is enabled. Observed LAN MAC is `A8:29:48:96:3A:E0` (differs from label sticker `A8:23:…` — use ARP). This camera may use a different Camera Account than the others — set `CAMERA_4_USER` / `CAMERA_4_PASS` in server `config/.env` (not committed).
 
 #### 5 — Gradina Lunca Cetatuii (`gradinaLunca`)
 
@@ -99,7 +99,9 @@ python3 scripts/utils/camera_network_scan.py --subnet 192.168.2
 
 ## Configuration
 
-Copy from [config/cameras.env.example](../../config/cameras.env.example) into `config/.env`, or run `scripts/server/apply_cameras_env.py` on the server.
+Copy from [config/cameras.env.example](../../config/cameras.env.example) into server `config/.env` and set **`CAMERA_N_USER` / `CAMERA_N_PASS`** per camera (Tapo app → Camera Account). Never commit real passwords to git.
+
+`scripts/server/apply_cameras_env.py` updates camera names, IPs, MACs, and MQTT prefixes on the server while **preserving** existing credentials from `.env`.
 
 Deploy Node-RED after slug changes:
 

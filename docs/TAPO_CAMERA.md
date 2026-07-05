@@ -33,7 +33,9 @@ Node-RED flow 612 (watchdog)
 
 1. **Enable ONVIF** — Device Settings → Advanced → ONVIF
 2. **Create Camera Account** — Advanced → Camera Account (username/password for ONVIF/RTSP)
-   - Use this account in `.env`, **not** your Tapo cloud email/password
+   - Use this account in server `config/.env` (`CAMERA_N_USER` / `CAMERA_N_PASS`), **not** your Tapo cloud email/password
+   - **Do not commit** real credentials — see [config/cameras.env.example](../config/cameras.env.example) for placeholders only
+   - Per-camera accounts may differ (e.g. TC65 Gazon Curte)
 3. **Enable detection** — Device Settings → Detection → Motion (and Person if available)
 
 ### Automation server
@@ -62,7 +64,7 @@ On the automation server (same LAN as the cameras):
 python3 scripts/utils/camera_network_scan.py --subnet 192.168.2
 
 # Probe ONVIF model/serial (Camera Account credentials)
-python3 scripts/utils/camera_network_scan.py --subnet 192.168.2 --user tinelc --pass YOUR_PASS
+python3 scripts/utils/camera_network_scan.py --subnet 192.168.2 --user YOUR_CAMERA_ACCOUNT --pass YOUR_CAMERA_PASSWORD
 
 # WS-Discovery (multicast; may return empty if blocked)
 python3 scripts/utils/camera_discovery.py

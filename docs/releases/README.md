@@ -37,6 +37,7 @@ gh release create vX.Y.Z --title "vX.Y.Z — …" --notes-file docs/releases/REL
 
 | Version | Notes |
 |---------|-------|
+| v3.17.1 | [RELEASE_NOTES_v3.17.1.md](RELEASE_NOTES_v3.17.1.md) — Camera credential hygiene, Gazon Curte fix |
 | v3.17.0 | [RELEASE_NOTES_v3.17.0.md](RELEASE_NOTES_v3.17.0.md) — Camera registry, watchdog thumbnails |
 | v3.16.0 | [RELEASE_NOTES_v3.16.0.md](RELEASE_NOTES_v3.16.0.md) — Tasmota energy consumers, Garden Power Hut |
 | v3.15.0 | [RELEASE_NOTES_v3.15.0.md](RELEASE_NOTES_v3.15.0.md) — Energy consumers, Tongou breakers, flow 840 |

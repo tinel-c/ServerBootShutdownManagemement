@@ -33,6 +33,7 @@ SERVICES=(
     "victron-solar-forecast-publisher.service"
     "huawei-mqtt-publisher.service"
     "grundfos-scala1-mqtt-publisher.service"
+    "energy-consumers-publisher.service"
 )
 
 # Print header

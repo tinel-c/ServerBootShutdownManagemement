@@ -1,0 +1,57 @@
+---
+description: SSH access, git deploy, and update/install workflow for automation server 192.168.2.4
+alwaysApply: true
+---
+
+# Automation server — agent access and deploy
+
+## SSH (from dev PC / Cursor agent)
+
+| Item | Value |
+|------|--------|
+| Host | `192.168.2.4` |
+| User | `tinel` |
+| Key | `%USERPROFILE%\.ssh\serverside_192_168_2_4_ed25519` (Windows) or `~/.ssh/serverside_192_168_2_4_ed25519` |
+| Optional alias | `serverside` (see `scripts/server/ssh_config.snippet`) |
+
+**Agent remote command template (single line):**
+
+`ssh -o BatchMode=yes -i %USERPROFILE%\.ssh\serverside_192_168_2_4_ed25519 tinel@192.168.2.4 "<command>"`
+
+Key auth was verified with `BatchMode=yes`. Do not use password SSH or scp for routine deploys.
+
+## Sudo for agent (user runs on server once per session)
+
+`sed -i 's/\r$//' /opt/dell_server_management/scripts/server/*.sh && cd /opt/dell_server_management && sudo ./scripts/server/grant_temporary_agent_sudo.sh`
+
+Verify: `bash /opt/dell_server_management/scripts/server/check_deploy_sudo.sh` → expect `sudo-n: ok` / `mode: agent`.
+
+Agent uses `sudo -n` over SSH after grant. Never ask user to run PowerShell SSH setup scripts.
+
+## Deploy files — git only (not scp)
+
+1. **Dev machine:** commit and `git push` changes to the remote.
+2. **Server git checkout:** `ssh … "cd ~/ServerBootShutdownManagemement && git fetch && git checkout <branch> && git pull"`
+3. **Apply to production tree:** `ssh … "cd ~/ServerBootShutdownManagemement && printf '\n' | sudo ./update.sh"`  
+   (`update.sh` copies repo → `/opt/dell_server_management`, preserves config, restarts services.)
+4. **Verify install scripts:** after `update.sh`, run targeted installers if needed, e.g.  
+   `ssh … "cd /opt/dell_server_management && sudo -n bash ./install_energy_consumers_service.sh"`
+
+| Path | Role |
+|------|------|
+| `~/ServerBootShutdownManagemement` | Git working copy on server (pull here) |
+| `/opt/dell_server_management` | Production install (`update.sh` target) |
+
+**Do not** copy trees with `scp` except emergency hotfix; always prefer commit → push → pull → `update.sh`.
+
+Fresh install or rebuild: `sudo ./install.sh` from pulled repo (rare; preserves `.env` backups).
+
+## Post-deploy checks (single lines)
+
+`ssh … "systemctl is-active energy-consumers-publisher.service victron-mqtt-publisher.service huawei-mqtt-publisher.service"`
+
+`ssh … "timeout 35 mosquitto_sub -h localhost -t 'energy/consumers/+/status' -C 1 -v"`
+
+Node-RED flows: generate/deploy from dev PC via `nodered/live-connection/scripts/` (uses `NODE_RED_BASE_URL` in `.env`).
+
+Full reference: `docs/developer/SERVER_DEPLOY.md`, `scripts/server/README.md`.

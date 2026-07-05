@@ -31,8 +31,17 @@ install_device_publisher() {
     fi
 
     mkdir -p "$INSTALL_DIR/device"
-    rm -rf "$device_dest"
-    cp -r "$device_src" "$INSTALL_DIR/device/"
+    local src_canon dest_canon=""
+    src_canon="$(cd "$device_src" && pwd)"
+    if [ -d "$device_dest" ]; then
+        dest_canon="$(cd "$device_dest" && pwd)"
+    fi
+    if [ "$src_canon" != "$dest_canon" ]; then
+        rm -rf "$device_dest"
+        cp -r "$device_src" "$INSTALL_DIR/device/"
+    else
+        print_info "Using in-place device tree at $device_dest"
+    fi
 
     if [ -n "$env_backup" ] && [ -f "$env_backup" ]; then
         mkdir -p "$(dirname "$env_path")"
@@ -40,7 +49,9 @@ install_device_publisher() {
         rm -f "$env_backup"
     fi
 
-    cp "$repo_root/requirements.txt" "$INSTALL_DIR/requirements.txt"
+    if [ "$repo_root/requirements.txt" != "$INSTALL_DIR/requirements.txt" ]; then
+        cp "$repo_root/requirements.txt" "$INSTALL_DIR/requirements.txt"
+    fi
 
     for unit in "${systemd_units[@]}"; do
         cp "$repo_root/systemd/$unit" /etc/systemd/system/

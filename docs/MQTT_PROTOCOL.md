@@ -205,6 +205,37 @@ See [device/huawei-inverter/README.md](../device/huawei-inverter/README.md) for 
 
 **Node-RED:** import `821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`. Telegram: `/huawei_status`, `/huawei_help`.
 
+### Energy Consumers Topics (Domain: energy/consumers)
+
+Published by **`energy-consumers-publisher.service`** on the automation server. Polls Tuya smart meters/breakers via **tinytuya** every **30 seconds** (per-consumer `poll_interval_s` in registry). Credentials resolve from `config/tuya_devices.json` (sync via `scripts/tuya/sync_devices.py`).
+
+| Setting | Default | Config |
+|---------|---------|--------|
+| Topic prefix | `energy/consumers/<id>` | `mqtt_prefix` in [device/energy-consumers/config/consumers_registry.yaml](../device/energy-consumers/config/consumers_registry.yaml) |
+| Poll interval | `30` s | `poll_interval_s` per consumer |
+| Registry | `consumers_registry.yaml` | See [docs/ENERGY_CONSUMER_ADD.md](ENERGY_CONSUMER_ADD.md) |
+
+**Direction:** Server → subscribers (Node-RED **840**). Commands on `energy/consumers/<id>/command/switch` are publisher-subscribed.
+
+#### Per-consumer topics
+
+| Topic | Payload type | Retain | Description |
+|-------|--------------|--------|-------------|
+| `energy/consumers/<id>/status` | JSON | yes | Full snapshot: `power_w`, `energy_kwh`, `voltage_v`, `current_a`, `online`, `timestamp`, `extra` (`switch_on`, `temperature_c`, `breaker_state`, `run_mode`, `phase_source`) |
+| `energy/consumers/<id>/power_w` | number | no | Optional scalar watts |
+| `energy/consumers/<id>/energy_kwh` | number | no | Optional cumulative kWh |
+| `energy/consumers/<id>/response` | JSON | no | Switch command result |
+
+#### Commands
+
+| Topic | Direction | Payload |
+|-------|-----------|---------|
+| `energy/consumers/<id>/command/switch` | Client → publisher | `{"action":"on"\|"off"\|"toggle","source":"nodered"}` |
+
+See [device/energy-consumers/README.md](../device/energy-consumers/README.md), [ENERGY_CONSUMER_ADD.md](ENERGY_CONSUMER_ADD.md), and [TONGOU_BREAKER_DPS.md](TONGOU_BREAKER_DPS.md) for the agent playbook and smart breaker decoding.
+
+**Node-RED:** flow `840-energy-consumers.json` (generated). Regenerate: `node nodered/live-connection/scripts/generate-flow-840.mjs`. Deploy: `deploy-flow-840.mjs`.
+
 ### Grundfos SCALA1 Topics (Domain: water/grundfos/scala1) — **planned**
 
 > **Status: planned** — topic layout and payloads below are the **target spec**. The publisher is scaffolding only until BLE GATT UUIDs are captured on site. See [GRUNDGOS_SCALA1.md](GRUNDGOS_SCALA1.md).

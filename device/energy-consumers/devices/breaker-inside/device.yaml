@@ -1,0 +1,8 @@
+id: breaker-inside
+name: House consumption
+type: tuya_meter
+enabled: true
+mqtt_prefix: energy/consumers/breaker-inside
+poll_interval_s: 30
+tags: [breaker, inside]
+config_file: config.yaml

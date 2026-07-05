@@ -1,0 +1,4 @@
+config/.env
+config/consumers_registry.yaml
+devices/*/config.yaml
+pytest-cache-files-*/

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.15.0] - 2026-07-05
+
+### Added - Energy consumers (Tuya meters & Tongou breakers)
+
+- **Energy consumers** (`device/energy-consumers/`): registry-driven Tuya smart meters on `/energy` after Huawei; MQTT `energy/consumers/<id>/*`; systemd `energy-consumers-publisher.service`.
+- **Node-RED flow 840** (generated): per-consumer dashboard cards — W, kWh, V, A, °C (breakers), ON/OFF, **Updated MM:SS ago** timer; `generate-flow-840.mjs` / `deploy-flow-840.mjs`.
+- **Tongou smart breakers** (`dlq`): [Tongou phase_a RAW decode](docs/TONGOU_BREAKER_DPS.md) per [manufacturer spec](https://www.tongou.com/es/api/tuya-smart-device-api/); cloud `phase_a` (DP 6) for V/I/P when LAN lacks RAW; LAN fallback scalars + temperature DPS `131`.
+- **Live consumers**: Front house lights (DIN rail), House consumption (main breaker), Garden power (indoor panel).
+- **Agent playbook**: [docs/ENERGY_CONSUMER_ADD.md](docs/ENERGY_CONSUMER_ADD.md); `.cursor/rules/automation-server-access.mdc` for git + `update.sh` deploy on `192.168.2.4`.
+
+### Fixed
+
+- **`scripts/utils/mqtt_client.py`** — MQTT wildcard subscription matching (`+` / `#`) so consumer switch commands reach the publisher.
+- **`tuya_consumers_publisher.py`** — removed double `loop()` / `loop_start()` conflict that broke MQTT connectivity.
+- **`scripts/install/device_service.sh`** — in-place install no longer deletes source tree when `INSTALL_DIR` equals repo root.
+
+### Changed
+
+- **Server access docs** — SSH/sudo grant on automation server only; removed `setup_ssh_key.ps1` / `.sh` and `grant_temporary_agent_sudo.ps1`.
+- **Docs**: [MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md), [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), [nodered/flows/README.md](nodered/flows/README.md), [device/energy-consumers/README.md](device/energy-consumers/README.md), [RELEASE_NOTES_v3.15.0.md](docs/releases/RELEASE_NOTES_v3.15.0.md).
+
 ## [3.14.0] - 2026-07-05
 
 ### Added - Media server, Tuya account linking, Server dashboard UI

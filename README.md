@@ -37,6 +37,7 @@ Quick map of the five pillars — each has its own Node-RED flow range, MQTT top
 |------------|---------|
 | **Victron** | Cerbo GX / MultiPlus-II → `energy/victron/*`, headroom automation, 7-day dashboard |
 | **Huawei** | SUN2000 grid-tie → `energy/huawei/*`, live PV and daily yield |
+| **Consumers** | Tuya meters/breakers → `energy/consumers/*`, flow **840** on `/energy` |
 | **Forecast** | Open-Meteo solar forecast · Telegram `/energy_*` and `/huawei_*` |
 
 ### 🏡 Home & courtyard
@@ -100,6 +101,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 
 - ⚡ **Victron Cerbo GX / MultiPlus-II** - Modbus TCP → MQTT (`energy/victron/*`)
 - ☀️ **Huawei SUN2000** - Modbus TCP over inverter WiFi AP → MQTT (`energy/huawei/*`) *(v3.11.8+)*
+- 🔌 **Energy consumers** - Tuya smart meters/breakers → MQTT (`energy/consumers/*`), dashboard flow **840** *(v3.15.0+)*
 - 🔋 **Live metrics** - Battery SoC, grid import/export, PV, load, inverter state (Victron); PV strings, active power, daily yield (Huawei)
 - 🤖 **PV headroom automation** - `headroom_w = PV − consumption`, discretionary load start/stop (Victron)
 - ☀️ **Solar forecast** - Open-Meteo for Lunca Cetătui (hourly + daily topics, Victron)

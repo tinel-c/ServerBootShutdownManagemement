@@ -127,5 +127,8 @@ chmod_runtime_scripts() {
     if [ -d "$root/device/grundfos-scala1/scripts" ]; then
         chmod +x "$root/device/grundfos-scala1/scripts/"*.py 2>/dev/null || true
     fi
+    if [ -d "$root/device/energy-consumers/scripts" ]; then
+        chmod +x "$root/device/energy-consumers/scripts/"*.py 2>/dev/null || true
+    fi
     chmod +x "$root/install_"*.sh 2>/dev/null || true
 }

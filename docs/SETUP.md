@@ -310,13 +310,9 @@ bash /opt/dell_server_management/scripts/tuya/tuya_link.sh all
 
 Uses existing `mqtt-boot-listener`, `mqtt-shutdown-listener`, and `status-publisher` — no extra systemd unit. Node-RED flows `30`–`33`: see [MEDIA_SERVER.md](MEDIA_SERVER.md).
 
-**Remote deploy from your PC:** see [scripts/server/README.md](../scripts/server/README.md) and [developer/SERVER_DEPLOY.md](developer/SERVER_DEPLOY.md).
+**Agent / install work:** SSH to `192.168.2.4` first, then grant temporary sudo in that session — see [scripts/server/README.md](../scripts/server/README.md) and [developer/SERVER_DEPLOY.md](developer/SERVER_DEPLOY.md).
 
-On **192.168.2.4**, grant temporary sudo first (use **agent** mode for netplan/systemd/apt; **deploy** mode for script-only installs):
-
-```bash
-cd ~/ServerBootShutdownManagemement && sudo ./scripts/server/grant_temporary_agent_sudo.sh
-```
+`cd /opt/dell_server_management && sudo ./scripts/server/grant_temporary_agent_sudo.sh`
 
 ### Step 2: Start Services
 

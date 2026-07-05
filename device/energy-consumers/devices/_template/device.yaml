@@ -1,0 +1,12 @@
+# Consumer metadata (copy values into config/consumers_registry.yaml)
+
+id: my-new-plug
+name: My new smart plug
+type: tuya_plug
+enabled: false
+mqtt_prefix: energy/consumers/my-new-plug
+poll_interval_s: 30
+tags: []
+
+# Device-specific connection — see config.example.yaml
+config_file: config.yaml

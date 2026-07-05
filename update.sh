@@ -105,7 +105,22 @@ if [ -d "$SCRIPT_DIR/device/grundfos-scala1" ]; then
     cp -r "$SCRIPT_DIR/device/grundfos-scala1" "$INSTALL_DIR/device/"
     print_info "✓ Grundfos SCALA1 integration updated"
 fi
-cp "$SCRIPT_DIR/install_victron_service.sh" "$SCRIPT_DIR/install_huawei_service.sh" "$SCRIPT_DIR/install_grundfos_service.sh" "$INSTALL_DIR/" 2>/dev/null || true
+if [ -d "$SCRIPT_DIR/device/energy-consumers" ]; then
+    if [ -f "$INSTALL_DIR/device/energy-consumers/config/consumers_registry.yaml" ]; then
+        cp "$INSTALL_DIR/device/energy-consumers/config/consumers_registry.yaml" \
+           "$BACKUP_DIR/energy-consumers-registry.yaml"
+    fi
+    cp -r "$SCRIPT_DIR/device/energy-consumers" "$INSTALL_DIR/device/"
+    if [ -f "$BACKUP_DIR/energy-consumers-registry.yaml" ]; then
+        cp "$BACKUP_DIR/energy-consumers-registry.yaml" \
+           "$INSTALL_DIR/device/energy-consumers/config/consumers_registry.yaml"
+        print_info "✓ Preserved energy consumers registry"
+    fi
+    print_info "✓ Energy consumers integration updated"
+fi
+cp "$SCRIPT_DIR/install_victron_service.sh" "$SCRIPT_DIR/install_huawei_service.sh" \
+   "$SCRIPT_DIR/install_grundfos_service.sh" "$SCRIPT_DIR/install_energy_consumers_service.sh" \
+   "$INSTALL_DIR/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/scripts/install" "$INSTALL_DIR/scripts/" 2>/dev/null || true
 if [ -f "$SCRIPT_DIR/config/tuya_roles.yaml" ]; then
     cp "$SCRIPT_DIR/config/tuya_roles.yaml" "$INSTALL_DIR/config/tuya_roles.yaml"
@@ -250,6 +265,18 @@ if [ -f "$INSTALL_DIR/device/grundfos-scala1/config/.env" ]; then
 else
     print_warn "Grundfos .env missing — grundfos-scala1-mqtt-publisher.service not started"
 fi
+if [ -f "$INSTALL_DIR/config/tuya_devices.json" ] && \
+   [ -f "$INSTALL_DIR/device/energy-consumers/config/consumers_registry.yaml" ]; then
+    if [ -x "$INSTALL_DIR/install_energy_consumers_service.sh" ]; then
+        bash "$INSTALL_DIR/install_energy_consumers_service.sh" || \
+            print_warn "Energy consumers service install failed — see docs/ENERGY_CONSUMER_ADD.md"
+    else
+        systemctl enable energy-consumers-publisher.service || true
+        systemctl restart energy-consumers-publisher.service || true
+    fi
+else
+    print_warn "Tuya registry or consumers_registry.yaml missing — energy-consumers-publisher not started"
+fi
 print_info "✓ Services restarted"
 
 # Update complete
@@ -271,6 +298,7 @@ echo "  systemctl status victron-mqtt-publisher.service"
 echo "  systemctl status victron-solar-forecast-publisher.service"
 echo "  systemctl status huawei-mqtt-publisher.service"
 echo "  systemctl status grundfos-scala1-mqtt-publisher.service"
+echo "  systemctl status energy-consumers-publisher.service"
 echo ""
 print_info "View logs with:"
 echo "  journalctl -u status-publisher.service -f"

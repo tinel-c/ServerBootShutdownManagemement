@@ -4,6 +4,7 @@ Live energy metrics on the Node-RED Dashboard 2.0 **Energy** page, fed by MQTT f
 
 - **Victron** Cerbo GX / MultiPlus-II → `energy/victron/*` (flows `800`–`812`)
 - **Huawei** SUN2000 grid-tie inverter → `energy/huawei/*` (flows `821`–`822`)
+- **Consumers** Tuya smart meters / breakers → `energy/consumers/*` (flow `840`)
 
 ---
 
@@ -251,6 +252,62 @@ Initialized by flow **800**; updated on every `energy/huawei/status` message in 
 | “Node configuration error” on import | Import `800-energy-base-config.json` before `821` |
 | Huawei section missing on Energy page | Ensure flow 800 includes `ui_group_huawei_energy` and page `ui` = live UI base (`b89dd587275b51bf`) |
 | PV forecast expected = 0 W | Check `energy/victron/forecast/solar/current`; `victron-solar-forecast-publisher.service` |
+
+---
+
+## Energy consumers (Tuya smart meters)
+
+Per-consumer panels on the same **Energy** page, **after** the Huawei group (`ui.order` 3+). Full agent workflow: [ENERGY_CONSUMER_ADD.md](ENERGY_CONSUMER_ADD.md).
+
+### Data path
+
+```text
+config/tuya_devices.json + consumers_registry.yaml
+        │
+        ▼
+energy-consumers-publisher.service  (poll every 30 s)
+        │
+        ▼
+Mosquitto  energy/consumers/<id>/status
+        │
+        ▼
+Node-RED flow 840  (mqtt in → ui-template per consumer)
+        │
+        └── Dashboard /energy  (Breaker inside, Breaker outside, WiFi DIN rail, …)
+```
+
+### Prerequisites
+
+1. `config/tuya_devices.json` synced (`scripts/tuya/sync_devices.py sync`)
+2. `device/energy-consumers/config/consumers_registry.yaml` with `enabled: true` entries
+3. **`energy-consumers-publisher.service`** active
+4. Flow **`800-energy-base-config.json`** already imported
+
+Verify MQTT:
+
+```bash
+mosquitto_sub -h localhost -t 'energy/consumers/+/status' -v
+```
+
+### Import / deploy
+
+| Step | Action |
+|------|--------|
+| Generate | `node nodered/live-connection/scripts/generate-flow-840.mjs` |
+| Deploy | `node nodered/live-connection/scripts/deploy-flow-840.mjs` |
+| Or manual | Import `nodered/flows/840-energy-consumers.json` after `800` |
+
+Regenerate flow 840 after **any** registry change (add/remove/reorder consumer).
+
+### UI layout
+
+| Group | `ui.order` on Energy page |
+|-------|---------------------------|
+| Victron Energy | 1 |
+| Huawei Energy | 2 |
+| Each consumer | 3, 4, 5, … (`ui.order` in registry) |
+
+Each consumer card shows power, energy, voltage, current, temperature (breakers), online pill, **Updated MM:SS ago**, and ON/OFF buttons when `controls.switch: true`. Tongou breakers use cloud `phase_a` for V/I/P — see [TONGOU_BREAKER_DPS.md](TONGOU_BREAKER_DPS.md).
 
 ---
 

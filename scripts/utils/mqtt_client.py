@@ -71,6 +71,20 @@ class MQTTClientWrapper:
         self.subscriptions = {}  # topic -> callback mapping
         
         logger.info(f"MQTT client initialized for broker: {broker_host}:{broker_port}")
+
+    @staticmethod
+    def _topic_matches(pattern: str, topic: str) -> bool:
+        """Return True if topic matches an MQTT subscription filter (+ / #)."""
+        pattern_parts = pattern.split("/")
+        topic_parts = topic.split("/")
+        for i, part in enumerate(pattern_parts):
+            if part == "#":
+                return True
+            if i >= len(topic_parts):
+                return False
+            if part != "+" and part != topic_parts[i]:
+                return False
+        return len(topic_parts) == len(pattern_parts)
     
     def _configure_tls(self):
         """Configure TLS/SSL for MQTT connection."""
@@ -121,16 +135,18 @@ class MQTTClientWrapper:
         payload = msg.payload.decode('utf-8')
         
         logger.debug(f"Received message on topic '{topic}': {payload}")
-        
-        # Call the registered callback for this topic
-        if topic in self.subscriptions:
-            callback = self.subscriptions[topic]
+
+        handled = False
+        for pattern, callback in self.subscriptions.items():
+            if not self._topic_matches(pattern, topic):
+                continue
+            handled = True
             try:
                 callback(topic, payload)
             except Exception as e:
-                logger.error(f"Error in message callback for topic '{topic}': {e}")
-        else:
-            logger.warning(f"No callback registered for topic: {topic}")
+                logger.error(f"Error in message callback for topic '{topic}' (filter '{pattern}'): {e}")
+        if not handled:
+            logger.debug(f"No subscription matched topic: {topic}")
     
     def connect(self, retry_count: int = 5, retry_delay: int = 5) -> bool:
         """

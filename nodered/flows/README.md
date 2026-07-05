@@ -33,6 +33,8 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 
 **Energy (Huawei):** after `800`, import `821`, `822`; re-import `50` and `90` (replace existing nodes). Requires `huawei-mqtt-publisher.service`. See [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md).
 
+**Energy (Consumers):** generate `840-energy-consumers.json` with `generate-flow-840.mjs`, deploy with `deploy-flow-840.mjs`. Requires `energy-consumers-publisher.service` and `consumers_registry.yaml`. Agent playbook: [docs/ENERGY_CONSUMER_ADD.md](../../docs/ENERGY_CONSUMER_ADD.md).
+
 **Grundfos SCALA1 *(planned)*:** after on-site BLE setup, import `412`, `413`; re-import `50` and `90` (replace existing nodes). Do **not** import until [docs/GRUNDGOS_SCALA1.md](../../docs/GRUNDGOS_SCALA1.md) checklist is done. Requires manual `install_grundfos_service.sh`.
 
 **Tapo cameras:** after base config and `50-telegram-interface.json`, import `611-camera-management.json`, `612-camera-watchdog.json`, and `613-watchdog-status-dashboard.json`. Requires `tapo-monitor.service` and `CAMERA_N_*` in `.env`. Deploy: `deploy-flow-611.mjs`, `612`, `613`. See [docs/TAPO_CAMERA.md](../../docs/TAPO_CAMERA.md).
@@ -576,6 +578,23 @@ Requires `800-energy-base-config.json` (Huawei UI group). Full import order: [do
 **MQTT:** Subscribes `energy/huawei/status` and Victron forecast topics for PV model. Requires `huawei-mqtt-publisher.service` and `victron-solar-forecast-publisher.service`.
 
 **Dashboard:** `/dashboard/energy` — Huawei Energy group on the same Energy page as Victron.
+
+---
+
+### Energy / Consumers (840)
+
+**File:** `840-energy-consumers.json` (**generated** — do not hand-edit)
+
+Requires `800-energy-base-config.json`. Full agent playbook: [docs/ENERGY_CONSUMER_ADD.md](../../docs/ENERGY_CONSUMER_ADD.md).
+
+| Step | Command |
+|------|---------|
+| Regenerate | `node nodered/live-connection/scripts/generate-flow-840.mjs` |
+| Deploy | `node nodered/live-connection/scripts/deploy-flow-840.mjs` |
+
+**MQTT:** Subscribes `energy/consumers/+/status` (QoS 1, JSON). Publishes switch commands to `energy/consumers/<id>/command/switch`. Requires `energy-consumers-publisher.service` and `config/tuya_devices.json`.
+
+**Dashboard:** `/dashboard/energy` — one full-width UI group per enabled consumer (`ui.order` 3+), after Huawei (order 2). Cards show W, kWh, V, A, °C (breakers), Online + **Updated** timer, relay ON/OFF.
 
 ---
 

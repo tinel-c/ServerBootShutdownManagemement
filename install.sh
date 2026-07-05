@@ -198,6 +198,13 @@ if [ -x "$INSTALL_DIR/install_huawei_service.sh" ]; then
     bash "$INSTALL_DIR/install_huawei_service.sh" || \
         print_warn "Huawei install incomplete — edit device/huawei-inverter/config/.env and re-run install_huawei_service.sh"
 fi
+if [ -f "$INSTALL_DIR/config/tuya_devices.json" ] && \
+   [ -f "$INSTALL_DIR/device/energy-consumers/config/consumers_registry.yaml" ]; then
+    if [ -x "$INSTALL_DIR/install_energy_consumers_service.sh" ]; then
+        bash "$INSTALL_DIR/install_energy_consumers_service.sh" || \
+            print_warn "Energy consumers install incomplete — see docs/ENERGY_CONSUMER_ADD.md"
+    fi
+fi
 # Grundfos SCALA1: planned — install manually after on-site BLE GATT capture (see docs/GRUNDGOS_SCALA1.md)
 print_info "Grundfos SCALA1: scaffolding in repo — run install_grundfos_service.sh manually when BLE is configured"
 unset ALLOW_INACTIVE_SERVICE
@@ -224,12 +231,14 @@ echo ""
 echo "  3. Re-run device installers after editing energy config:"
 echo "     sudo $INSTALL_DIR/install_victron_service.sh"
 echo "     sudo $INSTALL_DIR/install_huawei_service.sh"
+echo "     sudo $INSTALL_DIR/install_energy_consumers_service.sh  # Tuya smart meters"
 echo "     # Planned SCALA1 (after BLE setup): sudo $INSTALL_DIR/install_grundfos_service.sh"
 echo ""
 echo "  4. Check service status:"
 echo "     systemctl status mqtt-boot-listener.service status-publisher.service"
 echo "     systemctl status victron-mqtt-publisher.service victron-solar-forecast-publisher.service"
 echo "     systemctl status huawei-mqtt-publisher.service"
+echo "     systemctl status energy-consumers-publisher.service"
 echo "     systemctl status grundfos-scala1-mqtt-publisher.service"
 echo ""
 echo "  5. View logs:"

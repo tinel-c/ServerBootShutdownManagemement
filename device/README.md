@@ -8,6 +8,7 @@ Device projects live in **separate Git repositories** and are included here as *
 | `device/PlatformIO_ESP8266_Main_Entry/` | [tinel-c/PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry) | ESP8266 — main gate (Node-RED 210–212, 514) |
 | `device/victron-multiplus-ii/` | *(in-repo docs)* | Victron MultiPlus-II — GX/Modbus/MQTT integration ([README](victron-multiplus-ii/README.md)) |
 | `device/huawei-inverter/` | *(in-repo docs)* | Huawei SUN2000 — Modbus/MQTT integration ([README](huawei-inverter/README.md)) |
+| `device/energy-consumers/` | Tuya smart meters → `energy/consumers/*`, flow **840** ([README](energy-consumers/README.md), [agent playbook](../docs/ENERGY_CONSUMER_ADD.md)) |
 | `device/grundfos-scala1/` | *(in-repo docs)* | Grundfos SCALA1 — **planned** BLE/MQTT scaffolding ([README](grundfos-scala1/README.md), [GRUNDGOS_SCALA1.md](../docs/GRUNDGOS_SCALA1.md)) |
 
 **Clone with all device firmware:**  

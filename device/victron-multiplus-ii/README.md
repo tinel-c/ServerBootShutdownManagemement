@@ -441,26 +441,14 @@ Set `VICTRON_AUTOMATION_MIN_HEADROOM_W` (default `0`) for hysteresis.
 python device/victron-multiplus-ii/scripts/victron_mqtt_publisher.py --once
 ```
 
-5. Deploy to automation server (`192.168.2.4`):
-
-```powershell
-# Windows — from repo root
-.\scripts\server\setup_ssh_key.ps1          # once per PC
-.\scripts\server\deploy_victron_remote.ps1  # sync + install service
-```
+5. Deploy on automation server (`192.168.2.4`) — in an **existing SSH session**, grant temp sudo then install:
 
 ```bash
-# Linux / macOS
-./scripts/server/setup_ssh_key.sh
-./scripts/server/deploy_victron_remote.sh
-```
-
-Or manually on the server after `ssh serverside`:
-
-```bash
-cd ~/ServerBootShutdownManagemement
+cd /opt/dell_server_management && sudo ./scripts/server/grant_temporary_agent_sudo.sh
 sudo ./install_victron_service.sh
 ```
+
+Or sync repo to the server first (`update.sh` / `git pull`), then the same commands.
 
 Monitor on the broker:
 

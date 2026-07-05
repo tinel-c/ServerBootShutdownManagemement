@@ -117,7 +117,7 @@ Examples:
 - `810-819`: Victron Cerbo GX (`811-victron-energy-status.json`, `812-victron-energy-telegram.json`)
 - `820-829`: Huawei SUN2000 solar (`821-huawei-energy-status.json`, `822-huawei-energy-telegram.json`)
 - `830-839`: Battery storage
-- `840-849`: Smart plugs/switches
+- `840-849`: Energy consumers (Tuya meters, flow **840**)
 - `850-859`: Energy analytics
 - `860-869`: Cost tracking
 - `890-899`: Energy utilities

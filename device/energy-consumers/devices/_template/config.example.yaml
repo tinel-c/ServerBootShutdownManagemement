@@ -1,0 +1,13 @@
+# Device connection template — copy to config.yaml (do not commit secrets)
+
+# --- Tuya smart plug ---
+# tuya_device_id: abc123...
+# tuya_dps_power: "19"          # DPS id for power (W) — from tinytuya status
+# tuya_dps_energy: "20"         # optional cumulative kWh
+
+# --- Shelly EM ---
+# shelly_host: 192.168.2.50
+# shelly_channel: 0
+
+# --- Generic MQTT (device publishes itself) ---
+# subscribe_only: true

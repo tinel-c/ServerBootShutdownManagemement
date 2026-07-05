@@ -1,0 +1,30 @@
+# Energy consumers registry
+# Copy to consumers_registry.yaml and edit.
+#
+# Each consumer must have a matching folder under devices/<id>/ (optional until publisher exists).
+
+version: 1
+
+consumers:
+  - id: example-basement-plug
+    name: Example basement smart plug
+    type: tuya_plug
+    enabled: false
+    mqtt_prefix: energy/consumers/example-basement-plug
+    device_path: devices/example-basement-plug
+    poll_interval_s: 30
+    tags:
+      - basement
+      - discretionary
+    notes: Copy devices/_template and set Tuya device id from tuya_devices.json
+
+  - id: example-workshop-meter
+    name: Example workshop sub-meter
+    type: shelly_em
+    enabled: false
+    mqtt_prefix: energy/consumers/example-workshop-meter
+    device_path: devices/example-workshop-meter
+    poll_interval_s: 15
+    tags:
+      - workshop
+    notes: Shelly HTTP API or native MQTT

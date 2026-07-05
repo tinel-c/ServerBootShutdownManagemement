@@ -37,6 +37,7 @@ gh release create vX.Y.Z --title "vX.Y.Z — …" --notes-file docs/releases/REL
 
 | Version | Notes |
 |---------|-------|
+| v3.15.0 | [RELEASE_NOTES_v3.15.0.md](RELEASE_NOTES_v3.15.0.md) — Energy consumers, Tongou breakers, flow 840 |
 | v3.14.0 | [RELEASE_NOTES_v3.14.0.md](RELEASE_NOTES_v3.14.0.md) — Media server, Tuya linking, Server dashboard UI |
 | v3.13.0 | [RELEASE_NOTES_v3.13.0.md](RELEASE_NOTES_v3.13.0.md) — Energy charts, Huawei PV forecast, Tapo cameras |
 | v3.12.0 | [RELEASE_NOTES_v3.12.0.md](RELEASE_NOTES_v3.12.0.md) — Grundfos SCALA1 scaffolding (planned) |

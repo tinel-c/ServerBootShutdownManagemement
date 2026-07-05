@@ -22,6 +22,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Self-fix CRLF when repo was copied from Windows (bash cannot parse \r).
+for _f in "$SCRIPT_DIR"/*.sh; do
+    [ -f "$_f" ] && sed -i 's/\r$//' "$_f" 2>/dev/null || true
+done
+
 # shellcheck source=automation_sudo_common.sh
 source "$SCRIPT_DIR/automation_sudo_common.sh"
 
@@ -69,5 +75,5 @@ else
 fi
 
 echo ""
-echo "Agent can verify (from your PC):"
-echo "  ssh tinel@192.168.2.4 \"bash ~/ServerBootShutdownManagemement/scripts/server/check_deploy_sudo.sh\""
+echo "Verify in the same SSH session:"
+echo "  bash /opt/dell_server_management/scripts/server/check_deploy_sudo.sh"

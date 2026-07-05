@@ -1,0 +1,8 @@
+id: breaker-outside
+name: Garden power
+type: tuya_meter
+enabled: true
+mqtt_prefix: energy/consumers/breaker-outside
+poll_interval_s: 30
+tags: [breaker, inside, garden]
+config_file: config.yaml

@@ -1,0 +1,11 @@
+id: front-lights-breaker
+name: Front house lights
+type: tuya_meter
+enabled: true
+mqtt_prefix: energy/consumers/front-lights-breaker
+poll_interval_s: 30
+tags: [breaker, outside, front-lights]
+config_file: config.yaml
+
+# Tuya Smart Life: "WiFi Din Rail Switch with metering" (eu1663483618285BSTqb)
+# Device ID: bf8cc8cf863af4b600yc53 · LAN: 192.168.2.172

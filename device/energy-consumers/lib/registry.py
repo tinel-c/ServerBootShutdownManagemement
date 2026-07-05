@@ -72,5 +72,7 @@ def validate_registry(data: dict[str, Any]) -> list[str]:
         ctype = entry.get("type")
         if ctype == "tuya_meter" and not entry.get("tuya_device_id"):
             errors.append(f"{prefix}: tuya_meter requires tuya_device_id")
+        if ctype == "tasmota_meter" and not entry.get("tasmota_topic"):
+            errors.append(f"{prefix}: tasmota_meter requires tasmota_topic")
 
     return errors

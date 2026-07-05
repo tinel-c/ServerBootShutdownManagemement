@@ -28,3 +28,21 @@ consumers:
     tags:
       - workshop
     notes: Shelly HTTP API or native MQTT
+
+  - id: example-garden-power-hut
+    name: Example garden hut Tasmota meter
+    type: tasmota_meter
+    enabled: false
+    mqtt_prefix: energy/consumers/example-garden-power-hut
+    device_path: devices/garden-power-hut
+    poll_interval_s: 30
+    stale_after_s: 660
+    tags: [tasmota, sonoff, garden]
+    controls:
+      switch: true
+    ui:
+      order: 6
+      accent: "#f59e0b"
+    tasmota_topic: sonoffPower320D_afara
+    tasmota_power_key: POWER
+    tasmota_command_key: Power

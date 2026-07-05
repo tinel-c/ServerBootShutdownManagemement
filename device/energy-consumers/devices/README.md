@@ -28,13 +28,14 @@ node nodered/live-connection/scripts/generate-flow-840.mjs
 | `device.yaml` | Consumer metadata (mirrors registry) |
 | `README.md` | Optional: connection notes, troubleshooting |
 
-Tuya meters use the shared publisher (`tuya_consumers_publisher.py`) — no per-device `publisher.py` required.
+Tuya meters and Tasmota devices use the shared publisher (`tuya_consumers_publisher.py`) — no per-device `publisher.py` required.
 
 ## Device types
 
 | `type` in registry | Notes |
 |--------------------|-------|
 | `tuya_meter` | DPS map in registry; credentials from `tuya_devices.json` |
+| `tasmota_meter` | Tasmota `tele/<topic>/SENSOR` → bridge in publisher; see `devices/garden-power-hut/` |
 | `shelly_em` | Planned — HTTP or Shelly MQTT |
 | `custom` | Document protocol in local README |
 
@@ -45,3 +46,4 @@ Tuya meters use the shared publisher (`tuya_consumers_publisher.py`) — no per-
 | `front-lights-breaker/` | `front-lights-breaker` (DIN rail, front house lights) |
 | `breaker-inside/` | `breaker-inside` |
 | `breaker-outside/` | `breaker-outside` (separate device @ 192.168.2.112) |
+| `garden-power-hut/` | `garden-power-hut` (POWR316D @ hut; topic `sonoffPower320D_afara`, flow 310 + 840) |

@@ -31,8 +31,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Add energy consumer scaffold")
     parser.add_argument("--id", help="Consumer id (lowercase-hyphen)")
     parser.add_argument("--name", required=True, help="Display name")
-    parser.add_argument("--type", default="tuya_meter", choices=["tuya_meter", "shelly_em", "custom"])
+    parser.add_argument("--type", default="tuya_meter", choices=["tuya_meter", "tasmota_meter", "shelly_em", "custom"])
     parser.add_argument("--tuya-device-id", help="Tuya device id from sync_devices.py list")
+    parser.add_argument("--tasmota-topic", help="Tasmota MQTT topic (Topic command on device)")
     parser.add_argument("--order", type=int, default=10, help="UI order on Energy page (after Huawei=2)")
     parser.add_argument("--accent", default="#38bdf8", help="Dashboard accent color")
     parser.add_argument("--dry-run", action="store_true")
@@ -57,7 +58,7 @@ def main() -> int:
         "device_path": f"devices/{cid}",
         "poll_interval_s": 30,
         "tags": [],
-        "controls": {"switch": args.type == "tuya_meter"},
+        "controls": {"switch": args.type in ("tuya_meter", "tasmota_meter")},
         "ui": {"order": args.order, "accent": args.accent},
     }
     if args.tuya_device_id:
@@ -70,6 +71,13 @@ def main() -> int:
             "current_a": {"id": "18", "scale": 0.001},
             "energy_kwh": {"id": "17", "scale": 0.01},
         }
+    if args.type == "tasmota_meter":
+        topic = args.tasmota_topic or _slug(args.name).replace("-", "")
+        entry["tasmota_topic"] = topic
+        entry["tasmota_power_key"] = "POWER"
+        entry["tasmota_command_key"] = "Power"
+        entry["tele_period_s"] = 30
+        entry["stale_after_s"] = 120
 
     if args.dry_run:
         print(yaml.dump({"consumers": [entry]}, sort_keys=False))
@@ -111,8 +119,12 @@ def main() -> int:
     print(f"Created {dest}")
     print(f"Updated {REGISTRY}")
     print("\nNext steps:")
-    print(f"  1. python3 device/energy-consumers/scripts/probe_tuya_dps.py --device-id {args.tuya_device_id or '<id>'}")
-    print("  2. Edit dps: mapping in consumers_registry.yaml if needed")
+    if args.type == "tuya_meter":
+        print(f"  1. python3 device/energy-consumers/scripts/probe_tuya_dps.py --device-id {args.tuya_device_id or '<id>'}")
+        print("  2. Edit dps: mapping in consumers_registry.yaml if needed")
+    elif args.type == "tasmota_meter":
+        print("  1. Confirm tasmota_topic matches Tasmota console (Topic)")
+        print("  2. Ensure device MQTT broker points to automation server")
     print("  3. Set enabled: true in registry")
     print("  4. python3 device/energy-consumers/scripts/validate_registry.py")
     print("  5. node nodered/live-connection/scripts/generate-flow-840.mjs")

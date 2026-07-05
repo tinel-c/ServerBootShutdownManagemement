@@ -79,8 +79,8 @@
         "type": "function",
         "z": "tab_dashboard",
         "name": "Fan-out consumer UIs",
-        "func": "const ids = [\"front-lights-breaker\",\"breaker-inside\",\"breaker-outside\"];\nfunction enrich(id) {\n  const payload = flow.get('consumer_status_' + id) || { consumer_id: id, name: id, online: false };\n  const metadata = flow.get('consumer_meta_' + id) || {};\n  let fetchedMs = metadata.lastReportedMs;\n  if (!fetchedMs && payload.timestamp) {\n    try { fetchedMs = new Date(payload.timestamp).getTime(); } catch (e) { fetchedMs = null; }\n  }\n  const enriched = fetchedMs ? { ...payload, _fetched_at_ms: fetchedMs } : payload;\n  return { payload: enriched, metadata };\n}\nreturn ids.map(id => [enrich(id)]);",
-        "outputs": 3,
+        "func": "const ids = [\"front-lights-breaker\",\"breaker-inside\",\"breaker-outside\",\"garden-power-hut\"];\nfunction enrich(id) {\n  const payload = flow.get('consumer_status_' + id) || { consumer_id: id, name: id, online: false };\n  const metadata = flow.get('consumer_meta_' + id) || {};\n  let fetchedMs = metadata.lastReportedMs;\n  if (!fetchedMs && payload.timestamp) {\n    try { fetchedMs = new Date(payload.timestamp).getTime(); } catch (e) { fetchedMs = null; }\n  }\n  const enriched = fetchedMs ? { ...payload, _fetched_at_ms: fetchedMs } : payload;\n  return { payload: enriched, metadata };\n}\nreturn ids.map(id => [enrich(id)]);",
+        "outputs": 4,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -101,6 +101,11 @@
             [
                 [
                     "template_consumer_breaker_outside"
+                ]
+            ],
+            [
+                [
+                    "template_consumer_garden_power_hut"
                 ]
             ]
         ]
@@ -244,6 +249,42 @@
         "className": "",
         "x": 700,
         "y": 1240,
+        "wires": [
+            [
+                "func_consumer_switch_cmd"
+            ]
+        ]
+    },
+    {
+        "id": "ui_group_consumer_garden_power_hut",
+        "type": "ui-group",
+        "name": "Garden Power Hut",
+        "page": "ui_page_energy",
+        "width": "12",
+        "height": "1",
+        "order": 6,
+        "showTitle": false,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "template_consumer_garden_power_hut",
+        "type": "ui-template",
+        "z": "tab_dashboard",
+        "group": "ui_group_consumer_garden_power_hut",
+        "name": "Garden Power Hut UI",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<style scoped>\n.ec-card { width:100%; max-width:100%; box-sizing:border-box; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; color:#e2e8f0; }\n.ec-inner { background:linear-gradient(160deg,#1e293b 0%,#0f172a 100%); border-radius:12px; padding:clamp(8px,2vw,12px); border:1px solid #f59e0b88; box-shadow:0 4px 16px rgba(0,0,0,0.35); width:100%; }\n.ec-head { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:8px; flex-wrap:wrap; }\n.ec-title { font-size:clamp(0.85em,2.5vw,0.95em); font-weight:700; color:#f8fafc; line-height:1.2; word-break:break-word; }\n.ec-id { font-size:0.62em; color:#94a3b8; margin-top:2px; font-family:ui-monospace,monospace; }\n.ec-pill { padding:4px 10px; border-radius:999px; font-size:0.65em; font-weight:700; text-transform:uppercase; white-space:nowrap; color:#fff; flex-shrink:0; }\n.ec-head-badges { display:flex; flex-wrap:wrap; gap:8px; align-items:center; flex-shrink:0; justify-content:flex-end; }\n.ec-updated { padding:4px 10px; border-radius:8px; background:rgba(255,255,255,0.06); color:#94a3b8; font-size:0.68em; white-space:nowrap; }\n.ec-updated-val { font-variant-numeric:tabular-nums; font-weight:700; }\n.ec-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(4px,1.5vw,8px); }\n.ec-metric { background:rgba(255,255,255,0.07); border-radius:8px; padding:clamp(6px,1.5vw,8px) 4px; text-align:center; min-width:0; }\n.ec-metric.power { border-top:2px solid #f59e0b; background:rgba(255,255,255,0.1); }\n.ec-label { font-size:0.58em; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.04em; }\n.ec-value { font-size:clamp(0.82em,2.2vw,1.05em); font-weight:700; color:#f8fafc; margin-top:2px; line-height:1.1; }\n.ec-relay { margin-top:8px; font-size:0.72em; color:#cbd5e1; }\n.ec-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }\n.ec-btn { appearance:none; -webkit-appearance:none; min-height:40px; padding:8px 10px; border:none; border-radius:8px; font-size:clamp(0.78em,2vw,0.85em); font-weight:700; cursor:pointer; width:100%; line-height:1.2; touch-action:manipulation; }\n.ec-btn:disabled { opacity:0.45; cursor:not-allowed; }\n@media (max-width:520px) { .ec-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .ec-actions { grid-template-columns:1fr; } }\n</style>\n<div class=\"ec-card\">\n  <div class=\"ec-inner\">\n    <div class=\"ec-head\">\n      <div style=\"min-width:0;flex:1;\">\n        <div class=\"ec-title\">{{ displayName }}</div>\n        <div class=\"ec-id\">garden-power-hut</div>\n      </div>\n      <div class=\"ec-head-badges\">\n        <div class=\"ec-pill\" :style=\"onlinePillStyle\">{{ onlineLabel }}</div>\n        <div class=\"ec-updated\">Updated <span class=\"ec-updated-val\" :style=\"dataAgeStyle\">{{ updateElapsed }}</span> ago</div>\n      </div>\n    </div>\n    <div class=\"ec-metrics\">\n      <div class=\"ec-metric power\"><div class=\"ec-label\">W</div><div class=\"ec-value\">{{ formatW(powerW) }}</div></div>\n      <div class=\"ec-metric\"><div class=\"ec-label\">kWh</div><div class=\"ec-value\">{{ formatKwh(energyKwh) }}</div></div>\n      <div class=\"ec-metric\"><div class=\"ec-label\">V</div><div class=\"ec-value\">{{ formatV(voltageV) }}</div></div>\n      <div class=\"ec-metric\"><div class=\"ec-label\">A</div><div class=\"ec-value\">{{ formatA(currentA) }}</div></div>\n      \n    </div>\n    <div v-if=\"switchOn !== null\" class=\"ec-relay\">\n      Relay <strong :style=\"{ color: switchOn ? '#34d399' : '#94a3b8' }\">{{ switchOn ? 'ON' : 'OFF' }}</strong>\n      <span v-if=\"breakerState\"> · {{ breakerState }}</span>\n      <span v-if=\"runMode\"> · {{ runMode }}</span>\n    </div>\n    <div class=\"ec-actions\">\n        <button type=\"button\" class=\"ec-btn\" :style=\"onBtnStyle\" :disabled=\"!canControl\" @click.prevent=\"sendSwitch('on')\">ON</button>\n        <button type=\"button\" class=\"ec-btn\" :style=\"offBtnStyle\" :disabled=\"!canControl\" @click.prevent=\"sendSwitch('off')\">OFF</button>\n      </div>\n  </div>\n</div>\n<script>\nexport default {\n  data() { return { now: Date.now(), timer: null, staleAfterS: 30 * 2 }; },\n  mounted() { this.timer = setInterval(() => { this.now = Date.now(); }, 1000); },\n  unmounted() { clearInterval(this.timer); },\n  methods: {\n    formatW(v) { if (v == null || v === '') return '—'; const n = Number(v); return Number.isNaN(n) ? '—' : Math.round(n); },\n    formatKwh(v) { if (v == null || v === '') return '—'; const n = Number(v); return Number.isNaN(n) ? '—' : n.toFixed(2); },\n    formatV(v) { if (v == null || v === '') return '—'; const n = Number(v); return Number.isNaN(n) ? '—' : n.toFixed(1); },\n    formatA(v) { if (v == null || v === '') return '—'; const n = Number(v); return Number.isNaN(n) ? '—' : n.toFixed(2); },\n    formatTemp(v) { if (v == null || v === '') return '—'; const n = Number(v); return Number.isNaN(n) ? '—' : n.toFixed(1); },\n    parseMs(v) {\n      if (v == null || v === '') return null;\n      if (typeof v === 'number' && !Number.isNaN(v)) return v;\n      try { const ms = new Date(v).getTime(); return Number.isNaN(ms) ? null : ms; } catch (e) { return null; }\n    },\n    pad2(n) { return String(n).padStart(2, '0'); },\n    sendSwitch(action) {\n      if (!this.canControl) return;\n      this.send({ payload: { consumer_id: 'garden-power-hut', action, source: 'nodered', timestamp: new Date().toISOString() } });\n    }\n  },\n  computed: {\n    p() { return this.msg.payload || {}; },\n    displayName() { return this.p.name || 'Garden Power Hut'; },\n    powerW() { return this.p.power_w; },\n    energyKwh() { return this.p.energy_kwh; },\n    voltageV() { return this.p.voltage_v; },\n    currentA() { return this.p.current_a; },\n    temperatureC() { return this.p.extra && this.p.extra.temperature_c != null ? this.p.extra.temperature_c : null; },\n    breakerState() { return this.p.extra && this.p.extra.breaker_state ? this.p.extra.breaker_state : ''; },\n    runMode() { return this.p.extra && this.p.extra.run_mode ? this.p.extra.run_mode : ''; },\n    switchOn() {\n      if (this.p.extra && this.p.extra.switch_on !== undefined) return !!this.p.extra.switch_on;\n      return null;\n    },\n    canControl() { return this.p.online !== false; },\n    onlineLabel() { return this.p.online === false ? 'Offline' : 'Online'; },\n    onlinePillStyle() {\n      const on = this.p.online !== false;\n      return { background: on ? '#059669' : '#dc2626', color: '#fff' };\n    },\n    onBtnStyle() {\n      const lit = this.switchOn === true;\n      return { background: lit ? '#047857' : '#059669', color: '#fff', boxShadow: lit ? '0 0 0 2px #34d399' : 'none' };\n    },\n    offBtnStyle() {\n      const lit = this.switchOn === false;\n      return { background: lit ? '#334155' : '#475569', color: '#f8fafc', boxShadow: lit ? '0 0 0 2px #94a3b8' : 'none' };\n    },\n    lastFetchedMs() {\n      const meta = this.msg.metadata?.lastReportedMs;\n      if (meta) return meta;\n      if (this.p._fetched_at_ms) return this.p._fetched_at_ms;\n      return this.parseMs(this.p.timestamp);\n    },\n    updateElapsed() {\n      const ms = this.lastFetchedMs;\n      if (!ms) return '—:—';\n      void this.now;\n      const sec = Math.max(0, Math.floor((this.now - ms) / 1000));\n      const m = Math.floor(sec / 60);\n      const s = sec % 60;\n      return this.pad2(m) + ':' + this.pad2(s);\n    },\n    dataAgeStyle() {\n      const ms = this.lastFetchedMs;\n      if (!ms) return { color: '#e2e8f0' };\n      void this.now;\n      const s = (this.now - ms) / 1000;\n      if (s > this.staleAfterS) return { color: '#fbbf24' };\n      return { color: '#e2e8f0' };\n    }\n  }\n};\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 700,
+        "y": 1320,
         "wires": [
             [
                 "func_consumer_switch_cmd"

@@ -12,6 +12,7 @@ device/energy-consumers/
 ├── lib/
 │   ├── consumer_schema.py              # MQTT status JSON shape
 │   ├── tuya_meter.py                   # DPS parse, switch control, cloud phase
+│   ├── tasmota_meter.py                # Tasmota ENERGY / POWER parse
 │   └── tongou_phase.py                 # Tongou phase_a RAW decode (smart breakers)
 ├── scripts/
 │   ├── tuya_consumers_publisher.py     # poll + MQTT + switch commands
@@ -50,6 +51,7 @@ Node-RED 840  →  Dashboard /energy  (groups order 3+)
 |------|---------|------------|
 | **DIN-rail switch + metering** | Front house lights | Scalar DPS `17`–`20`, switch `1` |
 | **Tongou smart breaker** (`dlq`) | House consumption, Garden power | Cloud `phase_a` (DP 6) for V/I/P; LAN for switch, temp, energy — see [docs/TONGOU_BREAKER_DPS.md](../../docs/TONGOU_BREAKER_DPS.md) |
+| **Tasmota** (`tasmota_meter`) | Garden Power Hut (POWR316D) | `sonoffPower320D_afara`; also Garden tab flow **310** |
 
 ## Quick start
 
@@ -88,5 +90,6 @@ Full reference: [docs/MQTT_PROTOCOL.md](../../docs/MQTT_PROTOCOL.md#energy-consu
 | `front-lights-breaker` | Front house lights | yes |
 | `breaker-inside` | House consumption | yes |
 | `breaker-outside` | Garden power | yes |
+| `garden-power-hut` | Garden Power Hut (Tasmota) | yes |
 
 Flow **840** deployed. Publisher: `energy-consumers-publisher.service` on automation server.

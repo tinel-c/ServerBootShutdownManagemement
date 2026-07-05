@@ -1,5 +1,5 @@
 [Unit]
-Description=Tuya energy consumers MQTT publisher
+Description=Tuya and Tasmota energy consumers MQTT publisher
 After=network-online.target mosquitto.service
 Wants=network-online.target
 

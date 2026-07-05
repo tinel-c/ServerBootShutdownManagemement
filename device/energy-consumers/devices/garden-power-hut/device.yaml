@@ -1,0 +1,20 @@
+id: garden-power-hut
+name: Garden Power Hut
+type: tasmota_meter
+enabled: true
+mqtt_prefix: energy/consumers/garden-power-hut
+device_path: devices/garden-power-hut
+poll_interval_s: 30
+stale_after_s: 660
+tags: [tasmota, sonoff, garden, powr316d]
+notes: >
+  SONOFF POWR316D at the garden power hut. Same device as Garden tab Power (flow 310).
+  Tasmota topic sonoffPower320D_afara (legacy name).
+controls:
+  switch: true
+ui:
+  order: 6
+  accent: "#f59e0b"
+tasmota_topic: sonoffPower320D_afara
+tasmota_power_key: POWER
+tasmota_command_key: Power

@@ -9,6 +9,7 @@ Standard workflow for any Cursor agent (or human) adding a **new electricity con
 ## When to use this
 
 - New Tuya smart meter / breaker / DIN-rail switch with metering
+- Tasmota energy device (Sonoff POWR316D, POWR320D, etc.) on local Mosquitto
 - Future: Shelly EM, ESP32, custom MQTT publisher
 
 All consumers share the same registry, MQTT layout, publisher service, and UI generator.
@@ -54,6 +55,22 @@ config/tuya_devices.json          consumers_registry.yaml
 
 ---
 
+## Checklist (Tasmota meter)
+
+| Step | Command / action |
+|------|------------------|
+| 1. Tasmota MQTT | Device broker = automation server Mosquitto; note **Topic** (`Topic` command in console) |
+| 2. Scaffold | Copy `devices/sonoff-powr316d/` or `add_consumer.py --type tasmota_meter --tasmota-topic <topic>` |
+| 3. Registry | `type: tasmota_meter`, `tasmota_topic: <topic>`, optional `tele_period_s: 30`, `stale_after_s: 120` |
+| 4. Enable | `enabled: true` in `consumers_registry.yaml` |
+| 5–9 | Same validate / generate / deploy / restart publisher / verify as Tuya checklist |
+
+Publisher subscribes to `tele/<topic>/SENSOR` and `stat/<topic>/POWER`, republishes to `energy/consumers/<id>/status`. Switch commands forward to `cmnd/<topic>/Power`.
+
+Reference device: [device/energy-consumers/devices/garden-power-hut/README.md](../device/energy-consumers/devices/garden-power-hut/README.md).
+
+---
+
 ## Registry entries
 
 ### DIN-rail switch with metering (front lights)
@@ -84,7 +101,31 @@ dps:
 
 Full detail: [TONGOU_BREAKER_DPS.md](TONGOU_BREAKER_DPS.md).
 
-### Legacy scalar example (non-breaker)
+### Tasmota meter (Garden Power Hut)
+
+Same physical device can appear on **Garden** (flow 310) and **Energy** (flow 840). Registry bridges Tasmota MQTT into `energy/consumers/<id>/status`:
+
+```yaml
+- id: garden-power-hut
+  name: Garden Power Hut
+  type: tasmota_meter
+  enabled: true
+  tasmota_topic: sonoffPower320D_afara
+  tasmota_power_key: POWER
+  tasmota_command_key: Power
+  stale_after_s: 660
+  controls:
+    switch: true
+  ui:
+    order: 6
+    accent: "#f59e0b"
+```
+
+Do **not** set `tele_period_s` unless you intend to change the device’s Tasmota `TelePeriod` on publisher start.
+
+---
+
+### Legacy scalar example (DIN-rail plug)
 
 ```yaml
 - id: example-plug
@@ -171,7 +212,8 @@ Do **not** duplicate UI nodes manually — always regenerate flow 840.
 |----|------|-------------|----------|-------|
 | `front-lights-breaker` | Front house lights | `bf8cc8cf863af4b600yc53` | 3 | DIN-rail, outdoor |
 | `breaker-inside` | House consumption | `bf05a4a80c7e10134dx5gp` | 4 | Tongou breaker, main panel |
-| `breaker-outside` | Garden power | `bfb1f58994ced1e2fajvee` | 5 | Tongou breaker, garden circuit |
+| `breaker-outside` | Garden power (panel) | `bfb1f58994ced1e2fajvee` | 5 | Tongou breaker, indoor panel feed |
+| `garden-power-hut` | Garden Power Hut | Tasmota `sonoffPower320D_afara` | 6 | POWR316D @ hut; also Garden tab flow 310 |
 
 ---
 

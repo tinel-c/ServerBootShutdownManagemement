@@ -4,7 +4,7 @@
         "type": "comment",
         "z": "tab_dashboard",
         "name": "═══════════════ GARDEN POWER MONITORING ═══════════════",
-        "info": "## Garden Power Monitoring\n\nMonitors and controls power for the house garden using Sonoff Power device.\n\n### Device\n- Type: Sonoff Power (Tasmota)\n- Device ID: sonoffPower320D_afara\n\n### MQTT Topics\n- Sensor: tele/sonoffPower320D_afara/SENSOR\n- Status: stat/sonoffPower320D_afara/POWER\n- Command: cmnd/sonoffPower320D_afara/Power\n\n### Monitoring\n- Voltage (V)\n- Current (A)\n- Power (W)\n- Total Consumption (kWh)\n- Today Consumption (kWh)\n- Yesterday Consumption (kWh)\n\n### Control\n- ON/OFF switch\n\n### Dependencies\n- Requires: ui_group_garden_power (from base config)\n- Requires: mqtt_broker_local",
+        "info": "## Garden Power Monitoring\n\nMonitors and controls power at the **garden power hut** (SONOFF POWR316D, Tasmota).\n\n### Device\n- Hardware: Sonoff POW Elite 16A (POWR316D)\n- Tasmota topic: `sonoffPower320D_afara` (legacy topic name)\n\n### Also on Energy dashboard\n- Registry: `garden-power-hut` → flow **840** (`energy/consumers/garden-power-hut/status`)\n- This flow (**310**) remains the Garden tab UI; both use the same Tasmota MQTT topics.\n\n### MQTT Topics\n- Sensor: tele/sonoffPower320D_afara/SENSOR\n- Status: stat/sonoffPower320D_afara/POWER\n- Command: cmnd/sonoffPower320D_afara/Power\n\n### Monitoring\n- Voltage (V), Current (A), Power (W)\n- Total / Today / Yesterday consumption (kWh)\n\n### Control\n- ON/OFF switch\n\n### Dependencies\n- ui_group_garden_power (from 300-power-base-config)\n- mqtt_broker_local",
         "x": 300,
         "y": 100,
         "wires": []

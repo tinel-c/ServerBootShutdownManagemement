@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Status check script for Dell & HP Server Management System
-# Displays the current status of all services and recent logs
+# Status check script for Dell, HP & media server automation
+# Displays service status, optional logs, and media-server configuration checks
 #
 
 # Colors for output
@@ -15,6 +15,12 @@ NC='\033[0m' # No Color
 
 # Installation directory
 INSTALL_DIR="/opt/dell_server_management"
+if [ ! -d "$INSTALL_DIR" ]; then
+    _STATUS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -f "$_STATUS_SCRIPT_DIR/config/.env" ] || [ -f "$_STATUS_SCRIPT_DIR/config/.env.example" ]; then
+        INSTALL_DIR="$_STATUS_SCRIPT_DIR"
+    fi
+fi
 
 # Service names
 SERVICES=(
@@ -117,24 +123,98 @@ print_system_info() {
     echo ""
 }
 
+# Print media server configuration (no secrets)
+print_media_server_config() {
+    local env_file="$INSTALL_DIR/config/.env"
+
+    if [ ! -f "$env_file" ]; then
+        return 0
+    fi
+
+    # shellcheck disable=SC1090
+    set -a
+    source "$env_file"
+    set +a
+
+    if [ -z "${MEDIA_SERVER_HOST:-}" ]; then
+        return 0
+    fi
+
+    echo -e "${CYAN}${BOLD}Media Server (linux_tuya):${NC}"
+    echo ""
+    echo -e "  Host:              ${GREEN}${MEDIA_SERVER_HOST}${NC}"
+    echo -e "  SSH user:          ${MEDIA_SERVER_SSH_USER:-tinel}"
+
+    if [ -n "${MEDIA_SERVER_SSH_KEY:-}" ] && [ -f "${MEDIA_SERVER_SSH_KEY}" ]; then
+        echo -e "  SSH key:           ${GREEN}Found${NC} (${MEDIA_SERVER_SSH_KEY})"
+    elif [ -n "${MEDIA_SERVER_SSH_KEY:-}" ]; then
+        echo -e "  SSH key:           ${RED}Missing${NC} (${MEDIA_SERVER_SSH_KEY})"
+    else
+        echo -e "  SSH key:           ${YELLOW}Not set${NC}"
+    fi
+
+    if [ -n "${MEDIA_SERVER_TUYA_DEVICE_ID:-}" ] && [ "${MEDIA_SERVER_TUYA_DEVICE_ID}" != "your_tuya_device_id" ]; then
+        echo -e "  Tuya device ID:    ${GREEN}Configured${NC}"
+    else
+        echo -e "  Tuya device ID:    ${YELLOW}Not set${NC} — run scripts/tuya/tuya_link.sh"
+    fi
+
+    if [ -f "$INSTALL_DIR/config/tuya_devices.json" ]; then
+        echo -e "  Tuya registry:     ${GREEN}config/tuya_devices.json${NC}"
+    else
+        echo -e "  Tuya registry:     ${YELLOW}Missing${NC} — scripts/tuya/sync_devices.py sync"
+    fi
+
+    if [ -n "${TUYA_ACCESS_ID:-}" ]; then
+        echo -e "  Tuya cloud API:    ${GREEN}Configured${NC}"
+    else
+        echo -e "  Tuya cloud API:    ${YELLOW}Not set${NC} — see docs/TUYA_ACCOUNT_LINK.md"
+    fi
+
+    if [ -n "${MEDIA_SERVER_HEALTHCHECK_PING_URL:-}" ] && [[ "${MEDIA_SERVER_HEALTHCHECK_PING_URL}" != *"your-uuid"* ]]; then
+        echo -e "  Healthchecks ping: ${GREEN}Configured${NC}"
+    else
+        echo -e "  Healthchecks ping: ${YELLOW}Not set${NC}"
+    fi
+
+    if command -v ping >/dev/null 2>&1; then
+        if ping -c 1 -W 1 "$MEDIA_SERVER_HOST" >/dev/null 2>&1; then
+            echo -e "  Host ping:         ${GREEN}Reachable${NC}"
+        else
+            echo -e "  Host ping:         ${RED}Unreachable${NC}"
+        fi
+    fi
+
+    if [ -n "${MEDIA_SERVER_SSH_KEY:-}" ] && [ -f "${MEDIA_SERVER_SSH_KEY}" ]; then
+        if ssh -i "$MEDIA_SERVER_SSH_KEY" -o BatchMode=yes -o ConnectTimeout=3 \
+            "${MEDIA_SERVER_SSH_USER:-tinel}@${MEDIA_SERVER_HOST}" true 2>/dev/null; then
+            echo -e "  SSH login:         ${GREEN}OK${NC}"
+        else
+            echo -e "  SSH login:         ${YELLOW}Failed${NC} — run scripts/server/setup_media_server_ssh.sh"
+        fi
+    fi
+
+    echo -e "  MQTT topics:       media/server/{status,health,command/*}"
+    echo -e "  Handled by:        mqtt-boot-listener, mqtt-shutdown-listener, status-publisher"
+    echo ""
+}
+
 # Print quick commands
 print_quick_commands() {
     echo -e "${CYAN}${BOLD}Quick Commands:${NC}"
     echo ""
-    echo "  Start all services:"
-    echo -e "    ${YELLOW}sudo systemctl start mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
+    echo "  Manage all services:"
+    echo -e "    ${YELLOW}sudo ./manage.sh start|stop|restart|enable|disable${NC}"
     echo ""
-    echo "  Stop all services:"
-    echo -e "    ${YELLOW}sudo systemctl stop mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
-    echo ""
-    echo "  Restart all services:"
-    echo -e "    ${YELLOW}sudo systemctl restart mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
+    echo "  Check status and logs:"
+    echo -e "    ${YELLOW}./status.sh -l${NC}"
     echo ""
     echo "  View live logs:"
-    echo -e "    ${YELLOW}sudo journalctl -u status-publisher.service -f${NC}"
+    echo -e "    ${YELLOW}sudo ./manage.sh logs${NC}"
+    echo -e "    ${YELLOW}sudo journalctl -u mqtt-boot-listener.service -f${NC}"
     echo ""
-    echo "  Enable on boot:"
-    echo -e "    ${YELLOW}sudo systemctl enable mqtt-boot-listener mqtt-shutdown-listener status-publisher health-monitor tapo-monitor victron-mqtt-publisher${NC}"
+    echo "  Media server MQTT:"
+    echo -e "    ${YELLOW}mosquitto_sub -h localhost -t 'media/server/status' -C 1${NC}"
     echo ""
 }
 
@@ -192,6 +272,9 @@ main() {
     
     # Print services status
     print_services_status
+
+    # Media server config (when MEDIA_SERVER_HOST is set)
+    print_media_server_config
     
     # Print logs if requested
     if [ "$show_logs" = true ]; then

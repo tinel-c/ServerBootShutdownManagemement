@@ -61,6 +61,7 @@ services=(
     "victron-mqtt-publisher.service"
     "victron-solar-forecast-publisher.service"
     "huawei-mqtt-publisher.service"
+    "grundfos-scala1-mqtt-publisher.service"
 )
 
 for service in "${services[@]}"; do
@@ -147,3 +148,5 @@ fi
 echo ""
 print_warn "Note: Python and system packages were not removed automatically"
 print_warn "Remove them manually if they are no longer needed"
+print_warn "Media server SSH keys (~/.ssh/media_server_*) and remote healthcheck cron were NOT removed"
+print_warn "Tuya device registry (config/tuya_devices.json) is in the installation backup if created"

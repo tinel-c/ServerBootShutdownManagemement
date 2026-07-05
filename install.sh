@@ -52,6 +52,13 @@ backup_device_env "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" /tmp/de
 backup_device_env "$INSTALL_DIR/device/huawei-inverter/config/.env" /tmp/dell_server_huawei_env.bak
 backup_device_env "$INSTALL_DIR/device/grundfos-scala1/config/.env" /tmp/dell_server_grundfos_env.bak
 
+HAS_TUYA_DEVICES=false
+if [ -f "$INSTALL_DIR/config/tuya_devices.json" ]; then
+    cp "$INSTALL_DIR/config/tuya_devices.json" /tmp/dell_server_tuya_devices.bak
+    HAS_TUYA_DEVICES=true
+    print_info "Tuya device registry backed up to /tmp/dell_server_tuya_devices.bak"
+fi
+
 if [ -d "$INSTALL_DIR" ]; then
     print_warn "Installation directory already exists. Backing up..."
     mv "$INSTALL_DIR" "${INSTALL_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
@@ -90,6 +97,13 @@ restore_device_env "$INSTALL_DIR/device/grundfos-scala1/config/.env" \
     /tmp/dell_server_grundfos_env.bak \
     "$INSTALL_DIR/device/grundfos-scala1/config/.env.example" \
     "edit SCALA1_BLE_ADDRESS after ble_probe.py --scan"
+
+if [ "$HAS_TUYA_DEVICES" = true ]; then
+    mkdir -p "$INSTALL_DIR/config"
+    cp /tmp/dell_server_tuya_devices.bak "$INSTALL_DIR/config/tuya_devices.json"
+    chmod 600 "$INSTALL_DIR/config/tuya_devices.json"
+    print_info "Restored config/tuya_devices.json"
+fi
 
 # Step 4: Create Python virtual environment
 print_info "Step 4: Creating Python virtual environment..."
@@ -143,19 +157,7 @@ systemctl daemon-reload
 
 # Step 10: Set permissions
 print_info "Step 10: Setting permissions..."
-chmod +x "$INSTALL_DIR/scripts/boot/"*.py
-chmod +x "$INSTALL_DIR/scripts/shutdown/"*.py
-chmod +x "$INSTALL_DIR/scripts/status/"*.py
-chmod +x "$INSTALL_DIR/install_"*.sh 2>/dev/null || true
-if [ -d "$INSTALL_DIR/device/victron-multiplus-ii/scripts" ]; then
-    chmod +x "$INSTALL_DIR/device/victron-multiplus-ii/scripts/"*.py
-fi
-if [ -d "$INSTALL_DIR/device/huawei-inverter/scripts" ]; then
-    chmod +x "$INSTALL_DIR/device/huawei-inverter/scripts/"*.py
-fi
-if [ -d "$INSTALL_DIR/device/grundfos-scala1/scripts" ]; then
-    chmod +x "$INSTALL_DIR/device/grundfos-scala1/scripts/"*.py
-fi
+chmod_runtime_scripts "$INSTALL_DIR"
 chmod 600 "$INSTALL_DIR/config/.env"
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
@@ -235,6 +237,12 @@ echo "     journalctl -u status-publisher.service -f"
 echo "     journalctl -u victron-mqtt-publisher.service -f"
 echo "     journalctl -u huawei-mqtt-publisher.service -f"
 echo "     journalctl -u grundfos-scala1-mqtt-publisher.service -f"
+echo ""
+echo "  6. Media server (optional, v3.14.0+):"
+echo "     - Set MEDIA_SERVER_* and TUYA_ACCESS_* in $INSTALL_DIR/config/.env"
+echo "     - bash $INSTALL_DIR/scripts/tuya/tuya_link.sh all"
+echo "     - $INSTALL_DIR/scripts/server/setup_media_server_ssh.sh"
+echo "     - See $INSTALL_DIR/docs/MEDIA_SERVER.md and docs/TUYA_ACCOUNT_LINK.md"
 echo ""
 print_info "Installation directory: $INSTALL_DIR"
 print_info "Log file: $LOG_FILE"

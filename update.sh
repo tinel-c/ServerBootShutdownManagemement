@@ -77,6 +77,12 @@ if [ -f "$INSTALL_DIR/device/grundfos-scala1/config/.env" ]; then
     print_info "✓ Backed up Grundfos SCALA1 .env"
 fi
 
+if [ -f "$INSTALL_DIR/config/tuya_devices.json" ]; then
+    cp "$INSTALL_DIR/config/tuya_devices.json" "$BACKUP_DIR/tuya_devices.json"
+    chmod 600 "$BACKUP_DIR/tuya_devices.json"
+    print_info "✓ Backed up config/tuya_devices.json"
+fi
+
 print_info "Configuration backed up to: $BACKUP_DIR"
 
 # Step 3: Update Python scripts
@@ -101,6 +107,10 @@ if [ -d "$SCRIPT_DIR/device/grundfos-scala1" ]; then
 fi
 cp "$SCRIPT_DIR/install_victron_service.sh" "$SCRIPT_DIR/install_huawei_service.sh" "$SCRIPT_DIR/install_grundfos_service.sh" "$INSTALL_DIR/" 2>/dev/null || true
 cp -r "$SCRIPT_DIR/scripts/install" "$INSTALL_DIR/scripts/" 2>/dev/null || true
+if [ -f "$SCRIPT_DIR/config/tuya_roles.yaml" ]; then
+    cp "$SCRIPT_DIR/config/tuya_roles.yaml" "$INSTALL_DIR/config/tuya_roles.yaml"
+    print_info "✓ Updated config/tuya_roles.yaml"
+fi
 
 # Step 4: Update systemd service files
 print_step "Step 4: Updating systemd services..."
@@ -139,9 +149,19 @@ if [ -f "$BACKUP_DIR/server_config.yaml" ]; then
     if [ -f "$SCRIPT_DIR/config/server_config.yaml" ]; then
         print_warn "New server_config.yaml template available. Your existing config has been preserved."
         print_warn "Compare with: $SCRIPT_DIR/config/server_config.yaml"
+        if grep -q 'media_server' "$SCRIPT_DIR/config/server_config.yaml" 2>/dev/null && \
+           ! grep -q 'media_server' "$BACKUP_DIR/server_config.yaml" 2>/dev/null; then
+            print_warn "Template adds media_server — merge into $INSTALL_DIR/config/server_config.yaml if using media server"
+        fi
     fi
     cp "$BACKUP_DIR/server_config.yaml" "$INSTALL_DIR/config/server_config.yaml"
     print_info "✓ Restored server_config.yaml"
+fi
+
+if [ -f "$BACKUP_DIR/tuya_devices.json" ]; then
+    cp "$BACKUP_DIR/tuya_devices.json" "$INSTALL_DIR/config/tuya_devices.json"
+    chmod 600 "$INSTALL_DIR/config/tuya_devices.json"
+    print_info "✓ Restored config/tuya_devices.json"
 fi
 
 if [ -f "$BACKUP_DIR/victron/.env" ]; then
@@ -190,19 +210,7 @@ print_info "Configuration restored successfully!"
 
 # Step 7: Set permissions
 print_step "Step 7: Setting permissions..."
-chmod +x "$INSTALL_DIR/scripts/boot/"*.py
-chmod +x "$INSTALL_DIR/scripts/shutdown/"*.py
-chmod +x "$INSTALL_DIR/scripts/status/"*.py
-if [ -d "$INSTALL_DIR/device/victron-multiplus-ii/scripts" ]; then
-    chmod +x "$INSTALL_DIR/device/victron-multiplus-ii/scripts/"*.py
-fi
-if [ -d "$INSTALL_DIR/device/huawei-inverter/scripts" ]; then
-    chmod +x "$INSTALL_DIR/device/huawei-inverter/scripts/"*.py
-fi
-if [ -d "$INSTALL_DIR/device/grundfos-scala1/scripts" ]; then
-    chmod +x "$INSTALL_DIR/device/grundfos-scala1/scripts/"*.py
-fi
-chmod +x "$INSTALL_DIR/install_"*.sh 2>/dev/null || true
+chmod_runtime_scripts "$INSTALL_DIR"
 chmod 600 "$INSTALL_DIR/config/.env"
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     chmod 600 "$INSTALL_DIR/device/victron-multiplus-ii/config/.env"
@@ -269,4 +277,12 @@ echo "  journalctl -u status-publisher.service -f"
 echo "  journalctl -u victron-mqtt-publisher.service -f"
 echo "  journalctl -u huawei-mqtt-publisher.service -f"
 echo "  journalctl -u grundfos-scala1-mqtt-publisher.service -f"
+echo ""
+print_info "Media server (v3.14.0+, optional):"
+echo "  Merge media_server into config/server_config.yaml if missing — compare with repo template"
+echo "  Verify MEDIA_SERVER_* and TUYA_ACCESS_* in config/.env"
+echo "  bash $INSTALL_DIR/scripts/tuya/tuya_link.sh verify"
+echo "  mosquitto_sub -h localhost -t 'media/server/status' -C 1"
+echo "  Node-RED flows 30–33: node nodered/live-connection/scripts/deploy-media-ui.mjs (from dev PC)"
+echo "  See $INSTALL_DIR/docs/MEDIA_SERVER.md"
 echo ""

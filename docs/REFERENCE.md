@@ -6,7 +6,7 @@ Quick commands for managing the Server Management System.
 
 ### Check Status
 ```bash
-./status.sh              # Show service status
+./status.sh              # Show service status (+ media server config when MEDIA_SERVER_HOST is set)
 ./status.sh -l           # Show status + recent logs (10 lines)
 ./status.sh -l -n 20     # Show status + recent logs (20 lines)
 ./status.sh -a           # Show everything (status, logs, commands)

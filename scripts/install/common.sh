@@ -101,3 +101,31 @@ check_units_active() {
     fi
     return 0
 }
+
+chmod_runtime_scripts() {
+    local root="${1:-$INSTALL_DIR}"
+
+    chmod +x "$root/scripts/boot/"*.py 2>/dev/null || true
+    chmod +x "$root/scripts/shutdown/"*.py 2>/dev/null || true
+    chmod +x "$root/scripts/status/"*.py 2>/dev/null || true
+    chmod +x "$root/scripts/utils/"*.py 2>/dev/null || true
+    if [ -d "$root/scripts/tuya" ]; then
+        chmod +x "$root/scripts/tuya/"*.py "$root/scripts/tuya/"*.sh 2>/dev/null || true
+    fi
+    if [ -d "$root/scripts/media_server" ]; then
+        chmod +x "$root/scripts/media_server/"*.sh 2>/dev/null || true
+    fi
+    if [ -d "$root/scripts/server" ]; then
+        chmod +x "$root/scripts/server/"*.sh 2>/dev/null || true
+    fi
+    if [ -d "$root/device/victron-multiplus-ii/scripts" ]; then
+        chmod +x "$root/device/victron-multiplus-ii/scripts/"*.py 2>/dev/null || true
+    fi
+    if [ -d "$root/device/huawei-inverter/scripts" ]; then
+        chmod +x "$root/device/huawei-inverter/scripts/"*.py 2>/dev/null || true
+    fi
+    if [ -d "$root/device/grundfos-scala1/scripts" ]; then
+        chmod +x "$root/device/grundfos-scala1/scripts/"*.py 2>/dev/null || true
+    fi
+    chmod +x "$root/install_"*.sh 2>/dev/null || true
+}

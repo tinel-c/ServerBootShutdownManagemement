@@ -178,9 +178,10 @@ The installation script will:
 - Install system dependencies (Python, ipmitool, wakeonlan)
 - Create installation directory (`/opt/dell_server_management`)
 - Set up Python virtual environment
-- Install Python packages
+- Install Python packages (including `tinytuya` for media server / Tuya devices)
 - Copy configuration templates (including Victron and Huawei device `.env` from examples when missing)
 - Install and enable all systemd services (core + Victron + Huawei energy publishers)
+- Preserve `config/tuya_devices.json` on reinstall when present
 
 ---
 
@@ -296,6 +297,18 @@ sudo ./install_huawei_service.sh
 ```
 
 Re-run the device installer after editing `.env`. On first full install, `install.sh` already calls both installers (services may stay inactive until Modbus is reachable).
+
+**Media server (Ubuntu + Tuya PCIe, v3.14.0+):**
+
+```bash
+sudo nano /opt/dell_server_management/config/.env
+# Set MEDIA_SERVER_* and TUYA_ACCESS_* — see config/.env.example
+bash /opt/dell_server_management/scripts/tuya/tuya_link.sh all
+/opt/dell_server_management/scripts/server/setup_media_server_ssh.sh
+# Optional one-shot: sudo bash scripts/media_server/finish_remote_setup.sh
+```
+
+Uses existing `mqtt-boot-listener`, `mqtt-shutdown-listener`, and `status-publisher` — no extra systemd unit. Node-RED flows `30`–`33`: see [MEDIA_SERVER.md](MEDIA_SERVER.md).
 
 **Remote deploy from your PC:** see [scripts/server/README.md](../scripts/server/README.md) and [developer/SERVER_DEPLOY.md](developer/SERVER_DEPLOY.md).
 

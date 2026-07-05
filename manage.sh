@@ -1,7 +1,10 @@
 #!/bin/bash
 #
-# Service management script for Dell & HP Server Management System
+# Service management script for Dell, HP & media server automation
 # Quick commands to start, stop, restart, and enable/disable services
+#
+# Media server (linux_tuya) uses mqtt-boot-listener, mqtt-shutdown-listener,
+# status-publisher, and health-monitor — no separate systemd unit.
 #
 
 # Colors for output
@@ -94,6 +97,7 @@ restart_services() {
     
     echo ""
     print_info "Done! Use './status.sh -l' to check status and logs"
+    print_info "Media server (if configured): handled by boot/shutdown listeners + status-publisher"
 }
 
 # Enable services on boot

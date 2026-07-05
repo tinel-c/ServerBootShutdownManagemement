@@ -17,11 +17,12 @@ sudo ./update.sh
 
 The `update.sh` script will:
 - ✅ Stop all services gracefully
-- ✅ Backup all configuration files (.env, mqtt_config.yaml, server_config.yaml)
+- ✅ Backup all configuration files (.env, mqtt_config.yaml, server_config.yaml, `config/tuya_devices.json`)
 - ✅ Update Python scripts and systemd services
-- ✅ Update Python dependencies
+- ✅ Update Python dependencies (including `tinytuya`)
 - ✅ Restore your existing configuration
 - ✅ Restart all services
+- ✅ Print media-server / Tuya verification hints (v3.14.0+)
 
 **Your configuration is automatically preserved!**
 
@@ -39,6 +40,7 @@ sudo ./install.sh
 The `install.sh` script will:
 - Check for existing `.env` file **before** backing up directories
 - Preserve it in `/tmp/dell_server_management_env.bak`
+- Preserve `config/tuya_devices.json` when reinstalling (if present)
 - Restore it after copying new files
 - Print confirmation: "✓ Configuration successfully preserved from previous installation!"
 

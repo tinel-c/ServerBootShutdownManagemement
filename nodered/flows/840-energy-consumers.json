@@ -4,7 +4,7 @@
         "type": "comment",
         "z": "tab_dashboard",
         "name": "═══════════════ ENERGY CONSUMERS (840) ═══════════════",
-        "info": "## Energy Consumers Dashboard\\n\\n**Flow 840** — Tuya smart meters on Energy page after Huawei.\\n\\nRegenerate: `node nodered/live-connection/scripts/generate-flow-840.mjs`\\n\\nSee docs/ENERGY_CONSUMER_ADD.md",
+        "info": "## Energy Consumers Dashboard\\n\\n**Flow 840** — Tuya + Tasmota energy meters on Energy page after Huawei.\\n\\nRegenerate: `node nodered/live-connection/scripts/generate-flow-840.mjs`\\n\\nSee docs/ENERGY_CONSUMER_ADD.md",
         "x": 320,
         "y": 900,
         "wires": []

@@ -5,11 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.16.0] - 2026-07-05
 
-### Added
+### Added - Tasmota energy consumers & Garden Power Hut
 
-- **`tasmota_meter`** consumer type: bridge Tasmota `tele/<topic>/SENSOR` into `energy/consumers/<id>/status`; **Garden Power Hut** (`garden-power-hut`, topic `sonoffPower320D_afara`, same device as Garden tab flow 310).
+- **`tasmota_meter`** type: bridge Tasmota `tele/<topic>/SENSOR` (`ENERGY`) into `energy/consumers/<id>/status`; subscribe-based (no tinytuya poll).
+- **`lib/tasmota_meter.py`**, publisher Tasmota subscriptions + switch relay to `cmnd/<topic>/Power`.
+- **Garden Power Hut** (`garden-power-hut`): SONOFF POWR316D @ hut, topic `sonoffPower320D_afara` — same device as Garden tab flow **310**; full telemetry card on Energy flow **840** (Today/Yesterday, PF, apparent/reactive W, device time).
+- **Flow 840**: expanded `ui-template` for `tasmota_meter`; `generate-flow-840.mjs` taller group for Tasmota cards.
+
+### Changed
+
+- **Docs**: [RELEASE_NOTES_v3.16.0.md](docs/releases/RELEASE_NOTES_v3.16.0.md), [MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md), [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), [ENERGY_CONSUMER_ADD.md](docs/ENERGY_CONSUMER_ADD.md), flow **310** comment cross-link to Energy consumer.
 
 ## [3.15.0] - 2026-07-05
 

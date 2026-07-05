@@ -23,7 +23,7 @@ config/tuya_devices.json          consumers_registry.yaml
         │                                    │
         └──────────┬─────────────────────────┘
                    ▼
-     tuya_consumers_publisher.py  (systemd: energy-consumers-publisher.service)
+     energy-consumers-publisher.service  (Tuya poll + Tasmota bridge)
                    │
                    ▼
         Mosquitto  energy/consumers/<id>/status  (+ command/switch)
@@ -60,7 +60,7 @@ config/tuya_devices.json          consumers_registry.yaml
 | Step | Command / action |
 |------|------------------|
 | 1. Tasmota MQTT | Device broker = automation server Mosquitto; note **Topic** (`Topic` command in console) |
-| 2. Scaffold | Copy `devices/sonoff-powr316d/` or `add_consumer.py --type tasmota_meter --tasmota-topic <topic>` |
+| 2. Scaffold | Copy `devices/garden-power-hut/` or `add_consumer.py --type tasmota_meter --tasmota-topic <topic>` |
 | 3. Registry | `type: tasmota_meter`, `tasmota_topic: <topic>`, optional `tele_period_s: 30`, `stale_after_s: 120` |
 | 4. Enable | `enabled: true` in `consumers_registry.yaml` |
 | 5–9 | Same validate / generate / deploy / restart publisher / verify as Tuya checklist |
@@ -195,6 +195,7 @@ Requires `800-energy-base-config.json` imported first (Energy page + Huawei grou
 | `device/energy-consumers/config/consumers_registry.yaml` | Canonical consumer list |
 | `device/energy-consumers/devices/<id>/` | Per-device notes + `device.yaml` |
 | `device/energy-consumers/lib/tuya_meter.py` | DPS parse, switch, cloud phase merge |
+| `device/energy-consumers/lib/tasmota_meter.py` | Tasmota ENERGY parse + topic helpers |
 | `device/energy-consumers/lib/tongou_phase.py` | Tongou phase_a decode + cloud fetch |
 | `device/energy-consumers/scripts/add_consumer.py` | Scaffold new consumer |
 | `device/energy-consumers/scripts/probe_tuya_dps.py` | Discover Tuya DPS IDs |
@@ -206,13 +207,13 @@ Do **not** duplicate UI nodes manually — always regenerate flow 840.
 
 ---
 
-## Current consumers (v3.15.0)
+## Current consumers (v3.16.0)
 
-| ID | Name | Tuya device | UI order | Notes |
-|----|------|-------------|----------|-------|
-| `front-lights-breaker` | Front house lights | `bf8cc8cf863af4b600yc53` | 3 | DIN-rail, outdoor |
-| `breaker-inside` | House consumption | `bf05a4a80c7e10134dx5gp` | 4 | Tongou breaker, main panel |
-| `breaker-outside` | Garden power (panel) | `bfb1f58994ced1e2fajvee` | 5 | Tongou breaker, indoor panel feed |
+| ID | Name | Source | UI order | Notes |
+|----|------|--------|----------|-------|
+| `front-lights-breaker` | Front house lights | Tuya `bf8cc8cf863af4b600yc53` | 3 | DIN-rail, outdoor |
+| `breaker-inside` | House consumption | Tuya `bf05a4a80c7e10134dx5gp` | 4 | Tongou breaker, main panel |
+| `breaker-outside` | Garden power (panel) | Tuya `bfb1f58994ced1e2fajvee` | 5 | Tongou breaker, indoor panel feed |
 | `garden-power-hut` | Garden Power Hut | Tasmota `sonoffPower320D_afara` | 6 | POWR316D @ hut; also Garden tab flow 310 |
 
 ---

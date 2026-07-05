@@ -592,9 +592,9 @@ Requires `800-energy-base-config.json`. Full agent playbook: [docs/ENERGY_CONSUM
 | Regenerate | `node nodered/live-connection/scripts/generate-flow-840.mjs` |
 | Deploy | `node nodered/live-connection/scripts/deploy-flow-840.mjs` |
 
-**MQTT:** Subscribes `energy/consumers/+/status` (QoS 1, JSON). Publishes switch commands to `energy/consumers/<id>/command/switch`. Requires `energy-consumers-publisher.service` and `config/tuya_devices.json`.
+**MQTT:** Subscribes `energy/consumers/+/status` (QoS 1, JSON). Publishes switch commands to `energy/consumers/<id>/command/switch`. Requires `energy-consumers-publisher.service`. Tuya consumers need `config/tuya_devices.json`; Tasmota consumers bridge from `tele/<topic>/SENSOR`.
 
-**Dashboard:** `/dashboard/energy` — one full-width UI group per enabled consumer (`ui.order` 3+), after Huawei (order 2). Cards show W, kWh, V, A, °C (breakers), Online + **Updated** timer, relay ON/OFF.
+**Dashboard:** `/dashboard/energy` — one full-width UI group per enabled consumer (`ui.order` 3+), after Huawei (order 2). **Tuya** cards: W, kWh, V, A, °C (breakers), Online + **Updated** timer, relay ON/OFF. **Tasmota** cards (e.g. Garden Power Hut): expanded telemetry (Today/Yesterday, PF, apparent/reactive W, device time).
 
 ---
 

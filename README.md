@@ -101,7 +101,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 
 - ⚡ **Victron Cerbo GX / MultiPlus-II** - Modbus TCP → MQTT (`energy/victron/*`)
 - ☀️ **Huawei SUN2000** - Modbus TCP over inverter WiFi AP → MQTT (`energy/huawei/*`) *(v3.11.8+)*
-- 🔌 **Energy consumers** - Tuya smart meters/breakers → MQTT (`energy/consumers/*`), dashboard flow **840** *(v3.15.0+)*
+- 🔌 **Energy consumers** - Tuya meters/breakers + Tasmota (Garden Power Hut) → MQTT (`energy/consumers/*`), flow **840** *(v3.15.0+ Tuya, v3.16.0+ Tasmota)*
 - 🔋 **Live metrics** - Battery SoC, grid import/export, PV, load, inverter state (Victron); PV strings, active power, daily yield (Huawei)
 - 🤖 **PV headroom automation** - `headroom_w = PV − consumption`, discretionary load start/stop (Victron)
 - ☀️ **Solar forecast** - Open-Meteo for Lunca Cetătui (hourly + daily topics, Victron)

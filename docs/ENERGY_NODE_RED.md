@@ -4,7 +4,7 @@ Live energy metrics on the Node-RED Dashboard 2.0 **Energy** page, fed by MQTT f
 
 - **Victron** Cerbo GX / MultiPlus-II → `energy/victron/*` (flows `800`–`812`)
 - **Huawei** SUN2000 grid-tie inverter → `energy/huawei/*` (flows `821`–`822`)
-- **Consumers** Tuya smart meters / breakers → `energy/consumers/*` (flow `840`)
+- **Consumers** Tuya smart meters / breakers + Tasmota meters → `energy/consumers/*` (flow `840`)
 
 ---
 
@@ -255,17 +255,15 @@ Initialized by flow **800**; updated on every `energy/huawei/status` message in 
 
 ---
 
-## Energy consumers (Tuya smart meters)
+## Energy consumers (Tuya & Tasmota)
 
 Per-consumer panels on the same **Energy** page, **after** the Huawei group (`ui.order` 3+). Full agent workflow: [ENERGY_CONSUMER_ADD.md](ENERGY_CONSUMER_ADD.md).
 
 ### Data path
 
 ```text
-config/tuya_devices.json + consumers_registry.yaml
-        │
-        ▼
-energy-consumers-publisher.service  (poll every 30 s)
+Tuya: tuya_devices.json + registry → publisher (tinytuya poll, 30 s)
+Tasmota: tele/<topic>/SENSOR on Mosquitto → publisher (subscribe → normalize)
         │
         ▼
 Mosquitto  energy/consumers/<id>/status
@@ -273,12 +271,12 @@ Mosquitto  energy/consumers/<id>/status
         ▼
 Node-RED flow 840  (mqtt in → ui-template per consumer)
         │
-        └── Dashboard /energy  (Breaker inside, Breaker outside, WiFi DIN rail, …)
+        └── Dashboard /energy  (breakers, DIN rail, Garden Power Hut, …)
 ```
 
 ### Prerequisites
 
-1. `config/tuya_devices.json` synced (`scripts/tuya/sync_devices.py sync`)
+1. `config/tuya_devices.json` synced for **Tuya** consumers (`scripts/tuya/sync_devices.py sync`)
 2. `device/energy-consumers/config/consumers_registry.yaml` with `enabled: true` entries
 3. **`energy-consumers-publisher.service`** active
 4. Flow **`800-energy-base-config.json`** already imported
@@ -305,9 +303,11 @@ Regenerate flow 840 after **any** registry change (add/remove/reorder consumer).
 |-------|---------------------------|
 | Victron Energy | 1 |
 | Huawei Energy | 2 |
-| Each consumer | 3, 4, 5, … (`ui.order` in registry) |
+| Each consumer | 3, 4, 5, 6, … (`ui.order` in registry) |
 
-Each consumer card shows power, energy, voltage, current, temperature (breakers), online pill, **Updated MM:SS ago**, and ON/OFF buttons when `controls.switch: true`. Tongou breakers use cloud `phase_a` for V/I/P — see [TONGOU_BREAKER_DPS.md](TONGOU_BREAKER_DPS.md).
+**Tuya cards** (compact): W, kWh, V, A, °C (breakers), Online + **Updated** timer, relay ON/OFF. Tongou breakers: cloud `phase_a` — [TONGOU_BREAKER_DPS.md](TONGOU_BREAKER_DPS.md).
+
+**Tasmota cards** (`garden-power-hut`, etc.): expanded — Live (W, V, A, PF), Energy (Total, Today, Yesterday, Period Wh), power quality, device time, MQTT topic. May duplicate a Garden-tab device (flow **310**).
 
 ---
 

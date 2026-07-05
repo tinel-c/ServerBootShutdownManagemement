@@ -207,7 +207,14 @@ See [device/huawei-inverter/README.md](../device/huawei-inverter/README.md) for 
 
 ### Energy Consumers Topics (Domain: energy/consumers)
 
-Published by **`energy-consumers-publisher.service`** on the automation server. Polls Tuya smart meters/breakers via **tinytuya** every **30 seconds** (per-consumer `poll_interval_s` in registry). Credentials resolve from `config/tuya_devices.json` (sync via `scripts/tuya/sync_devices.py`).
+Published by **`energy-consumers-publisher.service`** on the automation server.
+
+| Type | Data path |
+|------|-----------|
+| `tuya_meter` | Poll **tinytuya** every `poll_interval_s` (default 30 s). Credentials from `config/tuya_devices.json`. |
+| `tasmota_meter` | Subscribe to `tele/<tasmota_topic>/SENSOR`, `stat/<topic>/POWER`, `tele/<topic>/LWT`; no Tuya credentials. |
+
+Registry: [device/energy-consumers/config/consumers_registry.yaml](../device/energy-consumers/config/consumers_registry.yaml). See [docs/ENERGY_CONSUMER_ADD.md](ENERGY_CONSUMER_ADD.md).
 
 | Setting | Default | Config |
 |---------|---------|--------|
@@ -221,7 +228,7 @@ Published by **`energy-consumers-publisher.service`** on the automation server. 
 
 | Topic | Payload type | Retain | Description |
 |-------|--------------|--------|-------------|
-| `energy/consumers/<id>/status` | JSON | yes | Full snapshot: `power_w`, `energy_kwh`, `voltage_v`, `current_a`, `online`, `timestamp`, `extra` (`switch_on`, `temperature_c`, `breaker_state`, `run_mode`, `phase_source`) |
+| `energy/consumers/<id>/status` | JSON | yes | Full snapshot: `power_w`, `energy_kwh`, `voltage_v`, `current_a`, `online`, `timestamp`, `source`, `extra` — see below |
 | `energy/consumers/<id>/power_w` | number | no | Optional scalar watts |
 | `energy/consumers/<id>/energy_kwh` | number | no | Optional cumulative kWh |
 | `energy/consumers/<id>/response` | JSON | no | Switch command result |
@@ -232,7 +239,21 @@ Published by **`energy-consumers-publisher.service`** on the automation server. 
 |-------|-----------|---------|
 | `energy/consumers/<id>/command/switch` | Client → publisher | `{"action":"on"\|"off"\|"toggle","source":"nodered"}` |
 
-See [device/energy-consumers/README.md](../device/energy-consumers/README.md), [ENERGY_CONSUMER_ADD.md](ENERGY_CONSUMER_ADD.md), and [TONGOU_BREAKER_DPS.md](TONGOU_BREAKER_DPS.md) for the agent playbook and smart breaker decoding.
+#### Status `extra` fields (when available)
+
+| Field | Consumers | Description |
+|-------|-----------|-------------|
+| `switch_on` | Tuya, Tasmota | Relay state |
+| `temperature_c` | Tongou breakers | Breaker temperature (°C) |
+| `breaker_state`, `run_mode` | Tongou breakers | Breaker metadata |
+| `phase_source` | Tongou (`tongou_cloud`), Tasmota (`tasmota_sensor`) | V/I/P data path |
+| `energy_today`, `energy_yesterday` | Tasmota | Daily kWh from `ENERGY` |
+| `energy_period` | Tasmota | Wh since last telemetry |
+| `energy_factor`, `energy_apparentpower`, `energy_reactivepower` | Tasmota | Power quality |
+| `energy_totalstarttime` | Tasmota | Meter cumulative start time |
+| `tasmota_time`, `tasmota_topic` | Tasmota | Device timestamp and MQTT topic |
+
+See [device/energy-consumers/README.md](../device/energy-consumers/README.md), [ENERGY_CONSUMER_ADD.md](ENERGY_CONSUMER_ADD.md), [TONGOU_BREAKER_DPS.md](TONGOU_BREAKER_DPS.md), and [devices/garden-power-hut/README.md](../device/energy-consumers/devices/garden-power-hut/README.md).
 
 **Node-RED:** flow `840-energy-consumers.json` (generated). Regenerate: `node nodered/live-connection/scripts/generate-flow-840.mjs`. Deploy: `deploy-flow-840.mjs`.
 

@@ -1,6 +1,6 @@
 # Energy consumer monitoring
 
-Per-device **electricity consumption** reporting for the automation platform. Tuya smart meters publish to MQTT under `energy/consumers/<id>/…`. Node-RED flow **840** displays each consumer on the Energy dashboard after Huawei.
+Per-device **electricity consumption** reporting for the automation platform. **Tuya** meters (polled) and **Tasmota** devices (MQTT bridge) publish under `energy/consumers/<id>/…`. Node-RED flow **840** displays each consumer on the Energy dashboard after Huawei.
 
 **Agent playbook:** [docs/ENERGY_CONSUMER_ADD.md](../../docs/ENERGY_CONSUMER_ADD.md)
 
@@ -25,10 +25,11 @@ device/energy-consumers/
 ## Architecture
 
 ```text
-config/tuya_devices.json + consumers_registry.yaml
+config/tuya_devices.json + consumers_registry.yaml  (Tuya)
+tele/<tasmota_topic>/SENSOR on Mosquitto              (Tasmota)
               │
               ▼
-energy-consumers-publisher.service  (tinytuya + optional Tuya cloud phase_a)
+energy-consumers-publisher.service  (tinytuya poll + Tasmota subscribe)
               │
               ▼
 Mosquitto  energy/consumers/<id>/status
@@ -42,7 +43,7 @@ Node-RED 840  →  Dashboard /energy  (groups order 3+)
 | `consumers_registry.yaml` | IDs, Tuya device IDs, DPS map, UI order, enable flag |
 | `lib/tongou_phase.py` | [Tongou phase_a](https://www.tongou.com/es/api/tuya-smart-device-api/) Base64 decode; cloud fetch |
 | `lib/tuya_meter.py` | DPS parse, switch control, merge LAN + cloud metrics |
-| `scripts/tuya_consumers_publisher.py` | MQTT publisher + command handler |
+| `scripts/tuya_consumers_publisher.py` | Tuya poll + Tasmota bridge + switch commands |
 | `nodered/flows/840-energy-consumers.json` | Generated UI (one card per consumer) |
 
 ## Device types
@@ -72,7 +73,7 @@ Dashboard: http://192.168.2.4:1880/dashboard/energy
 | `energy/consumers/<id>/status` | yes | JSON snapshot (see `lib/consumer_schema.py`) |
 | `energy/consumers/<id>/command/switch` | no | `{ "action": "on" \| "off" \| "toggle" }` |
 
-Status `extra` fields (when available): `switch_on`, `temperature_c`, `breaker_state`, `run_mode`, `phase_source` (`tongou_cloud` \| `tongou_raw`).
+Status `extra` fields (when available): `switch_on`, `temperature_c`, `breaker_state`, `run_mode`, `phase_source`; Tasmota: `energy_today`, `energy_yesterday`, `energy_period`, `energy_factor`, `energy_apparentpower`, `energy_reactivepower`, `energy_totalstarttime`, `tasmota_time`, `tasmota_topic`.
 
 Full reference: [docs/MQTT_PROTOCOL.md](../../docs/MQTT_PROTOCOL.md#energy-consumers-topics-domain-energyconsumers).
 
@@ -83,7 +84,7 @@ Full reference: [docs/MQTT_PROTOCOL.md](../../docs/MQTT_PROTOCOL.md#energy-consu
 - [docs/ENERGY_NODE_RED.md](../../docs/ENERGY_NODE_RED.md) — Energy dashboard
 - [docs/TUYA_ACCOUNT_LINK.md](../../docs/TUYA_ACCOUNT_LINK.md) — Tuya account + device sync
 
-## Status (v3.15.0)
+## Status (v3.16.0)
 
 | ID | Name | Enabled |
 |----|------|---------|

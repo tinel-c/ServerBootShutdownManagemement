@@ -97,9 +97,7 @@ class CameraPingWatchdog:
             self.by_slug[slug] = cam
 
         self.ping_interval = int(
-            os.environ.get("CAMERA_PING_INTERVAL_SEC")
-            or os.environ.get("CAMERA_HEALTH_INTERVAL_SEC")
-            or DEFAULT_PING_INTERVAL_SEC
+            os.environ.get("CAMERA_PING_INTERVAL_SEC", DEFAULT_PING_INTERVAL_SEC)
         )
         self.ping_timeout = int(os.environ.get("CAMERA_PING_TIMEOUT_SEC", DEFAULT_PING_TIMEOUT_SEC))
         self.ping_count = int(os.environ.get("CAMERA_PING_COUNT", DEFAULT_PING_COUNT))

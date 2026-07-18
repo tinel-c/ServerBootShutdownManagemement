@@ -13,7 +13,7 @@
         "id": "ui_page_energy",
         "type": "ui-page",
         "name": "Energy",
-        "ui": "b89dd587275b51bf",
+        "ui": "ui_base",
         "path": "/energy",
         "icon": "battery-charging-100",
         "layout": "grid",

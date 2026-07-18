@@ -87,8 +87,8 @@ Import **after** `00-base-config.json`. Recommended position in the full stack:
 
 - **Subscribes:** `energy/victron/status`, `energy/victron/forecast/solar/current`, `energy/victron/forecast/solar/daily` (QoS 1, JSON)
 - **Publishes:** `energy/victron/command/discretionary/start|stop`, retained `energy/victron/automation/discretionary_load/state` (dashboard buttons)
-- **Stores:** `global.victron_energy_state`, flow `victron_week_history` (7-day, 15 min buckets), discretionary load state, forecast cache
-- **Displays:** live metrics, automation headroom banner, **7-day SVG chart** (PV, load, grid, headroom, inverter out, SoC) with thin lines, axis labels, crosshair hover tooltips; SoC in lower band (100% at top); solar forecast chips; Start/Stop discretionary load buttons
+- **Stores:** `global.victron_energy_state`, flow `victron_week_history` (7-day, 15 min buckets), `victron_day_history` (24 h, 1 min buckets), discretionary load state, forecast cache
+- **Displays:** live metrics, automation headroom banner, **history chart** with **1 hour / 24 hours / 7 days** tabs (1 min buckets for 1h & 1d; 15 min for 7d), hover tooltips; SoC in lower band (100% at top); solar forecast chips; Start/Stop discretionary load buttons
 
 ### `812-victron-energy-telegram.json`
 
@@ -104,7 +104,7 @@ Import **after** `00-base-config.json`. Recommended position in the full stack:
 | Header | Inverter state badge, grid-lost alert, last update |
 | Summary cards | Battery SoC, grid L1, consumption L1, PV AC output |
 | Automation | Headroom (PV − load), `can_add_load`, Start/Stop discretionary buttons, ON/OFF badge |
-| 7-day chart | PV, load, grid, headroom, inverter AC out, SoC (15 min buckets); hover for values at nearest bucket |
+| History chart | PV, load, grid, headroom, inverter AC out, SoC — tabs: **1 hour** (1 min), **24 hours** (1 min), **7 days** (15 min); hover for values |
 | Solar forecast | Current irradiance (W/m²), today’s sum, day/night (Open-Meteo) |
 | Battery | Voltage, charge/discharge power |
 | Load & VE.Bus | Output L1, input L1, AC out power |
@@ -205,8 +205,8 @@ Re-import **`50-telegram-interface.json`** (Replace existing nodes) for `/help` 
 #### `821-huawei-energy-status.json`
 
 - **Subscribes:** `energy/huawei/status`, `energy/victron/forecast/solar/current`, `energy/victron/forecast/solar/radiation_wm2` (QoS 1; forecast shared with Victron Open-Meteo publisher)
-- **Stores:** `global.huawei_energy_state`, flow `huawei_week_history` (7-day, 15 min buckets)
-- **Displays:** model/serial, PV strings (**string 1 · west**, **string 2 · east**), active power, grid frequency, daily yield, **7-day active-power chart** (hover tooltips), **PV forecast card** (expected vs actual from irradiance model)
+- **Stores:** `global.huawei_energy_state`, flow `huawei_week_history` (7-day, 15 min buckets), `huawei_day_history` (24 h, 1 min buckets)
+- **Displays:** model/serial, PV strings (**string 1 · west**, **string 2 · east**), active power, grid frequency, daily yield, **active-power chart** with **1 hour / 24 hours / 7 days** tabs, **PV forecast card** (expected vs actual from irradiance model)
 
 #### PV forecast model
 

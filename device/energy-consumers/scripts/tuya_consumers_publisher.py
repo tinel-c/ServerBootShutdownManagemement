@@ -31,6 +31,7 @@ from tasmota_meter import (  # noqa: E402
 )
 from tuya_credentials import resolve_tuya_device  # noqa: E402
 from tuya_meter import (  # noqa: E402
+    apply_metric_cache,
     parse_dps_status,
     read_tuya_status,
     set_tuya_switch,
@@ -131,6 +132,12 @@ class TasmotaConsumerState:
         self.reported_offline: bool = False
 
 
+class TuyaConsumerState:
+    def __init__(self) -> None:
+        self.last_metrics_ts: float = 0.0
+        self.last_status: Optional[ConsumerStatus] = None
+
+
 class ConsumerPublisher:
     def __init__(self) -> None:
         load_dotenv(DEVICE_ROOT / "config" / ".env")
@@ -151,6 +158,7 @@ class ConsumerPublisher:
         )
         self._by_id = {c["id"]: c for c in self.consumers}
         self._last_tuya_poll: Dict[str, float] = {}
+        self._tuya: Dict[str, TuyaConsumerState] = {}
         self._tasmota: Dict[str, TasmotaConsumerState] = {}
 
     def start(self) -> None:
@@ -169,6 +177,24 @@ class ConsumerPublisher:
         if consumer_id not in self._tasmota:
             self._tasmota[consumer_id] = TasmotaConsumerState()
         return self._tasmota[consumer_id]
+
+    def _tuya_state(self, consumer_id: str) -> TuyaConsumerState:
+        if consumer_id not in self._tuya:
+            self._tuya[consumer_id] = TuyaConsumerState()
+        return self._tuya[consumer_id]
+
+    def _finalize_tuya_status(
+        self, consumer: Dict[str, Any], status: ConsumerStatus
+    ) -> ConsumerStatus:
+        state = self._tuya_state(consumer["id"])
+        status, state.last_metrics_ts = apply_metric_cache(
+            consumer,
+            status,
+            previous=state.last_status,
+            previous_metrics_ts=state.last_metrics_ts,
+        )
+        state.last_status = status
+        return status
 
     def _setup_tasmota(self, consumer: Dict[str, Any]) -> None:
         cid = consumer["id"]
@@ -313,7 +339,7 @@ class ConsumerPublisher:
             self.mqtt.publish(f"{prefix}/response", result, retain=False)
             if result.get("success") and consumer.get("type", "tuya_meter") == "tuya_meter":
                 time.sleep(0.5)
-                status = _poll_tuya_consumer(consumer)
+                status = self._finalize_tuya_status(consumer, _poll_tuya_consumer(consumer))
                 _publish_status(self.mqtt, consumer, status)
         except Exception as exc:
             logger.exception("Command failed for %s: %s", consumer_id, exc)
@@ -333,7 +359,7 @@ class ConsumerPublisher:
             if now - last < interval:
                 continue
             try:
-                status = _poll_tuya_consumer(consumer)
+                status = self._finalize_tuya_status(consumer, _poll_tuya_consumer(consumer))
                 _publish_status(self.mqtt, consumer, status)
                 self._last_tuya_poll[cid] = now
                 logger.debug("%s power=%s W (tuya)", cid, status.power_w)
@@ -347,6 +373,7 @@ class ConsumerPublisher:
                     tags=list(consumer.get("tags") or []),
                     extra={"error": str(exc)},
                 )
+                err = self._finalize_tuya_status(consumer, err)
                 _publish_status(self.mqtt, consumer, err)
 
     def _check_tasmota_stale(self) -> None:

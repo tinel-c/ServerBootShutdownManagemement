@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.19.0] - 2026-07-18
+
+### Added - Data-drive logs & root-disk cleanup
+
+- **Logs on `/data` HDD** — `setup_data_drive_logs.sh` moves app, syslog, and journal off the ~15 GB root SSD ([SERVER_DISK.md](docs/developer/SERVER_DISK.md)).
+- **`cleanup-root-disk.timer`** — hourly cleanup keeps `/` ≤ 85% used (`cleanup_root_disk.sh`).
+
+### Added / Changed - Energy charts & Tongou breakers
+
+- **Victron 811 / Huawei 821** — history chart range tabs: **1 hour**, **24 hours**, **7 days** (1 min buckets for short ranges).
+- **Tongou breakers** — reuse last V/I/P up to `phase_stale_after_s` (600 s) when `phase_a` is quiet at low load; LAN-reachable without phase still `online`.
+- **Energy page** — bind `ui_page_energy` to `ui_base` so the tab stays visible.
+
 ## [3.18.0] - 2026-07-18
 
 ### Changed - Camera watchdog: ICMP ping; ONVIF on request only

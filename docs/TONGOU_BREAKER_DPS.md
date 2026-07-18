@@ -54,3 +54,24 @@ dps:
 When `phase_a` appears on LAN or via cloud polling, V/I/P are taken from the Tongou decode and override the scalar fields.
 
 Cloud `phase_a` is used automatically for consumers with `phase_a` in registry when LAN lacks RAW data (typical for Tongou `dlq` breakers on local tinytuya).
+
+## Low load: phase_a reporting interval
+
+Tongou breakers **do not push `phase_a` on a fixed schedule**. At low current draw the device refreshes electrical metrics less often (sometimes several minutes apart). Our **30 s LAN poll** still runs, but a given poll may return switch/temperature/state DPS **without** a new `phase_a` blob.
+
+To avoid treating that as offline or skewing dashboard “Updated” timers:
+
+| Layer | Behaviour |
+|-------|-----------|
+| **Publisher** (`tuya_consumers_publisher.py`) | Reuses last V/I/P for up to `phase_stale_after_s` (default **600 s** for `phase_a` consumers) when a poll has no fresh electrical metrics. Sets `extra.metrics_cached` and `extra.metrics_age_s`. |
+| **Online** | LAN DPS without `Error` ⇒ `online: true` even when `phase_a` is missing this cycle. Cloud fallback still applies when LAN key fails (e.g. Err 914). |
+| **Dashboard** (flow 840) | Tongou breaker cards use `staleAfterS: 600` and prefer `metadata.receivedAtMs` (publisher poll) over device `timestamp` for the “Updated … ago” clock. |
+
+Registry:
+
+```yaml
+poll_interval_s: 30
+phase_stale_after_s: 600   # optional; default 600 when phase_a is configured
+```
+
+Override globally with `ENERGY_CONSUMERS_PHASE_STALE_SEC`.

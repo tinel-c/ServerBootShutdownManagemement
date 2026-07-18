@@ -23,6 +23,13 @@ function slugId(id) {
   return id.replace(/[^a-zA-Z0-9_]/g, "_");
 }
 
+function staleAfterForTuya(consumer) {
+  if (consumer.phase_stale_after_s != null) return consumer.phase_stale_after_s;
+  const dps = consumer.dps || {};
+  if (dps.phase_a || dps.phase) return 600;
+  return (consumer.poll_interval_s || 30) * 2;
+}
+
 function buildTasmotaTemplate(consumer) {
   const id = consumer.id;
   const accent = consumer.ui?.accent || "#f59e0b";
@@ -171,6 +178,8 @@ export default {
       return { background: lit ? '#334155' : '#475569', color: '#f8fafc', boxShadow: lit ? '0 0 0 2px #94a3b8' : 'none' };
     },
     lastFetchedMs() {
+      const received = this.msg.metadata?.receivedAtMs;
+      if (received) return received;
       const meta = this.msg.metadata?.lastReportedMs;
       if (meta) return meta;
       if (this.p._fetched_at_ms) return this.p._fetched_at_ms;
@@ -204,7 +213,7 @@ function buildTemplate(consumer) {
   }
   const id = consumer.id;
   const accent = consumer.ui?.accent || "#38bdf8";
-  const pollIntervalS = consumer.poll_interval_s || 30;
+  const staleAfterS = staleAfterForTuya(consumer);
   const hasSwitch = consumer.controls?.switch !== false;
   const hasTemp = !!(consumer.dps && consumer.dps.temperature_c);
   const metricCols = hasTemp ? 5 : 4;
@@ -268,7 +277,7 @@ function buildTemplate(consumer) {
 </div>
 <script>
 export default {
-  data() { return { now: Date.now(), timer: null, staleAfterS: ${pollIntervalS} * 2 }; },
+  data() { return { now: Date.now(), timer: null, staleAfterS: ${staleAfterS} }; },
   mounted() { this.timer = setInterval(() => { this.now = Date.now(); }, 1000); },
   unmounted() { clearInterval(this.timer); },
   methods: {
@@ -317,6 +326,8 @@ export default {
       return { background: lit ? '#334155' : '#475569', color: '#f8fafc', boxShadow: lit ? '0 0 0 2px #94a3b8' : 'none' };
     },
     lastFetchedMs() {
+      const received = this.msg.metadata?.receivedAtMs;
+      if (received) return received;
       const meta = this.msg.metadata?.lastReportedMs;
       if (meta) return meta;
       if (this.p._fetched_at_ms) return this.p._fetched_at_ms;

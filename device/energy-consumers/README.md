@@ -73,7 +73,7 @@ Dashboard: http://192.168.2.4:1880/dashboard/energy
 | `energy/consumers/<id>/status` | yes | JSON snapshot (see `lib/consumer_schema.py`) |
 | `energy/consumers/<id>/command/switch` | no | `{ "action": "on" \| "off" \| "toggle" }` |
 
-Status `extra` fields (when available): `switch_on`, `temperature_c`, `breaker_state`, `run_mode`, `phase_source`; Tasmota: `energy_today`, `energy_yesterday`, `energy_period`, `energy_factor`, `energy_apparentpower`, `energy_reactivepower`, `energy_totalstarttime`, `tasmota_time`, `tasmota_topic`.
+Status `extra` fields (when available): `switch_on`, `temperature_c`, `breaker_state`, `run_mode`, `phase_source`; when LAN poll fails but cloud phase_a succeeds: `lan_degraded`, `lan_err` (device still marked **online**); Tasmota: `energy_today`, `energy_yesterday`, `energy_period`, `energy_factor`, `energy_apparentpower`, `energy_reactivepower`, `energy_totalstarttime`, `tasmota_time`, `tasmota_topic`.
 
 Full reference: [docs/MQTT_PROTOCOL.md](../../docs/MQTT_PROTOCOL.md#energy-consumers-topics-domain-energyconsumers).
 

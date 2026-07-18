@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import time
+from dataclasses import replace
 from typing import Any, Dict, Optional, Tuple
 
 try:
@@ -109,6 +112,65 @@ def _auto_switch(dps: Dict[str, Any]) -> Optional[bool]:
     return None
 
 
+def _has_phase_metrics(metrics: Optional[Dict[str, float]]) -> bool:
+    if not metrics:
+        return False
+    return any(metrics.get(k) is not None for k in ("power_w", "voltage_v", "current_a"))
+
+
+def _has_electrical_metrics(status: ConsumerStatus) -> bool:
+    return any(
+        value is not None for value in (status.power_w, status.voltage_v, status.current_a)
+    )
+
+
+def phase_stale_after_s(consumer: Dict[str, Any]) -> float:
+    """How long to reuse last V/I/P when Tongou phase_a is quiet (low load)."""
+    if consumer.get("phase_stale_after_s") is not None:
+        return float(consumer["phase_stale_after_s"])
+    mapping = consumer.get("dps") or {}
+    if mapping.get("phase_a") or mapping.get("phase"):
+        return float(os.getenv("ENERGY_CONSUMERS_PHASE_STALE_SEC", "600"))
+    interval = float(consumer.get("poll_interval_s") or os.getenv("ENERGY_CONSUMERS_DEFAULT_INTERVAL", "30"))
+    return interval * 2
+
+
+def apply_metric_cache(
+    consumer: Dict[str, Any],
+    status: ConsumerStatus,
+    *,
+    previous: Optional[ConsumerStatus],
+    previous_metrics_ts: float,
+    now: Optional[float] = None,
+) -> tuple[ConsumerStatus, float]:
+    """Reuse recent V/I/P when phase_a was not refreshed this poll (device reports less at low A)."""
+    now = time.time() if now is None else now
+    stale_after = phase_stale_after_s(consumer)
+
+    if _has_electrical_metrics(status):
+        return status, now
+
+    if not previous or not _has_electrical_metrics(previous):
+        return status, previous_metrics_ts
+    if previous_metrics_ts <= 0 or (now - previous_metrics_ts) > stale_after:
+        return status, previous_metrics_ts
+
+    extra = dict(previous.extra or {})
+    extra.update(status.extra or {})
+    extra["metrics_cached"] = True
+    extra["metrics_age_s"] = int(now - previous_metrics_ts)
+    cached = replace(
+        status,
+        power_w=previous.power_w,
+        voltage_v=previous.voltage_v,
+        current_a=previous.current_a,
+        energy_kwh=status.energy_kwh if status.energy_kwh is not None else previous.energy_kwh,
+        online=status.online if status.online else previous.online,
+        extra=extra,
+    )
+    return cached, previous_metrics_ts
+
+
 def parse_dps_status(
     consumer: Dict[str, Any],
     raw_status: Dict[str, Any],
@@ -137,14 +199,19 @@ def parse_dps_status(
         switch_val = _auto_switch(dps)
 
     online = "Error" not in str(raw_status.get("Err", ""))
-    if raw_status.get("Err"):
+    lan_err = raw_status.get("Err")
+    if lan_err:
         online = False
+    # LAN status without phase_a still means the breaker is reachable (switch/temp/state DPS).
+    if not lan_err and dps:
+        online = True
 
     extra: Dict[str, Any] = {}
     if switch_val is not None:
         extra["switch_on"] = bool(switch_val)
     if creds.get("ip"):
         extra["tuya_ip"] = creds["ip"]
+    cloud_phase: Optional[Dict[str, float]] = None
     if phase:
         extra["phase_source"] = "tongou_raw"
     elif _phase_spec_ids(mapping) and creds.get("id"):
@@ -154,6 +221,13 @@ def parse_dps_status(
             voltage = cloud_phase.get("voltage_v", voltage)
             current = cloud_phase.get("current_a", current)
             extra["phase_source"] = "tongou_cloud"
+
+    # LAN key/version can fail (e.g. tinytuya 914) while Tuya cloud still reports phase_a.
+    if not online and _has_phase_metrics(cloud_phase):
+        online = True
+        extra["lan_degraded"] = True
+        if lan_err:
+            extra["lan_err"] = str(lan_err)
 
     temp = _dps_value(dps, mapping.get("temperature_c"))
     if temp is not None:

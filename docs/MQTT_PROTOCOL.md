@@ -698,7 +698,8 @@ See [device/grundfos-scala1/README.md](../device/grundfos-scala1/README.md).
 
 ## Tapo Camera Messages
 
-Motion and person detection from Tapo cameras via `tapo-monitor.service`. Topic prefix is configurable per camera (`CAMERA_N_MQTT_PREFIX`, default `garden/camera/{slug}`).
+ICMP health via `camera-ping-watchdog.service`. ONVIF/RTSP only on request.
+Topic prefix: `CAMERA_N_MQTT_PREFIX` (default `garden/camera/{slug}`).
 
 Setup: [TAPO_CAMERA.md](TAPO_CAMERA.md)
 
@@ -706,37 +707,44 @@ Setup: [TAPO_CAMERA.md](TAPO_CAMERA.md)
 
 **Topic:** `garden/camera/{slug}/health`
 
-**Payload:** plain text — `online` or `offline` (retained)
+**Payload:** plain text — `online` or `offline` (retained). Published from **ICMP ping** (~60 s).
 
-**Watchdog (flow 612):** Each slug is monitored independently. Missing `online` for **2 minutes** triggers an offline Telegram alert. Explicit `offline` alerts immediately. `tapo-monitor` also heartbeats the SMS Gateway watchdog as `camera_{slug}` every ~60 s.
+**Watchdog (flow 612):** Missing `online` for **3 minutes** → offline Telegram alert. Explicit `offline` alerts immediately.
 
 **Example:**
 
 ```text
-garden/camera/front/health online
+garden/camera/frontHouse/health online
 ```
 
 ---
 
-### Camera Snapshot (watchdog thumbnail)
+### Camera Snapshot (on request)
 
 **Topic:** `garden/camera/{slug}/snapshot`
 
-**Payload:** JSON (not retained; published about every **5 min** per camera while online)
+Published **only** after `garden/camera/{slug}/command/snapshot` (or Watchdog **Capture**).
 
 ```json
 {
   "timestamp": "ISO8601",
-  "slug": "interior",
-  "camera_name": "Interior curte",
+  "slug": "frontHouse",
+  "camera_name": "Front House",
   "content_type": "image/jpeg",
-  "image_url": "/camera-snapshots/interior.jpg"
+  "image_url": "/camera-snapshots/frontHouse.jpg",
+  "source": "on_request"
 }
 ```
 
-JPEG files are written under `data/camera-snapshots/` on the automation server. Node-RED flow **613** serves them at `http://<host>:1880/camera-snapshots/{slug}.jpg` and shows thumbnails on the **Watchdog** dashboard.
+JPEG files: `data/camera-snapshots/`. Flow **613** serves `http://<host>:1880/camera-snapshots/{slug}.jpg`.
 
-Configure interval via `CAMERA_SNAPSHOT_INTERVAL_SEC` (default `300`, `0` disables).
+**Command topics:**
+
+| Topic | Action |
+|-------|--------|
+| `garden/camera/{slug}/command/snapshot` | One ONVIF/RTSP JPEG |
+| `garden/camera/{slug}/command/probe` | One ONVIF GetDeviceInformation |
+| `garden/camera/{slug}/command/result` | JSON success/failure |
 
 ---
 
@@ -744,7 +752,7 @@ Configure interval via `CAMERA_SNAPSHOT_INTERVAL_SEC` (default `300`, `0` disabl
 
 **Topic:** `garden/camera/{slug}/event`
 
-**Schema:**
+**Not produced** by `camera-ping-watchdog` (continuous ONVIF PullPoint removed). Schema retained for any future optional publisher:
 
 ```json
 {

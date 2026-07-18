@@ -30,8 +30,8 @@ systemctl restart status-publisher.service
 echo "Restarting health-monitor..."
 systemctl restart health-monitor.service
 
-echo "Restarting tapo-monitor..."
-systemctl restart tapo-monitor.service
+echo "Restarting camera-ping-watchdog..."
+systemctl restart camera-ping-watchdog.service
 
 echo -e "${GREEN}All services restarted successfully!${NC}"
 echo ""
@@ -44,4 +44,4 @@ systemctl status status-publisher.service --no-pager | head -n 3
 echo "..."
 systemctl status health-monitor.service --no-pager | head -n 3
 echo "..."
-systemctl status tapo-monitor.service --no-pager | head -n 3
+systemctl status camera-ping-watchdog.service --no-pager | head -n 3

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.0] - 2026-07-18
+
+### Changed - Camera watchdog: ICMP ping; ONVIF on request only
+
+- **Removed continuous ONVIF** (`tapo-monitor`) — periodic PullPoint/snapshots overloaded cameras and made the HomeGuard DVR unresponsive.
+- **`camera-ping-watchdog.service`** — ICMP health → `garden/camera/{slug}/health` (~60 s); ONVIF/RTSP only via `command/snapshot` or `command/probe`.
+- **Flows 612/613** — 3 min health timeout; Watchdog **Capture** button for on-demand snapshots.
+- **Docs / rule:** [TAPO_CAMERA.md](docs/TAPO_CAMERA.md), MQTT protocol, registry; Cursor rule `.cursor/rules/camera-no-continuous-onvif.mdc`.
+
 ## [3.17.1] - 2026-07-05
 
 ### Fixed

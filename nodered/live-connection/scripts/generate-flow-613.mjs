@@ -86,7 +86,7 @@ for (const d of NR_WATCHDOGS) {
 
 for (const slug of Object.keys(CAMERA_LABELS)) {
     const id = 'camera_' + slug;
-    const { state, lastSeen } = resolveState(id, 7);
+    const { state, lastSeen } = resolveState(id, 3);
     const snap = flow.get('watchdog_snapshot_' + slug);
     let snapshotSrc = null;
     if (snap && snap.at) {
@@ -95,11 +95,12 @@ for (const slug of Object.keys(CAMERA_LABELS)) {
     }
     items.push({
         id,
+        slug,
         name: displayName(slug),
         category: 'Cameras',
-        layer: 'Node-RED',
+        layer: 'ICMP ping',
         topic: 'garden/camera/' + slug + '/health',
-        timeoutMin: 7,
+        timeoutMin: 3,
         state,
         lastSeen,
         snapshotAt: snap && snap.at ? snap.at : null,
@@ -251,7 +252,7 @@ const UI_TEMPLATE = `<template>
         <div class="wd-header">
             <div>
                 <div class="wd-title">⏱️ Watchdog Status</div>
-                <div class="wd-subtitle">Node-RED · cameras (5 min snapshots) · SMS gateway</div>
+                <div class="wd-subtitle">Node-RED · cameras (ICMP ping · ONVIF snapshot on request) · SMS gateway</div>
             </div>
             <div class="wd-updated" v-if="msg.payload.updatedAt">Updated {{ formatTime(msg.payload.updatedAt) }}</div>
         </div>
@@ -275,7 +276,8 @@ const UI_TEMPLATE = `<template>
                             <span class="wd-state">{{ (item.state || 'unknown').toUpperCase() }}</span>
                         </div>
                         <img v-if="item.snapshotSrc" :src="item.snapshotSrc" class="wd-thumb" :alt="item.name" loading="lazy" @error="onSnapError(item)" />
-                        <div v-else-if="category === 'Cameras'" class="wd-thumb wd-thumb-empty">No snapshot yet</div>
+                        <div v-else-if="category === 'Cameras'" class="wd-thumb wd-thumb-empty">No snapshot yet — tap Capture</div>
+                        <button v-if="category === 'Cameras' && item.slug" type="button" class="wd-snap-btn" @click.prevent="requestSnapshot(item)">Capture</button>
                         <div class="wd-meta">{{ item.layer }} · {{ item.timeoutSec ? item.timeoutSec + 's' : item.timeoutMin + 'm' }} · {{ formatLast(item) }}</div>
                     </div>
                 </div>
@@ -321,6 +323,13 @@ export default {
         },
         onSnapError(item) {
             item.snapshotSrc = null;
+        },
+        requestSnapshot(item) {
+            if (!item || !item.slug) return;
+            this.send({
+                topic: 'garden/camera/' + item.slug + '/command/snapshot',
+                payload: { action: 'snapshot', source: 'watchdog_ui', timestamp: new Date().toISOString() }
+            });
         }
     }
 }
@@ -432,6 +441,21 @@ export default {
     font-size: 0.68rem;
     color: #64748b;
 }
+.watchdog-dash .wd-snap-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    margin-top: 6px;
+    width: 100%;
+    min-height: 28px;
+    border: 1px solid #94a3b8;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #0f172a;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.watchdog-dash .wd-snap-btn:hover { background: #e2e8f0; }
 .watchdog-dash .wd-card {
     border-radius: 8px;
     padding: 8px 10px;
@@ -598,7 +622,25 @@ const nodes = [
     templateScope: "local",
     x: 960,
     y: 2360,
-    wires: [[]],
+    wires: [["mqtt_out_cam_snap_cmd"]],
+  },
+  {
+    id: "mqtt_out_cam_snap_cmd",
+    type: "mqtt out",
+    z: "8becda4e1ec6a8b9",
+    name: "Camera snapshot command",
+    topic: "",
+    qos: "1",
+    retain: false,
+    respTopic: "",
+    contentType: "",
+    userProps: "",
+    correl: "",
+    expiry: "",
+    broker: "mqtt_broker_local",
+    x: 1220,
+    y: 2360,
+    wires: [],
   },
   {
     id: "http_in_cam_snap",

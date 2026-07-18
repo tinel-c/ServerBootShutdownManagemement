@@ -82,7 +82,7 @@ Commands are case-insensitive. Use with or without `/` prefix (e.g. `help`, `/he
 | `AQUARIUM_TOGGLE` | Toggle light |
 | `AQUARIUM_STATUS` | Get status |
 
-### 📷 Camera (Tapo ONVIF)
+### 📷 Camera (Tapo ICMP watchdog)
 | Command | Description |
 |---------|-------------|
 | `CAMERA_STATUS` | Camera health and last detection event |

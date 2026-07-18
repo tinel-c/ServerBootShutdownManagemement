@@ -271,7 +271,7 @@ sudo systemctl enable mqtt-boot-listener.service
 sudo systemctl enable mqtt-shutdown-listener.service
 sudo systemctl enable status-publisher.service
 sudo systemctl enable health-monitor.service
-sudo systemctl enable tapo-monitor.service
+sudo systemctl enable camera-ping-watchdog.service
 sudo systemctl enable victron-mqtt-publisher.service
 sudo systemctl enable victron-solar-forecast-publisher.service
 sudo systemctl enable huawei-mqtt-publisher.service

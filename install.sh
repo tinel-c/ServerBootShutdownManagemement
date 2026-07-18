@@ -176,7 +176,7 @@ CORE_SERVICES=(
     mqtt-shutdown-listener.service
     status-publisher.service
     health-monitor.service
-    tapo-monitor.service
+    camera-ping-watchdog.service
 )
 for service in "${CORE_SERVICES[@]}"; do
     systemctl enable "$service" 2>/dev/null || true

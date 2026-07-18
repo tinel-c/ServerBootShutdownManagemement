@@ -37,7 +37,7 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 
 **Grundfos SCALA1 *(planned)*:** after on-site BLE setup, import `412`, `413`; re-import `50` and `90` (replace existing nodes). Do **not** import until [docs/GRUNDGOS_SCALA1.md](../../docs/GRUNDGOS_SCALA1.md) checklist is done. Requires manual `install_grundfos_service.sh`.
 
-**Tapo cameras:** after base config and `50-telegram-interface.json`, import `611-camera-management.json`, `612-camera-watchdog.json`, and `613-watchdog-status-dashboard.json`. Requires `tapo-monitor.service` and `CAMERA_N_*` in `.env`. Deploy: `deploy-flow-611.mjs`, `612`, `613`. See [docs/TAPO_CAMERA.md](../../docs/TAPO_CAMERA.md).
+**Tapo cameras:** after base config and `50-telegram-interface.json`, import `611-camera-management.json`, `612-camera-watchdog.json`, and `613-watchdog-status-dashboard.json`. Requires `camera-ping-watchdog.service` and `CAMERA_N_*` in `.env`. Deploy: `deploy-flow-611.mjs`, `612`, `613`. See [docs/TAPO_CAMERA.md](../../docs/TAPO_CAMERA.md).
 
 **Watchdog dashboard:** import `613-watchdog-status-dashboard.json` after flows `90` and `612`. Page `/dashboard/watchdog`.
 
@@ -504,7 +504,7 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 - Telegram `/camera_status`, `/camera_help` (via link from flow 50)
 - SMS parity via flow 514 (`CAMERA_STATUS`, `CAMERA_HELP`)
 
-**Dependencies**: `mqtt_broker_local`, `ui_base`, `tapo-monitor.service`, `CAMERA_N_*` in server `.env`
+**Dependencies**: `mqtt_broker_local`, `ui_base`, `camera-ping-watchdog.service`, `CAMERA_N_*` in server `.env`
 
 **MQTT Topics**:
 - Subscribes: `garden/camera/+/event`, `garden/camera/+/health`
@@ -519,10 +519,10 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 **Per-camera health watchdog (Telegram + SMS Gateway)**
 
 - One watchdog per camera slug on `garden/camera/{slug}/health`
-- **Timeout:** 2 minutes without `online` heartbeat (tapo-monitor republishes ~every 60 s)
-- **Explicit offline:** immediate alert when monitor publishes `offline`
+- **Timeout:** 3 minutes without `online` ICMP ping (`camera-ping-watchdog` ~every 60 s)
+- **Explicit offline:** immediate alert when ping publishes `offline`
 - Telegram alerts on transitions only (via flow 90 `watchdog_telegram_sender`)
-- `tapo-monitor.service` monitors cameras via MQTT health topics (flow 612)
+- `camera-ping-watchdog.service` publishes ICMP health to MQTT (flow 612)
 
 **Import**: After `90-device-watchdog.json` (shares `watchdog_telegram_sender`). Deploy: `node nodered/live-connection/scripts/deploy-flow-612.mjs`
 
@@ -533,7 +533,7 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 
 - Dashboard page `/dashboard/watchdog` — all monitored devices in one view
 - **Node-RED watchdogs** (flow 90): gates, garden, energy, water, SMS gateway
-- **Camera watchdogs** (flow 612): per-slug health with 7 min timeout; **snapshots** every 5 min on `garden/camera/{slug}/snapshot` for thumbnails on this page
+- **Camera watchdogs** (flow 612): per-slug ICMP health with 3 min timeout; **snapshots on request** via Capture / `command/snapshot`
 - **SMS Gateway hardware** enrollments from `sms/gateway/watchdog/status`
 - Summary pills (online / offline / unknown) and cards grouped by category
 - Refreshes every 10 s; heartbeats update live via MQTT
@@ -551,7 +551,7 @@ Import order and MQTT transmission chain: [docs/ENERGY_NODE_RED.md](../../docs/E
 | File | Purpose |
 |------|---------|
 | `800-energy-base-config.json` | Energy page (`battery-charging-100` icon), Victron + Huawei UI groups, global context init |
-| `811-victron-energy-status.json` | Live dashboard: metrics, 7-day chart (hover tooltips), discretionary Start/Stop |
+| `811-victron-energy-status.json` | Live dashboard: metrics, history chart (1h / 24h / 7d tabs), discretionary Start/Stop |
 | `812-victron-energy-telegram.json` | Telegram: `/energy_status`, `/energy_start`, `/energy_stop`, `/energy_help` |
 
 **Deploy (live server):** `node nodered/live-connection/scripts/deploy-flow-811-821.mjs`
@@ -570,7 +570,7 @@ Requires `800-energy-base-config.json` (Huawei UI group). Full import order: [do
 
 | File | Purpose |
 |------|---------|
-| `821-huawei-energy-status.json` | Live dashboard: PV strings (S1 west, S2 east), 7-day chart, Open-Meteo PV forecast vs actual |
+| `821-huawei-energy-status.json` | Live dashboard: PV strings (S1 west, S2 east), history chart (1h / 24h / 7d), Open-Meteo PV forecast vs actual |
 | `822-huawei-energy-telegram.json` | Telegram: `/huawei_status`, `/huawei_help` |
 
 **Deploy (live server):** included in `deploy-flow-811-821.mjs`

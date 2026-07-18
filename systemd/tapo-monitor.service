@@ -1,23 +1,12 @@
 [Unit]
-Description=Tapo Camera Event Monitor
-After=network-online.target
-Wants=network-online.target
+Description=DEPRECATED — use camera-ping-watchdog.service (continuous ONVIF removed)
+Documentation=file:///opt/dell_server_management/docs/TAPO_CAMERA.md
+ConditionPathExists=!/opt/dell_server_management/scripts/status/camera_ping_watchdog.py
 
 [Service]
-Type=simple
-User=root
-WorkingDirectory=/opt/dell_server_management
-Environment="PATH=/usr/local/bin:/usr/bin:/bin"
-ExecStart=/opt/dell_server_management/venv/bin/python3 /opt/dell_server_management/scripts/status/tapo_monitor.py
-Restart=always
-RestartSec=10
-StandardOutput=journal
-StandardError=journal
-TimeoutStopSec=15
-
-# Security settings
-NoNewPrivileges=true
-PrivateTmp=true
+Type=oneshot
+ExecStart=/bin/false
+RemainAfterExit=no
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=

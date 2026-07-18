@@ -57,7 +57,7 @@ services=(
     "mqtt-shutdown-listener.service"
     "status-publisher.service"
     "health-monitor.service"
-    "tapo-monitor.service"
+    "camera-ping-watchdog.service"
     "victron-mqtt-publisher.service"
     "victron-solar-forecast-publisher.service"
     "huawei-mqtt-publisher.service"

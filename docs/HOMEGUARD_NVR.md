@@ -2,7 +2,7 @@
 
 The site **HomeGuard NVR** is on the automation LAN at **`192.168.2.59`** (MAC `00:23:63:91:e6:99`). It uses a webpack web UI with a JSON **`/API/*`** interface (same family as many OEM NVR firmwares).
 
-Tapo cameras are monitored by `tapo-monitor.service` and Node-RED flows **611–613**. HomeGuard integration is **documented and probed** here; full NVR channel import requires valid NVR login credentials (separate from Tapo Camera Account).
+Tapo cameras are monitored by **`camera-ping-watchdog.service`** (ICMP) and Node-RED flows **611–613**. Continuous ONVIF against cameras is **disabled** (it made this DVR unresponsive). HomeGuard integration is **documented and probed** here; full NVR channel import requires valid NVR login credentials (separate from Tapo Camera Account).
 
 ## Network
 

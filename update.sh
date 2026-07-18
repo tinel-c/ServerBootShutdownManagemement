@@ -29,7 +29,7 @@ systemctl stop mqtt-boot-listener.service \
                mqtt-shutdown-listener.service \
                status-publisher.service \
                health-monitor.service \
-               tapo-monitor.service \
+               camera-ping-watchdog.service \
                victron-mqtt-publisher.service \
                victron-solar-forecast-publisher.service \
                huawei-mqtt-publisher.service \
@@ -244,7 +244,9 @@ systemctl restart mqtt-boot-listener.service
 systemctl restart mqtt-shutdown-listener.service
 systemctl restart status-publisher.service
 systemctl restart health-monitor.service || true
-systemctl restart tapo-monitor.service || true
+systemctl disable --now tapo-monitor.service 2>/dev/null || true
+systemctl enable camera-ping-watchdog.service 2>/dev/null || true
+systemctl restart camera-ping-watchdog.service || true
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     systemctl enable victron-mqtt-publisher.service || true
     systemctl enable victron-solar-forecast-publisher.service || true
@@ -293,7 +295,7 @@ echo "  systemctl status mqtt-boot-listener.service"
 echo "  systemctl status mqtt-shutdown-listener.service"
 echo "  systemctl status status-publisher.service"
 echo "  systemctl status health-monitor.service"
-echo "  systemctl status tapo-monitor.service"
+echo "  systemctl status camera-ping-watchdog.service"
 echo "  systemctl status victron-mqtt-publisher.service"
 echo "  systemctl status victron-solar-forecast-publisher.service"
 echo "  systemctl status huawei-mqtt-publisher.service"

@@ -1,0 +1,20 @@
+---
+description: Never run continuous ONVIF/snapshot polling against site cameras — ICMP watchdog only; ONVIF on request
+alwaysApply: true
+---
+
+# Camera monitoring — no continuous ONVIF
+
+Continuous ONVIF PullPoint / periodic snapshots from `tapo-monitor` overload Tapo cameras and make the HomeGuard DVR (`192.168.2.59`) unresponsive.
+
+## Required behavior
+
+1. **Watchdog health** = ICMP ping via `camera-ping-watchdog.service` (`scripts/status/camera_ping_watchdog.py`). Publishes `garden/camera/{slug}/health`.
+2. **ONVIF / RTSP** only on explicit request: MQTT `garden/camera/{slug}/command/snapshot` or `command/probe`, or Watchdog UI **Capture**.
+3. **Do not** re-enable continuous `tapo-monitor.service` or periodic snapshot/health ONVIF loops.
+4. Docs: [docs/TAPO_CAMERA.md](docs/TAPO_CAMERA.md).
+
+## If changing camera code
+
+- Prefer ping / port checks for liveness.
+- Keep `tapo_snapshot.py` / `camera_probe.py` for on-demand and CLI only.

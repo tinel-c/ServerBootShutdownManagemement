@@ -1,0 +1,23 @@
+[Unit]
+Description=Camera ping watchdog (ICMP health; ONVIF only on request)
+Documentation=file:///opt/dell_server_management/docs/TAPO_CAMERA.md
+After=network-online.target mosquitto.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/dell_server_management
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+ExecStart=/opt/dell_server_management/venv/bin/python3 /opt/dell_server_management/scripts/status/camera_ping_watchdog.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+TimeoutStopSec=15
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

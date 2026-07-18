@@ -13,7 +13,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/scripts/install/common.sh"
 
 # Installation directory (also set in common.sh)
-LOG_DIR="/var/log"
+# Prefer the data HDD for app logs when /data is mounted (see setup_data_drive_logs.sh).
+if [[ -d /data/logs/automation ]] || mountpoint -q /data 2>/dev/null; then
+    LOG_DIR="/data/logs/automation"
+else
+    LOG_DIR="/var/log"
+fi
 LOG_FILE="${LOG_DIR}/dell_server_management.log"
 
 # Check if running as root
@@ -117,8 +122,13 @@ pip install -r requirements.txt
 
 # Step 6: Create log directory and file
 print_info "Step 6: Setting up logging..."
+mkdir -p "$LOG_DIR"
 touch "$LOG_FILE"
 chmod 644 "$LOG_FILE"
+# Prefer data HDD layout when /data is available
+if mountpoint -q /data 2>/dev/null && [[ -x "$INSTALL_DIR/scripts/server/setup_data_drive_logs.sh" ]]; then
+    bash "$INSTALL_DIR/scripts/server/setup_data_drive_logs.sh" || print_warn "setup_data_drive_logs.sh failed — logs may stay on /"
+fi
 
 # Step 7: Configure environment
 print_info "Step 7: Configuring environment..."

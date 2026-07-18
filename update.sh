@@ -130,6 +130,7 @@ fi
 # Step 4: Update systemd service files
 print_step "Step 4: Updating systemd services..."
 cp "$SCRIPT_DIR/systemd/"*.service /etc/systemd/system/
+cp "$SCRIPT_DIR/systemd/"*.timer /etc/systemd/system/ 2>/dev/null || true
 systemctl daemon-reload
 print_info "✓ Systemd services updated"
 
@@ -247,6 +248,17 @@ systemctl restart health-monitor.service || true
 systemctl disable --now tapo-monitor.service 2>/dev/null || true
 systemctl enable camera-ping-watchdog.service 2>/dev/null || true
 systemctl restart camera-ping-watchdog.service || true
+# Root-disk cleanup timer (logs live on /data — see docs/developer/SERVER_DISK.md)
+if [[ -f /etc/systemd/system/cleanup-root-disk.timer ]]; then
+    systemctl enable cleanup-root-disk.timer 2>/dev/null || true
+    systemctl start cleanup-root-disk.timer 2>/dev/null || true
+fi
+if [[ -x "$INSTALL_DIR/scripts/server/setup_data_drive_logs.sh" ]] && mountpoint -q /data 2>/dev/null; then
+    bash "$INSTALL_DIR/scripts/server/setup_data_drive_logs.sh" || print_warn "setup_data_drive_logs.sh reported errors"
+fi
+if [[ -x "$INSTALL_DIR/scripts/server/cleanup_root_disk.sh" ]]; then
+    bash "$INSTALL_DIR/scripts/server/cleanup_root_disk.sh" || print_warn "cleanup_root_disk.sh exited non-zero (disk may still be high)"
+fi
 if [ -f "$INSTALL_DIR/device/victron-multiplus-ii/config/.env" ]; then
     systemctl enable victron-mqtt-publisher.service || true
     systemctl enable victron-solar-forecast-publisher.service || true

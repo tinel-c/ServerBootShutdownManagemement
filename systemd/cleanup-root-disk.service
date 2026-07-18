@@ -1,0 +1,11 @@
+[Unit]
+Description=Cleanup root disk (keep / under capacity)
+Documentation=file:///opt/dell_server_management/docs/developer/SERVER_DISK.md
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/dell_server_management/scripts/server/cleanup_root_disk.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

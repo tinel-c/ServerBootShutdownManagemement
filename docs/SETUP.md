@@ -218,7 +218,7 @@ SERVER_MAC_ADDRESS=00:11:22:33:44:55  # Your server's MAC address
 
 # Logging
 LOG_LEVEL=INFO
-LOG_FILE=/var/log/dell_t310_management.log
+LOG_FILE=/data/logs/automation/dell_server_management.log
 ```
 
 **Important:** Set restrictive permissions on `.env`:

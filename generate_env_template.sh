@@ -85,7 +85,7 @@ TELEGRAM_ALLOWED_USERS=123456789,987654321
 # Logging Configuration (Optional)
 # -----------------------------------------------------------------------------
 LOG_LEVEL=INFO
-LOG_FILE=/var/log/dell_server_management.log
+LOG_FILE=/data/logs/automation/dell_server_management.log
 EOF
 
 echo "✓ Created $TEMPLATE_FILE"

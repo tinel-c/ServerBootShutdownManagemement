@@ -683,7 +683,7 @@ DL360P_PROXMOX_HOST=192.168.1.101
 
 # Logging
 LOG_LEVEL=INFO
-LOG_FILE=/var/log/dell_server_management.log
+LOG_FILE=/data/logs/automation/dell_server_management.log
 ```
 
 Run `./generate_env_template.sh` to refresh the template from the repo. See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) for the full variable list.

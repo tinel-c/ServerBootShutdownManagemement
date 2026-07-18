@@ -10,6 +10,7 @@ When installing or updating services on the automation host, the agent cannot us
 | SSH user | `tinel` |
 | Install path | `/opt/dell_server_management` |
 | Dev copy (optional) | `~/ServerBootShutdownManagemement` |
+| Data HDD | `/data` (`/dev/sdb1`) — logs & backups; see [SERVER_DISK.md](SERVER_DISK.md) |
 
 **SSH access** (password or your own key) is assumed before any agent work. This repo does not ship scripts to provision SSH from a dev PC.
 

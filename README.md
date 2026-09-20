@@ -176,6 +176,7 @@ The platform supports **multiple automation domains** through a scalable, modula
 - 📹 **Security/Cameras** (600-699) - Camera feeds, motion detection, recordings
 - 🌡️ **HVAC/Climate** (700-799) - Heating, cooling, ventilation control
 - ⚡ **Energy Management** (800-899) - Victron Cerbo GX + Huawei SUN2000: Modbus→MQTT, dashboard, Telegram, watchdog — [ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md)
+- 🖥️ **Host metrics** (900-999) - Automation server CPU / memory / disk MQTT + `/dashboard/host` charts — [HOST_METRICS.md](docs/HOST_METRICS.md)
 
 **Key Features:**
 - **Modular Design** - Each domain is independent and self-contained
@@ -833,7 +834,7 @@ ServerBootShutdownManagemement/
 │   ├── releases/                   # RELEASE_NOTES_v*.md per version
 │   ├── archive/                    # Historical notes
 │   ├── developer/                  # Deploy, env, device submodules
-│   ├── ARCHITECTURE.md · MQTT_PROTOCOL.md · ENERGY_NODE_RED.md
+│   ├── ARCHITECTURE.md · MQTT_PROTOCOL.md · ENERGY_NODE_RED.md · HOST_METRICS.md
 │   ├── SETUP.md · UPDATE.md · REFERENCE.md · TROUBLESHOOTING.md
 │   └── architecture_diagram_v4.{svg,png}
 │
@@ -846,6 +847,7 @@ ServerBootShutdownManagemement/
 |------|------------|
 | First install | [docs/SETUP.md](docs/SETUP.md) → `sudo ./install.sh` |
 | Energy (Victron / Huawei) | [docs/ENERGY_NODE_RED.md](docs/ENERGY_NODE_RED.md), `device/*/README.md` |
+| Host CPU / memory / disk | [docs/HOST_METRICS.md](docs/HOST_METRICS.md), flow `910` |
 | Grundfos SCALA1 *(planned)* | [docs/GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md) |
 | Node-RED import order | [nodered/flows/README.md](nodered/flows/README.md) |
 | MQTT topic reference | [docs/MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md) |
@@ -862,6 +864,8 @@ ServerBootShutdownManagemement/
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [MQTT Protocol](docs/MQTT_PROTOCOL.md) - Message specifications
 - [Energy / Node-RED](docs/ENERGY_NODE_RED.md) - Victron flows 800–812, Huawei flows 821–822
+- [Host metrics](docs/HOST_METRICS.md) - Automation server CPU/memory/disk MQTT + flow 910
+- [Server disk layout](docs/developer/SERVER_DISK.md) - `/` vs `/data` HDD
 - [Victron device README](device/victron-multiplus-ii/README.md) - Cerbo setup, Modbus, systemd install
 - [Huawei device README](device/huawei-inverter/README.md) - SUN2000 WiFi AP, Modbus, systemd install
 - [Grundfos SCALA1 *(planned)*](docs/GRUNDGOS_SCALA1.md) - BLE scaffolding; not production-ready
@@ -941,6 +945,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Last Updated:** 2026-07-05
 
 ## Recent Releases
+
+### v3.20.0 (2026-09-20) - Host metrics dashboard & data-drive expansion
+- 📊 **Host metrics** — `host-metrics-publisher.service` → `system/automation/*`; flow **910** `/dashboard/host` (1h / 25h / 1m charts) — [HOST_METRICS.md](docs/HOST_METRICS.md)
+- 💾 **`/data` HDD** — swap, Home Assistant config, Mosquitto logs, snapshots off the 15 GB root SSD
+- 📡 **Mosquitto 2.0.18 pin** — avoid 2.1.2 double-free crash loop
+- See [RELEASE_NOTES_v3.20.0.md](docs/releases/RELEASE_NOTES_v3.20.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.14.0 (2026-07-05) - Media server, Tuya linking, Server dashboard UI
 - 🖥️ **Media server** — SSH shutdown + Tuya PCIe boot/reset; flows `30`–`33`; [MEDIA_SERVER.md](docs/MEDIA_SERVER.md)

@@ -172,24 +172,8 @@ ${SYSLOG_DIR}/*.log {
     endscript
 }
 EOF
-# Also rotate via the classic /var/log paths (symlinks → same files)
-cat > /etc/logrotate.d/rsyslog-data-symlinks <<EOF
-/var/log/syslog
-/var/log/kern.log
-/var/log/auth.log
-{
-    daily
-    rotate 14
-    compress
-    delaycompress
-    missingok
-    notifempty
-    sharedscripts
-    postrotate
-        /usr/lib/rsyslog/rsyslog-rotate 2>/dev/null || systemctl kill -s HUP rsyslog.service 2>/dev/null || true
-    endscript
-}
-EOF
+
+rm -f /etc/logrotate.d/rsyslog-data-symlinks 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
 # 5) Home Assistant config → /data/homeassistant/config (bind-mount)

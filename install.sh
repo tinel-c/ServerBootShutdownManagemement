@@ -187,6 +187,7 @@ CORE_SERVICES=(
     status-publisher.service
     health-monitor.service
     camera-ping-watchdog.service
+    host-metrics-publisher.service
 )
 for service in "${CORE_SERVICES[@]}"; do
     systemctl enable "$service" 2>/dev/null || true

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.20.0] - 2026-09-20
+
+### Added - Host metrics MQTT + Host dashboard
+
+- **`host-metrics-publisher.service`** — CPU, memory, load, disk `/` + `/data` → `system/automation/*` every 15 s ([HOST_METRICS.md](docs/HOST_METRICS.md)).
+- **Flow 910** — `/dashboard/host` gauges and charts for **1 hour**, **25 hours**, **1 month**.
+
+### Changed - Data drive & Mosquitto pin
+
+- Move swap, Home Assistant config, Mosquitto logs, and camera snapshots onto `/data` (root target ≤ 80%).
+- Pin Mosquitto apt **2.0.18**; document SMS gateway at `192.168.2.60` ([SERVER_DEPLOY.md](docs/developer/SERVER_DEPLOY.md)).
+
 ## [3.19.0] - 2026-07-18
 
 ### Added - Data-drive logs & root-disk cleanup

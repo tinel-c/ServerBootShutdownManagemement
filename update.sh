@@ -248,6 +248,14 @@ systemctl restart health-monitor.service || true
 systemctl disable --now tapo-monitor.service 2>/dev/null || true
 systemctl enable camera-ping-watchdog.service 2>/dev/null || true
 systemctl restart camera-ping-watchdog.service || true
+if [[ -f "$INSTALL_DIR/systemd/host-metrics-publisher.service" ]]; then
+    if [[ -x "$INSTALL_DIR/install_host_metrics_service.sh" ]]; then
+        bash "$INSTALL_DIR/install_host_metrics_service.sh" || print_warn "host-metrics-publisher install failed"
+    else
+        systemctl enable host-metrics-publisher.service 2>/dev/null || true
+        systemctl restart host-metrics-publisher.service || true
+    fi
+fi
 # Root-disk cleanup timer (logs live on /data — see docs/developer/SERVER_DISK.md)
 if [[ -f /etc/systemd/system/cleanup-root-disk.timer ]]; then
     systemctl enable cleanup-root-disk.timer 2>/dev/null || true

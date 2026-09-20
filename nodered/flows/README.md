@@ -793,7 +793,19 @@ system/logs
 - `50-59`: External interfaces (Telegram, etc.)
 - `300-399`: Power monitoring (garden Sonoff, lights)
 - `800-899`: Energy management (Victron Cerbo GX, Huawei SUN2000)
+- `900-999`: System / host metrics (`910-host-metrics-dashboard.json`)
 - `90-99`: Shared utilities
+
+### Host metrics (910)
+
+**File:** `910-host-metrics-dashboard.json` · **Docs:** [HOST_METRICS.md](../../docs/HOST_METRICS.md)
+
+| Item | Detail |
+|------|--------|
+| MQTT | `system/automation/status` |
+| Service | `host-metrics-publisher.service` |
+| UI | `/dashboard/host` — gauges + 1h / 25h / 1m charts |
+| Deploy | `node nodered/live-connection/scripts/generate-flow-910.mjs && node …/deploy-flow-910.mjs` |
 
 ## Version Control
 

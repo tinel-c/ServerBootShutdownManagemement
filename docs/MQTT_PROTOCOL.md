@@ -29,6 +29,19 @@ The system uses MQTT for remote commands, status updates, and telemetry. Most co
 | `media/server/health` | Healthchecks.io checks | 1 |
 | `media/server/response` | Command responses | 1 |
 
+### Automation host metrics (Domain: 900–999)
+
+Published by `host-metrics-publisher.service` every ~15 s. See [HOST_METRICS.md](HOST_METRICS.md).
+
+| Topic | Purpose | QoS |
+|-------|---------|-----|
+| `system/automation/status` | JSON snapshot (CPU, memory, load, disk `/` + `/data`) | 1 |
+| `system/automation/cpu_pct` | CPU utilisation % | 1 |
+| `system/automation/memory_pct` | Memory utilisation % | 1 |
+| `system/automation/disk_root_pct` | Root filesystem `%` | 1 |
+| `system/automation/disk_data_pct` | `/data` filesystem `%` | 1 |
+| `system/automation/load1` | 1‑minute load average | 1 |
+
 ### Client PC Topics (Client ↔ Server)
 
 | Topic | Purpose | QoS | Direction |

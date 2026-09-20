@@ -1,0 +1,24 @@
+---
+description: Keep growth on /data HDD — root SSD must not fill; use setup_data_drive_logs.sh
+alwaysApply: true
+---
+
+# Data drive (`/data`) — keep root SSD free
+
+Automation host `192.168.2.4`:
+
+| Disk | Mount | Role |
+|------|-------|------|
+| `/dev/sda` (~15 GB) | `/` | OS + `/opt` only |
+| `/dev/sdb` (~120 GB) | `/data` | Logs, swap, snapshots, backups |
+
+## Required behavior
+
+1. **Never** leave unbounded logs on `/` (Home Assistant previously filled the root disk with `home-assistant.log`).
+2. After disk work or deploy, ensure `/data` is mounted and run:
+   `sudo bash /opt/dell_server_management/scripts/server/setup_data_drive_logs.sh`
+3. Keep `cleanup-root-disk.timer` enabled (target ≤ 80% on `/`).
+4. New large artifacts (logs, DBs, snapshots, images) go under `/data/…`, not `/var` or `/home` on root.
+5. Home Assistant config lives on `/data/homeassistant/config` (bind-mounted); do not write large HA state back onto the root SSD.
+
+Docs: [docs/developer/SERVER_DISK.md](docs/developer/SERVER_DISK.md).

@@ -52,7 +52,7 @@ Policy (remember across sessions):
 CAMERA_PING_INTERVAL_SEC=60
 CAMERA_PING_TIMEOUT_SEC=2
 CAMERA_SNAPSHOT_MAX_WIDTH=480
-CAMERA_SNAPSHOT_DIR=/opt/dell_server_management/data/camera-snapshots
+CAMERA_SNAPSHOT_DIR=/data/camera-snapshots
 
 CAMERA_1_NAME="Back Gate"
 CAMERA_1_IP=192.168.2.34

@@ -1,0 +1,41 @@
+---
+description: Keep Mosquitto on Ubuntu 2.0.18 — do not upgrade to 2.1.x (double-free crash loop)
+alwaysApply: true
+---
+
+# Mosquitto — pin 2.0.18 (automation server)
+
+On `192.168.2.4`, use **apt** `mosquitto.service` (not the snap). Stay on **2.0.18** from Ubuntu noble universe.
+
+## Why
+
+Mosquitto **2.1.2** (mosquitto-dev PPA) aborted with `free(): double free detected in tcache 2`, restarting hundreds of times. That disconnects MQTT clients — notably **esp32-sms-gateway** (`192.168.2.60`, client id `esp32-sms-gateway`). Disk-full on `/` (e.g. huge Home Assistant log) also breaks persistence and worsens outages.
+
+## Required behavior
+
+1. **Do not** upgrade Mosquitto to 2.1.x or enable the snap broker.
+2. Packages are held: `mosquitto`, `mosquitto-clients`, `libmosquitto1` at `2.0.18-1build3`.
+3. Config: `/etc/mosquitto/conf.d/default.conf` → `listener 1883` + `allow_anonymous true`.
+4. If clients report MQTT disconnect: check `systemctl status mosquitto`, `NRestarts`, journal for ABRT/double-free, and `df -h /` before blaming the device.
+
+## Re-pin / restore (if someone upgrades)
+
+```bash
+sudo apt-mark unhold mosquitto mosquitto-clients libmosquitto1
+sudo apt-get install -y --allow-downgrades \
+  mosquitto=2.0.18-1build3 mosquitto-clients=2.0.18-1build3 libmosquitto1=2.0.18-1build3
+sudo apt-mark hold mosquitto mosquitto-clients libmosquitto1
+sudo systemctl restart mosquitto
+```
+
+Verify: `mosquitto -h` → 2.0.18; `timeout 30 mosquitto_sub -h localhost -t 'sms/gateway/status' -C 1 -v`.
+
+## SMS gateway identity
+
+| Item | Value |
+|------|--------|
+| IP | `192.168.2.60` |
+| MQTT client id | `esp32-sms-gateway` |
+| Status topic | `sms/gateway/status` |
+
+Docs: [docs/developer/SERVER_DEPLOY.md](docs/developer/SERVER_DEPLOY.md).

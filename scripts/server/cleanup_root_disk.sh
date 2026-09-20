@@ -1,27 +1,30 @@
 #!/bin/bash
 #
+# Root-disk cleanup
+#
 # Keep the root filesystem (/) from filling up.
-# Heavy logs live on /data (see setup_data_drive_logs.sh); this script
+# Heavy logs and swap live on /data (see setup_data_drive_logs.sh); this script
 # cleans caches, vacuums journals, and truncates any oversized files
 # still on the root volume.
 #
 # Usage:
 #   sudo bash scripts/server/cleanup_root_disk.sh
-#   sudo ROOT_DISK_MAX_PERCENT=80 bash scripts/server/cleanup_root_disk.sh
+#   sudo ROOT_DISK_MAX_PERCENT=75 bash scripts/server/cleanup_root_disk.sh
 #
 # Env:
-#   ROOT_DISK_MAX_PERCENT   target max used % on / (default 85)
-#   ROOT_DISK_EMERGENCY_PERCENT  hard truncate threshold (default 95)
+#   ROOT_DISK_MAX_PERCENT   target max used % on / (default 80)
+#   ROOT_DISK_EMERGENCY_PERCENT  hard truncate threshold (default 92)
 #   CLEANUP_LOG             log file (default /data/logs/automation/root_disk_cleanup.log)
 #
 set -euo pipefail
 
-MAX_PCT="${ROOT_DISK_MAX_PERCENT:-85}"
-EMERGENCY_PCT="${ROOT_DISK_EMERGENCY_PERCENT:-95}"
+MAX_PCT="${ROOT_DISK_MAX_PERCENT:-80}"
+EMERGENCY_PCT="${ROOT_DISK_EMERGENCY_PERCENT:-92}"
 DATA_LOG_ROOT="${DATA_LOG_ROOT:-/data/logs}"
 CLEANUP_LOG="${CLEANUP_LOG:-${DATA_LOG_ROOT}/automation/root_disk_cleanup.log}"
 JOURNAL_VACUUM_SIZE="${JOURNAL_VACUUM_SIZE:-200M}"
 TMP_MAX_AGE_DAYS="${TMP_MAX_AGE_DAYS:-3}"
+HA_CONFIG_DIR="${HA_CONFIG_DIR:-/home/homeassistant/.homeassistant}"
 
 [[ "$(id -u)" -eq 0 ]] || { echo "Run as root (sudo)" >&2; exit 1; }
 
@@ -87,28 +90,49 @@ log "tmp and user caches pruned"
 truncate_if_huge() {
   local f="$1"
   local max_bytes="${2:-104857600}" # 100 MiB
+  local require_root="${3:-1}"
   [[ -f "$f" && ! -L "$f" ]] || return 0
-  is_on_root "$f" || return 0
+  if [[ "$require_root" -eq 1 ]]; then
+    is_on_root "$f" || return 0
+  fi
   local sz
   sz="$(stat -c%s "$f" 2>/dev/null || echo 0)"
   if [[ "$sz" -gt "$max_bytes" ]]; then
     : > "$f"
-    log "Truncated oversized root log: $f (was ${sz} bytes)"
+    log "Truncated oversized log: $f (was ${sz} bytes)"
   fi
 }
+
+# Home Assistant log historically filled the 15 GB root SSD (multi‑GB).
+# Cap it even in light mode when still on root (symlink → /data is preferred).
+if [[ -f "${HA_CONFIG_DIR}/home-assistant.log" && ! -L "${HA_CONFIG_DIR}/home-assistant.log" ]]; then
+  truncate_if_huge "${HA_CONFIG_DIR}/home-assistant.log" 104857600
+fi
+# Bound HA logs on /data (copytruncate-friendly)
+if mountpoint -q /data 2>/dev/null; then
+  truncate_if_huge "${DATA_LOG_ROOT}/homeassistant/home-assistant.log" 524288000 0
+  truncate_if_huge /data/homeassistant/config/home-assistant.log 524288000 0
+fi
 
 if [[ "$LIGHT" -eq 0 ]]; then
   # Rotated syslog leftovers on root
   find /var/log -xdev -type f \( -name '*.gz' -o -name '*.[0-9]' -o -name '*.old' \) \
     -mtime +7 -delete 2>/dev/null || true
   for f in /var/log/syslog /var/log/kern.log /var/log/auth.log \
-           /var/log/dell_server_management.log; do
+           /var/log/dell_server_management.log \
+           /var/log/mosquitto/mosquitto.log; do
     truncate_if_huge "$f" 52428800
   done
   # Any single file on /var/log > 200M on root
   while IFS= read -r -d '' f; do
     truncate_if_huge "$f" 209715200
   done < <(find /var/log -xdev -type f -size +200M -print0 2>/dev/null || true)
+  # snapd cache + apt lists are common root fillers
+  rm -rf /var/lib/snapd/cache/* 2>/dev/null || true
+  find /var/lib/apt/lists -type f -name '*_Packages' -mtime +14 -delete 2>/dev/null || true
+  # Corrupt HA DB copies on root
+  find "$HA_CONFIG_DIR" -maxdepth 1 -type f -name 'home-assistant_v2.db.corrupt.*' -size +1M -delete 2>/dev/null || true
+  log "snap/apt caches and HA corrupt DB leftovers pruned"
 fi
 
 # --- emergency: root still critical ---
@@ -131,6 +155,9 @@ fi
 if mountpoint -q /data 2>/dev/null; then
   find "${DATA_LOG_ROOT}/syslog" -type f -name '*.gz' -mtime +30 -delete 2>/dev/null || true
   find "${DATA_LOG_ROOT}/automation" -type f -name '*.gz' -mtime +60 -delete 2>/dev/null || true
+  find "${DATA_LOG_ROOT}/homeassistant" -type f -name '*.gz' -mtime +30 -delete 2>/dev/null || true
+  find "${DATA_LOG_ROOT}/mosquitto" -type f -name '*.gz' -mtime +60 -delete 2>/dev/null || true
+  find /data/homeassistant/db-corrupt -type f -mtime +30 -delete 2>/dev/null || true
 fi
 
 PCT="$(root_used_pct)"

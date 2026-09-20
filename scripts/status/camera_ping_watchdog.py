@@ -46,7 +46,7 @@ DEFAULT_PING_INTERVAL_SEC = 60
 DEFAULT_PING_TIMEOUT_SEC = 2
 DEFAULT_PING_COUNT = 1
 DEFAULT_SNAPSHOT_MAX_WIDTH = 480
-DEFAULT_SNAPSHOT_DIR = "/opt/dell_server_management/data/camera-snapshots"
+DEFAULT_SNAPSHOT_DIR = "/data/camera-snapshots"
 
 
 def ping_host(host: str, count: int = 1, timeout_sec: int = 2) -> bool:

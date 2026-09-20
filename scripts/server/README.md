@@ -39,7 +39,8 @@ Home-repo path instead of `/opt`: replace prefix with `cd ~/ServerBootShutdownMa
 | [check_deploy_sudo.sh](check_deploy_sudo.sh) | Verify grant is active |
 | [fix_shell_scripts_crlf.sh](fix_shell_scripts_crlf.sh) | Strip Windows CRLF from `*.sh` |
 | [setup_media_server_ssh.sh](setup_media_server_ssh.sh) | SSH key automation server → media server |
-| [setup_data_drive_logs.sh](setup_data_drive_logs.sh) | Move app/syslog/journal logs to `/data` HDD |
-| [cleanup_root_disk.sh](cleanup_root_disk.sh) | Keep `/` under ~85% (hourly timer) |
+| [setup_data_drive_logs.sh](setup_data_drive_logs.sh) | Move logs, snapshots, and swap onto `/data` HDD |
+| [migrate_homeassistant_to_data.sh](migrate_homeassistant_to_data.sh) | Bind-mount HA config onto `/data` |
+| [cleanup_root_disk.sh](cleanup_root_disk.sh) | Keep `/` under ~80% (hourly timer) |
 
 Disk layout: [docs/developer/SERVER_DISK.md](../../docs/developer/SERVER_DISK.md)

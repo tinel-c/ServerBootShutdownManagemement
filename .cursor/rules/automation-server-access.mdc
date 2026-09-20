@@ -52,6 +52,8 @@ Fresh install or rebuild: `sudo ./install.sh` from pulled repo (rare; preserves 
 
 `ssh … "timeout 35 mosquitto_sub -h localhost -t 'energy/consumers/+/status' -C 1 -v"`
 
+Mosquitto must stay on **2.0.18** (held). See `.cursor/rules/mosquitto-pin-2.0.18.mdc` — do not upgrade to 2.1.x.
+
 Node-RED flows: generate/deploy from dev PC via `nodered/live-connection/scripts/` (uses `NODE_RED_BASE_URL` in `.env`).
 
 Full reference: `docs/developer/SERVER_DEPLOY.md`, `scripts/server/README.md`.

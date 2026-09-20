@@ -10,11 +10,32 @@ When installing or updating services on the automation host, the agent cannot us
 | SSH user | `tinel` |
 | Install path | `/opt/dell_server_management` |
 | Dev copy (optional) | `~/ServerBootShutdownManagemement` |
-| Data HDD | `/data` (`/dev/sdb1`) — logs & backups; see [SERVER_DISK.md](SERVER_DISK.md) |
+| Data HDD | `/data` (`/dev/sdb1`) — logs, swap, HA config, snapshots; see [SERVER_DISK.md](SERVER_DISK.md) |
 
 **SSH access** (password or your own key) is assumed before any agent work. This repo does not ship scripts to provision SSH from a dev PC.
 
 **Agent memory:** `.cursor/rules/automation-server-access.mdc` — SSH key path, `sudo -n` grant, git → `update.sh` workflow (no scp).
+
+**Mosquitto pin:** `.cursor/rules/mosquitto-pin-2.0.18.mdc` — stay on apt **2.0.18**; do not use 2.1.x (crash loop) or the snap.
+
+## Mosquitto (MQTT broker)
+
+| Item | Value |
+|------|--------|
+| Unit | `mosquitto.service` (apt; snap disabled) |
+| Version | **2.0.18-1build3** (held) — not 2.1.x from mosquitto-dev PPA |
+| Listen | `0.0.0.0:1883` via `/etc/mosquitto/conf.d/default.conf` |
+| SMS gateway | `192.168.2.60` / client id `esp32-sms-gateway` / topic `sms/gateway/status` |
+
+**Do not upgrade to 2.1.2.** That build aborted with `free(): double free detected in tcache 2` (hundreds of restarts) and dropped all MQTT clients. Also keep `/` from filling (HA logs on the data disk — see [SERVER_DISK.md](SERVER_DISK.md)).
+
+Re-pin if needed:
+
+```bash
+sudo apt-get install -y --allow-downgrades \
+  mosquitto=2.0.18-1build3 mosquitto-clients=2.0.18-1build3 libmosquitto1=2.0.18-1build3
+sudo apt-mark hold mosquitto mosquitto-clients libmosquitto1
+```
 
 ## SSH from agent (dev PC)
 

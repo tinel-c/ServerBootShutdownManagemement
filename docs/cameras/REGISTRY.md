@@ -32,7 +32,7 @@ Credentials: Tapo **Camera Account** in server `config/.env` only (`CAMERA_N_USE
 | `CAMERA_PING_INTERVAL_SEC` | `60` | ICMP health interval |
 | `CAMERA_PING_TIMEOUT_SEC` | `2` | Per-ping timeout |
 | `CAMERA_SNAPSHOT_MAX_WIDTH` | `480` | On-demand JPEG width |
-| `CAMERA_SNAPSHOT_DIR` | `/opt/dell_server_management/data/camera-snapshots` | Snapshot files |
+| `CAMERA_SNAPSHOT_DIR` | `/data/camera-snapshots` | Snapshot files |
 
 `CAMERA_HEALTH_INTERVAL_SEC` is a legacy alias for the ping interval.
 

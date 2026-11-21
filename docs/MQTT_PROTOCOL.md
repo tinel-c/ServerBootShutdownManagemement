@@ -69,6 +69,24 @@ Published by `host-metrics-publisher.service` every ~15 s. See [HOST_METRICS.m
 | `sms/gateway/ota/progress` | OTA update progress | 1 | Device → Dashboard |
 | `sms/command/received` | Internal: new SMS for command processing | 1 | Node-RED 511 → 514 |
 
+### 4-channel thyristor illumination (Domain: illumination/4ch-thyristor)
+
+Published by the ESP32 firmware [PlatformIO_esp32-4ch-thyristor-board-illumination](https://github.com/tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination). The board is a zero-cross on/off switch (MOC3063 + BT137S), not a dimmer. Channels boot off. Commands are not retained, and v0.1 does not restore a previous state. See the device [README](../device/PlatformIO_esp32-4ch-thyristor-board-illumination/README.md).
+
+| Setting | Value |
+|---------|--------|
+| Client id | `PlatformIO_esp32-4ch-thyristor-board-illumination` |
+| Broker | `192.168.2.4:1883`, anonymous |
+| QoS | 1 |
+| Retain | no |
+
+| Topic | Direction | Payload |
+|-------|-----------|---------|
+| `illumination/4ch-thyristor/status` | Device → subscribers | JSON snapshot: `device`, `fw`, `outputs_enabled`, `channels` (`id` 1–4, `state` `on`\|`off`), `uptime_s`, `rssi` |
+| `illumination/4ch-thyristor/command/set` | Client → device | `{"channel":1,"state":"on"\|"off"}`. `{"channel":0,"state":"off"}` turns every channel off |
+
+`outputs_enabled` is false until the GPIO map in the firmware is confirmed. Commanded `state` is still reported, and the triac gates are not driven.
+
 ### Victron Energy Topics (Domain: energy/victron)
 
 Published by **`victron-mqtt-publisher.service`** on the automation server (`scripts/victron_mqtt_publisher.py`). The service polls the Cerbo GX via **Modbus TCP** every **10 seconds** (configurable) and publishes to the central MQTT broker.

@@ -29,6 +29,7 @@ config/.env
 config/tuya_devices.json
 device/**/include/passwords.h
 device/**/src/password.h
+device/**/include/secrets.h
 device/**/.env
 
 # IDE

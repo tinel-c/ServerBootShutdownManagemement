@@ -4,3 +4,6 @@
 [submodule "device/esp32-sms-gateway"]
 	path = device/esp32-sms-gateway
 	url = https://github.com/tinel-c/esp32-sms-gateway.git
+[submodule "device/PlatformIO_esp32-4ch-thyristor-board-illumination"]
+	path = device/PlatformIO_esp32-4ch-thyristor-board-illumination
+	url = https://github.com/tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination.git

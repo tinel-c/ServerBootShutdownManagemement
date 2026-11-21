@@ -62,3 +62,7 @@ htmlcov/
 *.tmp
 temp/
 tmp_live_flows.json
+
+# Local fleet monitor memory (IP / last_seen)
+scripts/status/device_fleet_state.json
+scripts/status/device_fleet_state.json.tmp

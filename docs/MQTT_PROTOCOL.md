@@ -71,21 +71,25 @@ Published by `host-metrics-publisher.service` every ~15 s. See [HOST_METRICS.m
 
 ### 4-channel thyristor illumination (Domain: illumination/4ch-thyristor)
 
-Published by the ESP32 firmware [PlatformIO_esp32-4ch-thyristor-board-illumination](https://github.com/tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination). The board is a zero-cross on/off switch (MOC3063 + BT137S), not a dimmer. Channels boot off. Commands are not retained, and v0.1 does not restore a previous state. See the device [README](../device/PlatformIO_esp32-4ch-thyristor-board-illumination/README.md).
+Published by the ESP32 firmware [PlatformIO_esp32-4ch-thyristor-board-illumination](https://github.com/tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination). The board is a zero-cross on/off switch (MOC3063 + BT137S), not a dimmer. Channels boot off. Commands are not retained, and the firmware does not restore a previous state. OTA forces every channel off before the write. See the device [README](../device/PlatformIO_esp32-4ch-thyristor-board-illumination/README.md) and the fleet tool [device_fleet.py](../scripts/status/device_fleet.py).
 
 | Setting | Value |
 |---------|--------|
 | Client id | `PlatformIO_esp32-4ch-thyristor-board-illumination` |
+| DHCP / ArduinoOTA hostname | `esp32-4ch-thyristor` |
 | Broker | `192.168.2.4:1883`, anonymous |
 | QoS | 1 |
 | Retain | no |
+| OTA port | 3232 |
 
 | Topic | Direction | Payload |
 |-------|-----------|---------|
-| `illumination/4ch-thyristor/status` | Device → subscribers | JSON snapshot: `device`, `fw`, `outputs_enabled`, `channels` (`id` 1–4, `state` `on`\|`off`), `uptime_s`, `rssi` |
+| `illumination/4ch-thyristor/status` | Device → subscribers | JSON snapshot: `device`, `fw`, `outputs_enabled`, `ip`, `ota_port`, `channels` (`id` 1–4, `state` `on`\|`off`), `uptime_s`, `rssi` |
 | `illumination/4ch-thyristor/command/set` | Client → device | `{"channel":1,"state":"on"\|"off"}`. `{"channel":0,"state":"off"}` turns every channel off |
+| `illumination/4ch-thyristor/ota/status` | Device → subscribers | `{"device","fw","state":"started\|completed\|error","detail"}` |
+| `illumination/4ch-thyristor/ota/progress` | Device → subscribers | `{"device","progress","total","percent"}` |
 
-`outputs_enabled` is false until the GPIO map in the firmware is confirmed. Commanded `state` is still reported, and the triac gates are not driven.
+`outputs_enabled` is false until the GPIO map in the firmware is confirmed. Commanded `state` is still reported, and the triac gates are not driven. `ip` and `ota_port` feed [scripts/status/device_fleet.py](../scripts/status/device_fleet.py) for automatic post-build OTA.
 
 ### Victron Energy Topics (Domain: energy/victron)
 

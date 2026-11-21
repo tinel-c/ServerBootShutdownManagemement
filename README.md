@@ -787,11 +787,11 @@ ServerBootShutdownManagemement/
 │   ├── victron-multiplus-ii/       # Cerbo GX → energy/victron/*
 │   ├── huawei-inverter/            # SUN2000 → energy/huawei/*
 │   ├── esp32-sms-gateway/          # Git submodule → SMS/OTA firmware
-│   ├── PlatformIO_esp32-4ch-thyristor-board-illumination/  # Git submodule → 4× 230 V thyristor switch
+│   ├── PlatformIO_esp32-4ch-thyristor-board-illumination/  # Git submodule → 4× 230 V thyristor switch + auto-OTA
 │   └── README.md
 │
 ├── scripts/
-│   ├── boot/ · shutdown/ · status/ # MQTT listeners & publishers (Python)
+│   ├── boot/ · shutdown/ · status/ # MQTT listeners & publishers (Python); status/device_fleet.py monitors + OTA
 │   ├── utils/                      # Shared MQTT, logging, IPMI helpers
 │   ├── install/                    # common.sh, device_service.sh (shared installers)
 │   ├── release/                    # create_release.{sh,ps1,bat}

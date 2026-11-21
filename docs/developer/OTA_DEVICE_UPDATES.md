@@ -28,17 +28,47 @@ Over-The-Air (OTA) updates allow firmware to be updated remotely without physica
 
 ### Supported Devices
 
-Currently supported devices:
-- **SMS Gateway** (ESP32 with SIM800) - `device/esp32-sms-gateway/`
+| Device | Path | Automatic post-build OTA |
+|--------|------|--------------------------|
+| SMS Gateway (ESP32 + SIM800) | `device/esp32-sms-gateway/` | No (watch only until status publishes `ip`) |
+| 4-ch thyristor illumination | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | Yes — after `pio run` when the board is online |
+| ESP8266 main gate | `device/PlatformIO_ESP8266_Main_Entry/` | No (watch only) |
+
+### Fleet monitor (dev PC)
+
+Registry and state live in the monorepo:
+
+| Path | Role |
+|------|------|
+| [scripts/status/device_fleet.yaml](../../scripts/status/device_fleet.yaml) | Device list, status topics, flash flags |
+| [scripts/status/device_fleet.py](../../scripts/status/device_fleet.py) | `status` / `watch` / `flash` |
+| `scripts/status/device_fleet_state.json` | Local memory (IP, firmware, last_seen); gitignored |
+
+```bash
+# One-shot sighting (writes device_fleet_state.json)
+python scripts/status/device_fleet.py status
+
+# Keep memory fresh while developing
+python scripts/status/device_fleet.py watch
+
+# Flash a known-good .bin when the sighting is fresh
+python scripts/status/device_fleet.py flash \
+  --id PlatformIO_esp32-4ch-thyristor-board-illumination \
+  --bin device/PlatformIO_esp32-4ch-thyristor-board-illumination/.pio/build/esp32dev/firmware.bin
+```
+
+The thyristor `platformio.ini` runs `scripts/ota_after_build.py` after every successful `firmware.bin`. That hook calls `device_fleet.py flash`. Offline or missing IP is a soft success (the `.bin` remains). A failed `espota` to a live board fails the build post-step.
+
+An OTA reboot turns the 230 V channels off; the firmware already forces channels off on OTA start and on boot.
 
 ### OTA Technology Stack
 
-- **Protocol**: ArduinoOTA (ESP32 native OTA)
+- **Protocol**: ArduinoOTA (ESP32 native OTA) / `espota.py`
 - **Transport**: WiFi (requires active WiFi connection)
 - **Port**: 3232 (default, configurable)
 - **Authentication**: Optional password protection
-- **Control**: MQTT commands for enable/disable
-- **Monitoring**: MQTT topics for status and progress
+- **Control**: MQTT commands for enable/disable (SMS gateway); thyristor OTA is always listening when Wi-Fi is up
+- **Monitoring**: MQTT topics for status and progress; fleet tool listens to status for IP memory
 
 ---
 

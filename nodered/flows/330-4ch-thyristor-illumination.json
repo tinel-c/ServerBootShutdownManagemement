@@ -1,0 +1,308 @@
+[
+    {
+        "id": "tab_4ch_thyristor",
+        "type": "tab",
+        "label": "4ch Thyristor",
+        "disabled": false,
+        "info": "Illumination dashboard for the ESP32 4-channel BT137S board.",
+        "env": []
+    },
+    {
+        "id": "thyristor_comment",
+        "type": "comment",
+        "z": "tab_4ch_thyristor",
+        "name": "═══════════════ 4CH THYRISTOR (330) ═══════════════",
+        "info": "## 4-channel thyristor illumination\n\n**Flow:** 330\n**UI:** `/dashboard/illumination`\n\nStatus `illumination/4ch-thyristor/status` (every 30 s, not retained).\nCommand `illumination/4ch-thyristor/command/set`.\n`channel` 0 + `off` turns every output off.\n\nBoot and OTA force all channels off.",
+        "x": 280,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "ui_page_4ch_thyristor",
+        "type": "ui-page",
+        "name": "Illumination",
+        "ui": "ui_base",
+        "path": "/illumination",
+        "icon": "lightbulb-on",
+        "layout": "grid",
+        "theme": "39a2cf2c0af73875",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 11,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_group_4ch_thyristor",
+        "type": "ui-group",
+        "name": "Thyristor channels",
+        "page": "ui_page_4ch_thyristor",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": false,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "thyristor_status_in",
+        "type": "mqtt in",
+        "z": "tab_4ch_thyristor",
+        "name": "Thyristor status",
+        "topic": "illumination/4ch-thyristor/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 140,
+        "wires": [
+            [
+                "thyristor_status_fn"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_status_fn",
+        "type": "function",
+        "z": "tab_4ch_thyristor",
+        "name": "Status → view",
+        "func": "const STALE_MS = 90 * 1000;\nconst CHANNELS = [\n    { id: 1, silk: 'RY1', gpio: 'IO32', terminal: 'L1' },\n    { id: 2, silk: 'RY2', gpio: 'IO25', terminal: 'L2' },\n    { id: 3, silk: 'RY3', gpio: 'IO27', terminal: 'L3' },\n    { id: 4, silk: 'RY4', gpio: 'IO12', terminal: 'L4' }\n];\n\nfunction blankView() {\n    return {\n        device: 'PlatformIO_esp32-4ch-thyristor-board-illumination',\n        hostname: 'esp32-4ch-thyristor',\n        fw: null,\n        ip: null,\n        ota_port: 3232,\n        outputs_enabled: null,\n        rssi: null,\n        channels: CHANNELS.map(c => ({ ...c, state: 'off' })),\n        receivedAtMs: 0,\n        statusUptimeBase: 0,\n        commandAtMs: 0,\n        ota: null\n    };\n}\n\nfunction decorate(view) {\n    const now = Date.now();\n    const ageMs = view.receivedAtMs ? now - view.receivedAtMs : null;\n    const uptime = view.receivedAtMs\n        ? (view.statusUptimeBase || 0) + Math.floor((now - view.receivedAtMs) / 1000)\n        : null;\n    return {\n        payload: {\n            ...view,\n            channels: view.channels,\n            age_s: ageMs == null ? null : Math.floor(ageMs / 1000),\n            online: ageMs != null && ageMs < STALE_MS,\n            waiting: !view.receivedAtMs,\n            uptime_s: uptime,\n            refreshTick: now\n        }\n    };\n}\n\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try { data = JSON.parse(data); } catch (e) { return null; }\n}\nif (!data || !Array.isArray(data.channels)) return null;\n\nconst prev = flow.get('thyristor_view') || blankView();\nlet channels = CHANNELS.map(meta => {\n    const found = data.channels.find(c => Number(c.id) === meta.id);\n    return { ...meta, state: found && found.state === 'on' ? 'on' : 'off' };\n});\n\nconst commandedAt = prev.commandAtMs || 0;\nconst pending = commandedAt && (Date.now() - commandedAt) < 2500;\nif (pending) {\n    const incoming = channels.map(c => c.state).join(',');\n    const local = (prev.channels || []).map(c => c.state).join(',');\n    if (incoming !== local) channels = prev.channels;\n}\n\nconst view = {\n    ...prev,\n    device: data.device || prev.device,\n    hostname: 'esp32-4ch-thyristor',\n    fw: data.fw || prev.fw,\n    ip: data.ip || prev.ip,\n    ota_port: data.ota_port || prev.ota_port || 3232,\n    outputs_enabled: data.outputs_enabled === true,\n    rssi: data.rssi,\n    channels,\n    receivedAtMs: Date.now(),\n    statusUptimeBase: Number(data.uptime_s) || 0,\n    commandAtMs: pending && channels === prev.channels ? commandedAt : 0\n};\nflow.set('thyristor_view', view);\nreturn decorate(view);",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 140,
+        "wires": [
+            [
+                "thyristor_ui"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_ota_in",
+        "type": "mqtt in",
+        "z": "tab_4ch_thyristor",
+        "name": "Thyristor OTA status",
+        "topic": "illumination/4ch-thyristor/ota/status",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 190,
+        "y": 220,
+        "wires": [
+            [
+                "thyristor_ota_fn"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_ota_fn",
+        "type": "function",
+        "z": "tab_4ch_thyristor",
+        "name": "OTA status → view",
+        "func": "const STALE_MS = 90 * 1000;\nconst CHANNELS = [\n    { id: 1, silk: 'RY1', gpio: 'IO32', terminal: 'L1' },\n    { id: 2, silk: 'RY2', gpio: 'IO25', terminal: 'L2' },\n    { id: 3, silk: 'RY3', gpio: 'IO27', terminal: 'L3' },\n    { id: 4, silk: 'RY4', gpio: 'IO12', terminal: 'L4' }\n];\n\nfunction blankView() {\n    return {\n        device: 'PlatformIO_esp32-4ch-thyristor-board-illumination',\n        hostname: 'esp32-4ch-thyristor',\n        fw: null,\n        ip: null,\n        ota_port: 3232,\n        outputs_enabled: null,\n        rssi: null,\n        channels: CHANNELS.map(c => ({ ...c, state: 'off' })),\n        receivedAtMs: 0,\n        statusUptimeBase: 0,\n        commandAtMs: 0,\n        ota: null\n    };\n}\n\nfunction decorate(view) {\n    const now = Date.now();\n    const ageMs = view.receivedAtMs ? now - view.receivedAtMs : null;\n    const uptime = view.receivedAtMs\n        ? (view.statusUptimeBase || 0) + Math.floor((now - view.receivedAtMs) / 1000)\n        : null;\n    return {\n        payload: {\n            ...view,\n            channels: view.channels,\n            age_s: ageMs == null ? null : Math.floor(ageMs / 1000),\n            online: ageMs != null && ageMs < STALE_MS,\n            waiting: !view.receivedAtMs,\n            uptime_s: uptime,\n            refreshTick: now\n        }\n    };\n}\n\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try { data = JSON.parse(data); } catch (e) { return null; }\n}\nif (!data || !data.state) return null;\nconst view = flow.get('thyristor_view') || blankView();\nconst prev = view.ota || {};\nview.ota = {\n    state: data.state,\n    detail: data.detail || '',\n    percent: data.state === 'started' ? (prev.percent || 0) : (data.state === 'completed' ? 100 : prev.percent || null),\n    at: Date.now()\n};\nif (data.state === 'started' && Array.isArray(view.channels)) {\n    view.channels = view.channels.map(c => ({ ...c, state: 'off' }));\n}\nflow.set('thyristor_view', view);\nreturn decorate(view);",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 220,
+        "wires": [
+            [
+                "thyristor_ui"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_ota_progress_in",
+        "type": "mqtt in",
+        "z": "tab_4ch_thyristor",
+        "name": "Thyristor OTA progress",
+        "topic": "illumination/4ch-thyristor/ota/progress",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 200,
+        "y": 280,
+        "wires": [
+            [
+                "thyristor_ota_progress_fn"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_ota_progress_fn",
+        "type": "function",
+        "z": "tab_4ch_thyristor",
+        "name": "OTA progress → view",
+        "func": "const STALE_MS = 90 * 1000;\nconst CHANNELS = [\n    { id: 1, silk: 'RY1', gpio: 'IO32', terminal: 'L1' },\n    { id: 2, silk: 'RY2', gpio: 'IO25', terminal: 'L2' },\n    { id: 3, silk: 'RY3', gpio: 'IO27', terminal: 'L3' },\n    { id: 4, silk: 'RY4', gpio: 'IO12', terminal: 'L4' }\n];\n\nfunction blankView() {\n    return {\n        device: 'PlatformIO_esp32-4ch-thyristor-board-illumination',\n        hostname: 'esp32-4ch-thyristor',\n        fw: null,\n        ip: null,\n        ota_port: 3232,\n        outputs_enabled: null,\n        rssi: null,\n        channels: CHANNELS.map(c => ({ ...c, state: 'off' })),\n        receivedAtMs: 0,\n        statusUptimeBase: 0,\n        commandAtMs: 0,\n        ota: null\n    };\n}\n\nfunction decorate(view) {\n    const now = Date.now();\n    const ageMs = view.receivedAtMs ? now - view.receivedAtMs : null;\n    const uptime = view.receivedAtMs\n        ? (view.statusUptimeBase || 0) + Math.floor((now - view.receivedAtMs) / 1000)\n        : null;\n    return {\n        payload: {\n            ...view,\n            channels: view.channels,\n            age_s: ageMs == null ? null : Math.floor(ageMs / 1000),\n            online: ageMs != null && ageMs < STALE_MS,\n            waiting: !view.receivedAtMs,\n            uptime_s: uptime,\n            refreshTick: now\n        }\n    };\n}\n\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try { data = JSON.parse(data); } catch (e) { return null; }\n}\nif (!data || data.percent == null) return null;\nconst view = flow.get('thyristor_view') || blankView();\nconst prev = view.ota || {};\nview.ota = {\n    state: prev.state || 'started',\n    detail: prev.detail || '',\n    percent: Number(data.percent),\n    at: Date.now()\n};\nflow.set('thyristor_view', view);\nreturn decorate(view);",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 280,
+        "wires": [
+            [
+                "thyristor_ui"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_refresh",
+        "type": "inject",
+        "z": "tab_4ch_thyristor",
+        "name": "Refresh age 5s",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 1,
+        "topic": "refresh",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 360,
+        "wires": [
+            [
+                "thyristor_refresh_fn"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_refresh_fn",
+        "type": "function",
+        "z": "tab_4ch_thyristor",
+        "name": "Replay view",
+        "func": "const STALE_MS = 90 * 1000;\nconst CHANNELS = [\n    { id: 1, silk: 'RY1', gpio: 'IO32', terminal: 'L1' },\n    { id: 2, silk: 'RY2', gpio: 'IO25', terminal: 'L2' },\n    { id: 3, silk: 'RY3', gpio: 'IO27', terminal: 'L3' },\n    { id: 4, silk: 'RY4', gpio: 'IO12', terminal: 'L4' }\n];\n\nfunction blankView() {\n    return {\n        device: 'PlatformIO_esp32-4ch-thyristor-board-illumination',\n        hostname: 'esp32-4ch-thyristor',\n        fw: null,\n        ip: null,\n        ota_port: 3232,\n        outputs_enabled: null,\n        rssi: null,\n        channels: CHANNELS.map(c => ({ ...c, state: 'off' })),\n        receivedAtMs: 0,\n        statusUptimeBase: 0,\n        commandAtMs: 0,\n        ota: null\n    };\n}\n\nfunction decorate(view) {\n    const now = Date.now();\n    const ageMs = view.receivedAtMs ? now - view.receivedAtMs : null;\n    const uptime = view.receivedAtMs\n        ? (view.statusUptimeBase || 0) + Math.floor((now - view.receivedAtMs) / 1000)\n        : null;\n    return {\n        payload: {\n            ...view,\n            channels: view.channels,\n            age_s: ageMs == null ? null : Math.floor(ageMs / 1000),\n            online: ageMs != null && ageMs < STALE_MS,\n            waiting: !view.receivedAtMs,\n            uptime_s: uptime,\n            refreshTick: now\n        }\n    };\n}\n\nconst view = flow.get('thyristor_view') || blankView();\nreturn decorate(view);",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 360,
+        "wires": [
+            [
+                "thyristor_ui"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_ui",
+        "type": "ui-template",
+        "z": "tab_4ch_thyristor",
+        "group": "ui_group_4ch_thyristor",
+        "page": "",
+        "ui": "",
+        "name": "Thyristor illumination",
+        "order": 1,
+        "width": "12",
+        "height": "10",
+        "head": "",
+        "format": "<div class=\"thy-dash\" style=\"font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#f5f5f4;background:\n  radial-gradient(900px 420px at 0% -10%, rgba(251,191,36,0.22), transparent 55%),\n  radial-gradient(700px 380px at 100% 0%, rgba(249,115,22,0.16), transparent 50%),\n  linear-gradient(165deg,#1c1410 0%,#292018 46%,#0c0a09 100%);\n  border-radius:18px;padding:clamp(14px,2vw,22px);border:1px solid rgba(251,191,36,0.28);\n  box-shadow:0 28px 50px -18px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06);\n  width:100%;box-sizing:border-box;\">\n\n  <div style=\"display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:16px;\">\n    <div>\n      <div style=\"font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;color:#fbbf24;font-weight:700;\">ESP32 · BT137S</div>\n      <div style=\"font-size:1.45rem;font-weight:700;color:#fafaf9;margin-top:4px;\">4-channel illumination</div>\n      <div style=\"font-size:0.78rem;color:#a8a29e;margin-top:4px;font-family:ui-monospace,monospace;\">{{ hostname }}</div>\n    </div>\n    <div :style=\"pillStyle\" style=\"padding:8px 14px;border-radius:999px;font-weight:700;font-size:0.78rem;letter-spacing:0.04em;\">{{ pillLabel }}</div>\n  </div>\n\n  <div v-if=\"lockReason\" style=\"margin-bottom:14px;padding:10px 12px;border-radius:12px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.35);color:#fecaca;font-size:0.82rem;\">\n    {{ lockReason }}\n  </div>\n\n  <div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;\">\n    <div v-for=\"m in meta\" :key=\"m.label\" style=\"background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 12px;\">\n      <div style=\"font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:#a8a29e;font-weight:700;\">{{ m.label }}</div>\n      <div style=\"margin-top:4px;font-family:ui-monospace,monospace;font-size:0.95rem;color:#fafaf9;\">{{ m.value }}</div>\n    </div>\n  </div>\n\n  <div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;\">\n    <button v-for=\"ch in channels\" :key=\"ch.id\" type=\"button\" :disabled=\"locked\"\n      @click=\"toggle(ch)\"\n      :style=\"cardStyle(ch)\"\n      style=\"text-align:left;border-radius:16px;padding:14px;cursor:pointer;transition:border-color 0.2s, background 0.2s;\">\n      <div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;\">\n        <div style=\"font-size:1.15rem;font-weight:700;\">{{ ch.terminal }}</div>\n        <div :style=\"stateChip(ch)\" style=\"padding:3px 8px;border-radius:999px;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;\">{{ ch.state === 'on' ? 'ON' : 'OFF' }}</div>\n      </div>\n      <div style=\"margin-top:8px;font-size:0.75rem;color:#d6d3d1;font-family:ui-monospace,monospace;\">{{ ch.silk }} · {{ ch.gpio }}</div>\n      <div style=\"margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;\">\n        <div :style=\"{ width: ch.state === 'on' ? '100%' : '0%', background: 'linear-gradient(90deg,#fbbf24,#f97316)', height: '100%', transition: 'width 0.25s ease' }\"></div>\n      </div>\n    </button>\n  </div>\n\n  <div style=\"display:flex;flex-wrap:wrap;gap:10px;align-items:center;\">\n    <button type=\"button\" :disabled=\"locked\" @click=\"allOn\" :style=\"actionStyle(false)\">All on</button>\n    <button type=\"button\" :disabled=\"locked\" @click=\"allOff\" :style=\"actionStyle(true)\">All off</button>\n    <div style=\"flex:1;min-width:180px;font-size:0.75rem;color:#a8a29e;\">230 V on/off only. Boot and OTA force every channel off. Commands are not retained.</div>\n  </div>\n\n  <div v-if=\"otaLine\" style=\"margin-top:12px;font-size:0.78rem;color:#fde68a;font-family:ui-monospace,monospace;\">{{ otaLine }}</div>\n</div>\n\n<script>\nexport default {\n  computed: {\n    snap() { return (this.msg && this.msg.payload) || {}; },\n    hostname() { return this.snap.hostname || 'esp32-4ch-thyristor'; },\n    channels() {\n      const list = this.snap.channels;\n      if (list && list.length) return list;\n      return [\n        { id: 1, state: 'off', silk: 'RY1', gpio: 'IO32', terminal: 'L1' },\n        { id: 2, state: 'off', silk: 'RY2', gpio: 'IO25', terminal: 'L2' },\n        { id: 3, state: 'off', silk: 'RY3', gpio: 'IO27', terminal: 'L3' },\n        { id: 4, state: 'off', silk: 'RY4', gpio: 'IO12', terminal: 'L4' }\n      ];\n    },\n    locked() {\n      return this.snap.outputs_enabled === false || (this.snap.ota && this.snap.ota.state === 'started');\n    },\n    lockReason() {\n      if (this.snap.outputs_enabled === false) return 'Outputs are held off. GPIO map is not confirmed in firmware.';\n      if (this.snap.ota && this.snap.ota.state === 'started') return 'OTA in progress. The board forces every channel off until the update finishes.';\n      if (this.snap.waiting) return 'No status yet. The board publishes every 30 s and does not retain the last message. Commands still go out.';\n      if (this.snap.receivedAtMs && !this.snap.online) return 'Status is stale (last report ' + this.fmtAge(this.snap.age_s) + ' ago). Commands still go out.';\n      return '';\n    },\n    pillLabel() {\n      if (this.snap.ota && this.snap.ota.state === 'started') return 'OTA';\n      if (this.snap.waiting || !this.snap.receivedAtMs) return 'WAITING';\n      return this.snap.online ? 'ONLINE' : 'STALE';\n    },\n    pillStyle() {\n      const on = this.pillLabel === 'ONLINE';\n      const bad = this.pillLabel === 'STALE' || this.pillLabel === 'OTA';\n      return {\n        background: on ? 'rgba(52,211,153,0.16)' : (bad ? 'rgba(248,113,113,0.16)' : 'rgba(251,191,36,0.16)'),\n        color: on ? '#6ee7b7' : (bad ? '#fca5a5' : '#fde68a'),\n        border: '1px solid ' + (on ? 'rgba(52,211,153,0.4)' : (bad ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.4)'))\n      };\n    },\n    meta() {\n      const s = this.snap;\n      return [\n        { label: 'Firmware', value: s.fw || '—' },\n        { label: 'Address', value: s.ip ? (s.ip + ':' + (s.ota_port || 3232)) : '—' },\n        { label: 'Uptime', value: this.fmtUptime(s.uptime_s) },\n        { label: 'Wi-Fi', value: this.fmtRssi(s.rssi) },\n        { label: 'Updated', value: s.waiting || s.age_s == null ? '—' : this.fmtAge(s.age_s) + ' ago' }\n      ];\n    },\n    otaLine() {\n      const ota = this.snap.ota;\n      if (!ota || !ota.state) return '';\n      const pct = ota.percent == null ? '' : (' ' + ota.percent + '%');\n      const detail = ota.detail ? (' · ' + ota.detail) : '';\n      return 'OTA ' + ota.state + pct + detail;\n    }\n  },\n  methods: {\n    toggle(ch) {\n      if (this.locked) return;\n      this.send({ payload: { channel: ch.id, state: ch.state === 'on' ? 'off' : 'on' } });\n    },\n    allOn() {\n      if (this.locked) return;\n      this.send({ payload: { action: 'all-on' } });\n    },\n    allOff() {\n      if (this.locked) return;\n      this.send({ payload: { action: 'all-off' } });\n    },\n    cardStyle(ch) {\n      const on = ch.state === 'on';\n      return {\n        background: on ? 'rgba(251,191,36,0.14)' : 'rgba(255,255,255,0.04)',\n        border: '1px solid ' + (on ? 'rgba(251,191,36,0.55)' : 'rgba(255,255,255,0.08)'),\n        color: '#fafaf9',\n        opacity: this.locked ? 0.55 : 1,\n        cursor: this.locked ? 'not-allowed' : 'pointer'\n      };\n    },\n    stateChip(ch) {\n      const on = ch.state === 'on';\n      return {\n        background: on ? 'rgba(251,191,36,0.22)' : 'rgba(255,255,255,0.06)',\n        color: on ? '#fde68a' : '#a8a29e'\n      };\n    },\n    actionStyle(danger) {\n      return {\n        border: '1px solid ' + (danger ? 'rgba(248,113,113,0.55)' : 'rgba(251,191,36,0.45)'),\n        background: danger ? 'rgba(248,113,113,0.16)' : 'rgba(251,191,36,0.16)',\n        color: danger ? '#fecaca' : '#fde68a',\n        borderRadius: '10px',\n        padding: '8px 14px',\n        fontWeight: '700',\n        cursor: this.locked ? 'not-allowed' : 'pointer',\n        opacity: this.locked ? 0.55 : 1\n      };\n    },\n    fmtAge(s) {\n      if (s == null) return '—';\n      if (s < 60) return s + 's';\n      return Math.floor(s / 60) + 'm ' + (s % 60) + 's';\n    },\n    fmtUptime(s) {\n      if (s == null || !Number.isFinite(Number(s))) return '—';\n      const n = Math.max(0, Math.floor(Number(s)));\n      const h = Math.floor(n / 3600);\n      const m = Math.floor((n % 3600) / 60);\n      if (h > 0) return h + 'h ' + m + 'm';\n      return m + 'm ' + (n % 60) + 's';\n    },\n    fmtRssi(v) {\n      if (v == null || !Number.isFinite(Number(v))) return '—';\n      const n = Number(v);\n      const q = n >= -60 ? 'strong' : (n >= -75 ? 'ok' : 'weak');\n      return n + ' dBm · ' + q;\n    }\n  }\n};\n</script>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 720,
+        "y": 240,
+        "wires": [
+            [
+                "thyristor_command_fn"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_command_fn",
+        "type": "function",
+        "z": "tab_4ch_thyristor",
+        "name": "UI → command",
+        "func": "const STALE_MS = 90 * 1000;\nconst CHANNELS = [\n    { id: 1, silk: 'RY1', gpio: 'IO32', terminal: 'L1' },\n    { id: 2, silk: 'RY2', gpio: 'IO25', terminal: 'L2' },\n    { id: 3, silk: 'RY3', gpio: 'IO27', terminal: 'L3' },\n    { id: 4, silk: 'RY4', gpio: 'IO12', terminal: 'L4' }\n];\n\nfunction blankView() {\n    return {\n        device: 'PlatformIO_esp32-4ch-thyristor-board-illumination',\n        hostname: 'esp32-4ch-thyristor',\n        fw: null,\n        ip: null,\n        ota_port: 3232,\n        outputs_enabled: null,\n        rssi: null,\n        channels: CHANNELS.map(c => ({ ...c, state: 'off' })),\n        receivedAtMs: 0,\n        statusUptimeBase: 0,\n        commandAtMs: 0,\n        ota: null\n    };\n}\n\nfunction decorate(view) {\n    const now = Date.now();\n    const ageMs = view.receivedAtMs ? now - view.receivedAtMs : null;\n    const uptime = view.receivedAtMs\n        ? (view.statusUptimeBase || 0) + Math.floor((now - view.receivedAtMs) / 1000)\n        : null;\n    return {\n        payload: {\n            ...view,\n            channels: view.channels,\n            age_s: ageMs == null ? null : Math.floor(ageMs / 1000),\n            online: ageMs != null && ageMs < STALE_MS,\n            waiting: !view.receivedAtMs,\n            uptime_s: uptime,\n            refreshTick: now\n        }\n    };\n}\n\nconst cmd = msg.payload || {};\nconst view = flow.get('thyristor_view') || blankView();\nconst otaBusy = view.ota && view.ota.state === 'started';\nif (view.outputs_enabled === false || otaBusy) {\n    node.warn('thyristor command ignored: outputs locked');\n    return null;\n}\n\nfunction mqtt(channel, state) {\n    return { payload: { channel, state } };\n}\n\nlet messages = [];\nif (cmd.action === 'all-off' || (Number(cmd.channel) === 0 && cmd.state === 'off')) {\n    view.channels = view.channels.map(c => ({ ...c, state: 'off' }));\n    messages = [mqtt(0, 'off')];\n} else if (cmd.action === 'all-on') {\n    view.channels = view.channels.map(c => ({ ...c, state: 'on' }));\n    messages = [1, 2, 3, 4].map(id => mqtt(id, 'on'));\n} else {\n    const channel = Number(cmd.channel);\n    const state = cmd.state === 'on' ? 'on' : (cmd.state === 'off' ? 'off' : null);\n    if (!state || channel < 1 || channel > 4) return null;\n    view.channels = view.channels.map(c => c.id === channel ? { ...c, state } : c);\n    messages = [mqtt(channel, state)];\n}\n\nview.commandAtMs = Date.now();\nflow.set('thyristor_view', view);\nreturn [messages, decorate(view)];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 240,
+        "wires": [
+            [
+                "thyristor_command_out"
+            ],
+            [
+                "thyristor_ui"
+            ]
+        ]
+    },
+    {
+        "id": "thyristor_command_out",
+        "type": "mqtt out",
+        "z": "tab_4ch_thyristor",
+        "name": "Thyristor command",
+        "topic": "illumination/4ch-thyristor/command/set",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 1200,
+        "y": 200,
+        "wires": []
+    }
+]

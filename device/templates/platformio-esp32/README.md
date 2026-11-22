@@ -27,6 +27,32 @@ Status JSON on the topic listed in `scripts/status/device_fleet.yaml`, about eve
 
 `ArduinoOTA.begin()` only after STA has an IP. `ArduinoOTA.handle()` in `loop()` while connected. Log `OTA listening on x.x.x.x:3232`. On Wi-Fi loss, `ArduinoOTA.end()`.
 
+## 2b. SMS gateway watchdog (required for new ESP devices)
+
+Copy [include/sms_watchdog_client.h](include/sms_watchdog_client.h) into the device repo as `include/sms_watchdog_client.h`. Call `smsWatchdogRegister(mqtt, fleetId)`:
+
+1. Immediately after a successful MQTT connect (subscribe first if needed).
+2. On the same ~30 s status publish cadence (skip while OTA is active).
+
+`name` is the fleet id (same string as MQTT client id / status `device`). Default `interval` is **60** s (gateway alerts after **2 × interval** of silence once the device has heartbeated once). The gateway watch list is RAM-only (max 10 slots); repeating enroll recovers monitoring after an SMS gateway reboot. Same name + same interval does not send an “updated” SMS (`fw` ≥ 1.1.3).
+
+Working copy: illumination board `fw` ≥ 0.2.3.
+
+## 2c. Wi-Fi status LED (required when the board has one indicator LED)
+
+Copy [include/wifi_status_led.h](include/wifi_status_led.h). Include `board_pins.h` first. It must define `PIN_STATUS_LED`, `LED_ACTIVE_LEVEL`, and `LED_IDLE_LEVEL`. Use `PIN_STATUS_LED` `-1` when the board has no such LED.
+
+Call `updateWifiStatusLed(lastWifiBeginMs)` from `loop()`. Pass `millis()` of the latest `WiFi.begin()`, or `0` before the first attempt. "Lit" is `LED_ACTIVE_LEVEL`. Confirm polarity on the board before shipping. The thyristor blue LED on IO5 is lit when the pin is low (`fw` ≥ 0.2.7).
+
+| Pattern | Meaning |
+|---------|---------|
+| Lit, 80 ms dark wink every 2 s | Associated |
+| 100 ms lit / 100 ms dark for 3 s after `WiFi.begin` | Joining |
+| 500 ms lit / 500 ms dark | Not associated, waiting to retry |
+| Two 80 ms flashes, then dark, every 1.2 s | No SSID, connect failed, or link lost |
+
+The LED shows Wi-Fi only. Do not tie it to load or channel state.
+
 ## 3. Registry
 
 Add the device to both fleet files with `flash: true` (the default for every new device that speaks this contract):

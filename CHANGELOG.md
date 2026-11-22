@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.22.0] - 2026-11-22
+
+### Added - 4-channel thyristor dashboard and Wi-Fi LED protocol
+
+- **Flow 330** — `/dashboard/illumination` controls the ESP32 4-channel thyristor board (`illumination/4ch-thyristor/status` and `command/set`). L1–L4 map to RY1–RY4.
+- **Firmware 0.2.7** on `192.168.2.49`. Gates are active-high: RY1=IO32, RY2=IO25, RY3=IO27, RY4=IO12. Boot and OTA force every channel off. The board enrolls on the SMS gateway watchdog (`name` = fleet id, interval 60 s).
+- **Wi-Fi status LED** is the required pattern for every new ESP device with one indicator LED. Copy [device/templates/platformio-esp32/include/wifi_status_led.h](device/templates/platformio-esp32/include/wifi_status_led.h). Associated: lit, 80 ms dark wink every 2 s. Joining: 100 ms blink for 3 s. Down: 500 ms blink. Failure: two short flashes every 1.2 s. The thyristor blue LED on IO5 is lit when the pin is low.
+- Cursor rule: `.cursor/rules/wifi-status-led.mdc`. Playbook: [DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
+
 ## [3.21.0] - 2026-11-22
 
 ### Changed - SMS gateway fleet OTA (firmware 1.1.2)

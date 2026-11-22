@@ -66,7 +66,13 @@ Published by `host-metrics-publisher.service` every ~15 s. See [HOST_METRICS.m
 | `sms/gateway/send/timestamp` | Timestamp when SMS was sent | 1 | Device → Dashboard |
 | `sms/gateway/ota/status` | OTA update status (`device`, `fw`, `state`, `detail`) | 1 | Device → Dashboard |
 | `sms/gateway/ota/progress` | OTA update progress (`device`, `progress`, `total`, `percent`) | 1 | Device → Dashboard |
+| `sms/gateway/watchdog/enroll` | Enroll or update a monitored device (`name`, optional `interval` s, default 60) | 1 | Device → SMS gateway |
+| `sms/gateway/watchdog/delete` | Remove a monitored device (`name`) | 1 | Client → SMS gateway |
+| `sms/gateway/watchdog/heartbeat` | Heartbeat for an enrolled device (`name`) | 1 | Device → SMS gateway |
+| `sms/gateway/watchdog/status` | JSON array of enrolled devices (`name`, `interval`, `online`, `age`) | 1 | SMS gateway → Dashboard |
 | `sms/command/received` | Internal: new SMS for command processing | 1 | Node-RED 511 → 514 |
+
+**Device self-registration (required for new ESP firmware):** each device copies [`sms_watchdog_client.h`](../device/templates/platformio-esp32/include/sms_watchdog_client.h) and publishes enroll then heartbeat on MQTT connect and on its ~30 s status cadence. `name` is the fleet id. Timeout alert = **2 × interval** after the device has heartbeated once. The enroll list is RAM-only (max 10); same name + same interval is a silent no-op (`fw` ≥ 1.1.3) so periodic re-enroll recovers after a gateway reboot without SMS spam. Full table drops new enrolls silently.
 
 ### 4-channel thyristor illumination (Domain: illumination/4ch-thyristor)
 
@@ -88,7 +94,13 @@ Published by the ESP32 firmware [PlatformIO_esp32-4ch-thyristor-board-illuminati
 | `illumination/4ch-thyristor/ota/status` | Device → subscribers | `{"device","fw","state":"started\|completed\|error","detail"}` |
 | `illumination/4ch-thyristor/ota/progress` | Device → subscribers | `{"device","progress","total","percent"}` |
 
-GPIO map (confirmed): RY1=IO32, RY2=IO26, RY3=IO27, RY4=IO12, status LED=IO5. With that map, `outputs_enabled` is true. `ip` and `ota_port` feed [scripts/status/device_fleet.py](../scripts/status/device_fleet.py) for automatic post-build OTA (fw ≥ 0.2.2 binds ArduinoOTA after STA has an IP; Windows fleet flash may fall back to espota on `192.168.2.4`).
+GPIO map (confirmed): RY1=IO32, RY2=IO25, RY3=IO27, RY4=IO12, status LED=IO5. With that map, `outputs_enabled` is true. `ip` and `ota_port` feed [scripts/status/device_fleet.py](../scripts/status/device_fleet.py) for automatic post-build OTA (fw ≥ 0.2.2 binds ArduinoOTA after STA has an IP; Windows fleet flash may fall back to espota on `192.168.2.4`).
+
+**SMS watchdog (`fw` ≥ 0.2.3):** on MQTT connect and every status publish, the board calls `smsWatchdogRegister` with name `PlatformIO_esp32-4ch-thyristor-board-illumination` and interval 60 s (topics under `sms/gateway/watchdog/*` above).
+
+Node-RED page: `/dashboard/illumination` from [nodered/flows/330-4ch-thyristor-illumination.json](../nodered/flows/330-4ch-thyristor-illumination.json). Deploy with `node nodered/live-connection/scripts/deploy-flow-330.mjs`.
+
+The blue LED on IO5 is the Wi-Fi indicator (`fw` ≥ 0.2.7), not a channel lamp. It is lit when the pin is low. Associated: lit, with an 80 ms dark wink every 2 s. Joining: 100 ms blink for 3 s after `WiFi.begin`. Down: 500 ms blink. Failure (no SSID, connect failed, or link lost): two short flashes every 1.2 s. New ESP devices copy [device/templates/platformio-esp32/include/wifi_status_led.h](../device/templates/platformio-esp32/include/wifi_status_led.h).
 
 ### Victron Energy Topics (Domain: energy/victron)
 
@@ -1293,6 +1305,17 @@ mosquitto_sub -h 192.168.2.4 -t 'water/grundfos/scala1/#' -v
 ```
 
 `device`, `fw`, `ip`, and `ota_port` are required by [scripts/status/device_fleet.py](../scripts/status/device_fleet.py). `wifi` and `mqtt` stay so the Node-RED dashboard can keep treating both `"connected"` as online. The ISO8601 clock is also published alone on `sms/gateway/status/timestamp`.
+
+---
+
+### SMS Gateway device watchdog
+
+**Enroll** — `sms/gateway/watchdog/enroll` — `{"name":"<fleet id>","interval":60}`  
+**Heartbeat** — `sms/gateway/watchdog/heartbeat` — `{"name":"<fleet id>"}`  
+**Delete** — `sms/gateway/watchdog/delete` — `{"name":"<fleet id>"}`  
+**Status** — `sms/gateway/watchdog/status` — JSON array, e.g. `[{"name":"…","interval":60,"online":true,"age":12}]`
+
+Devices use [`sms_watchdog_client.h`](../device/templates/platformio-esp32/include/sms_watchdog_client.h). Gateway `fw` ≥ 1.1.3: re-enroll with the same interval is silent (no SMS). Interval changes still send an “updated” SMS. Cap: 10 devices.
 
 ---
 

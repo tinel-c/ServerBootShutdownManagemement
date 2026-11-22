@@ -41,6 +41,8 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 
 **Watchdog dashboard:** import `613-watchdog-status-dashboard.json` after flows `90` and `612`. Page `/dashboard/watchdog`.
 
+**4-channel thyristor illumination:** import `330-4ch-thyristor-illumination.json` after base config. Page `/dashboard/illumination`. Deploy: `node nodered/live-connection/scripts/generate-flow-330.mjs` then `deploy-flow-330.mjs`.
+
 ### Import Instructions
 
 1. Open Node-RED: http://localhost:1880
@@ -791,7 +793,7 @@ system/logs
 - `30-39`: Reserved for future server 1
 - `40-49`: Client automation and tracking
 - `50-59`: External interfaces (Telegram, etc.)
-- `300-399`: Power monitoring (garden Sonoff, lights)
+- `300-399`: Power monitoring (garden Sonoff, lights, `330-4ch-thyristor-illumination.json`)
 - `800-899`: Energy management (Victron Cerbo GX, Huawei SUN2000)
 - `900-999`: System / host metrics (`910-host-metrics-dashboard.json`)
 - `90-99`: Shared utilities
@@ -806,6 +808,17 @@ system/logs
 | Service | `host-metrics-publisher.service` |
 | UI | `/dashboard/host` — gauges + 1h / 25h / 1m charts |
 | Deploy | `node nodered/live-connection/scripts/generate-flow-910.mjs && node …/deploy-flow-910.mjs` |
+
+### 4-channel thyristor illumination (330)
+
+**File:** `330-4ch-thyristor-illumination.json`
+
+| Item | Detail |
+|------|--------|
+| MQTT status | `illumination/4ch-thyristor/status` |
+| MQTT command | `illumination/4ch-thyristor/command/set` |
+| UI | `/dashboard/illumination` — L1–L4 on/off, all off, firmware / RSSI / OTA |
+| Deploy | `node nodered/live-connection/scripts/generate-flow-330.mjs && node …/deploy-flow-330.mjs` |
 
 ## Version Control
 

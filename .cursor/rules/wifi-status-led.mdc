@@ -1,0 +1,21 @@
+---
+description: Wi-Fi status LED blink protocol for every new ESP device
+alwaysApply: true
+---
+
+# Wi-Fi status LED
+
+Every new ESP device with one indicator LED uses [device/templates/platformio-esp32/include/wifi_status_led.h](../../device/templates/platformio-esp32/include/wifi_status_led.h). Copy that header. Call `updateWifiStatusLed(lastWifiBeginMs)` from `loop()`.
+
+`board_pins.h` defines `PIN_STATUS_LED`, `LED_ACTIVE_LEVEL`, and `LED_IDLE_LEVEL`. Set `PIN_STATUS_LED` to `-1` when the board has no such LED. Confirm polarity on the hardware. "Lit" is `LED_ACTIVE_LEVEL`. The thyristor blue LED (IO5, `fw` ≥ 0.2.7) is lit when the pin is low.
+
+The LED shows Wi-Fi only. Do not drive it from relays, triacs, or other loads.
+
+| Pattern | Meaning |
+|---------|---------|
+| Lit, 80 ms dark wink every 2 s | Associated |
+| 100 ms lit / 100 ms dark for 3 s after `WiFi.begin` | Joining |
+| 500 ms lit / 500 ms dark | Not associated, waiting to retry |
+| Two 80 ms flashes, then dark, every 1.2 s | No SSID, connect failed, or link lost |
+
+Playbook: [docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md](../../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).

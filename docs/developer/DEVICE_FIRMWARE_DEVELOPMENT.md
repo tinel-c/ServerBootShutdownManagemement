@@ -1,6 +1,6 @@
 # Device firmware development (canonical)
 
-This is the **required** way to build and iterate ESP / PlatformIO firmware in this monorepo. Working copies: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (`fw` ≥ 0.2.2) and [`device/PlatformIO_esp32-sms-gateway`](../../device/PlatformIO_esp32-sms-gateway/) (`fw` ≥ 1.1.0). New devices start from [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
+This is the **required** way to build and iterate ESP / PlatformIO firmware in this monorepo. Working copies: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (`fw` ≥ 0.2.7) and [`device/PlatformIO_esp32-sms-gateway`](../../device/PlatformIO_esp32-sms-gateway/) (`fw` ≥ 1.1.3). New devices start from [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
 
 ## Layout
 
@@ -26,7 +26,20 @@ Status JSON (not retained unless there is a strong reason) must include at least
 
 Publish on a dedicated status topic listed in `device_fleet.yaml`. Commands and OTA event topics are optional but recommended (`…/command/…`, `…/ota/status`, `…/ota/progress`). OTA event payloads match the illumination board: `ota/status` is `{"device","fw","state":"started|completed|error","detail"}` and `ota/progress` is `{"device","progress","total","percent"}`.
 
-**Default for every new device:** `flash: true`, status interval about 30 s, `upload_protocol = esptool`, and the template post script. Set `flash: false` only when the firmware cannot accept ArduinoOTA yet (the ESP8266 main gate is the current exception).
+**SMS gateway watchdog (required for every new ESP device):** copy [`device/templates/platformio-esp32/include/sms_watchdog_client.h`](../../device/templates/platformio-esp32/include/sms_watchdog_client.h) into the device repo and call `smsWatchdogRegister(mqtt, fleetId)` on MQTT connect and on the ~30 s status cadence (skip during OTA). Payload `name` is the fleet id; default interval **60** s. The SMS gateway keeps the list in RAM (max 10); re-enroll recovers after a gateway reboot. See [MQTT_PROTOCOL.md](../MQTT_PROTOCOL.md) (`sms/gateway/watchdog/*`).
+
+**Wi-Fi status LED (required when the board has one indicator LED):** copy [`device/templates/platformio-esp32/include/wifi_status_led.h`](../../device/templates/platformio-esp32/include/wifi_status_led.h). `board_pins.h` defines `PIN_STATUS_LED`, `LED_ACTIVE_LEVEL`, and `LED_IDLE_LEVEL` (`PIN_STATUS_LED` `-1` if there is no LED). Call `updateWifiStatusLed(lastWifiBeginMs)` from `loop()`. The LED shows Wi-Fi only:
+
+| Pattern | Meaning |
+|---------|---------|
+| Lit, 80 ms dark wink every 2 s | Associated |
+| 100 ms blink for 3 s after `WiFi.begin` | Joining |
+| 500 ms blink | Not associated, waiting to retry |
+| Two short flashes every 1.2 s | No SSID, connect failed, or link lost |
+
+Confirm polarity on the hardware. Reference: thyristor IO5, lit when the pin is low, `fw` ≥ 0.2.7. Dashboard: `/dashboard/illumination`.
+
+**Default for every new device:** `flash: true`, status interval about 30 s, `upload_protocol = esptool`, the template post script, SMS watchdog self-registration, and the Wi-Fi LED protocol when the board has one indicator LED. Set `flash: false` only when the firmware cannot accept ArduinoOTA yet (the ESP8266 main gate is the current exception).
 
 ## Flash paths (do not mix)
 
@@ -73,10 +86,12 @@ On Windows, local `espota` often fails after the UDP invite (`No response from d
 1. Submodule under `device/<name>`; secrets only via example templates.
 2. `platformio.ini`: `upload_protocol = esptool`; post-script calls fleet flash when appropriate.
 3. Status MQTT includes `device`, `fw`, `ip`, `ota_port`; entry in both fleet YAML files with `flash: true` unless ArduinoOTA is impossible.
-4. OTA begins after Wi-Fi IP; version bumped; safe defaults on boot/OTA.
-5. Docs: device README + HARDWARE (if any), MQTT_PROTOCOL, OTA guide if behavior changes.
-6. Commit **device repo first**, push, then pin gitlink + monorepo docs/scripts; push monorepo.
-7. Verify: `device_fleet.py status` → online with IP → `flash` (or `pio run`) → status `fw` matches.
+4. SMS watchdog client: `smsWatchdogRegister` on MQTT connect and status cadence (`name` = fleet id).
+5. Wi-Fi LED: `updateWifiStatusLed` from `loop()` when the board has one indicator LED. Same four patterns as `wifi_status_led.h`. Do not drive that LED from load state.
+6. OTA begins after Wi-Fi IP; version bumped; safe defaults on boot/OTA.
+7. Docs: device README + HARDWARE (if any), MQTT_PROTOCOL, OTA guide if behavior changes. Record LED polarity.
+8. Commit **device repo first**, push, then pin gitlink + monorepo docs/scripts; push monorepo.
+9. Verify: `device_fleet.py status` → online with IP → `flash` (or `pio run`) → status `fw` matches; `sms/gateway/watchdog/status` lists the device `online: true`. Associated LED winks off once every 2 s.
 
 ## Windows client (status + manual OTA)
 

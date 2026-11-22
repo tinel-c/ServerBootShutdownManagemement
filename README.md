@@ -942,11 +942,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.21.0  
+**Version:** 3.22.0  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.22.0 (2026-11-22) - Thyristor dashboard and Wi-Fi LED protocol
+- 💡 **Illumination page** — `/dashboard/illumination` for the 4-channel thyristor (RY1–RY4 = IO32/IO25/IO27/IO12, firmware **0.2.7**)
+- 📶 **Wi-Fi LED** — required blink pattern for every new ESP device with one indicator LED ([wifi_status_led.h](device/templates/platformio-esp32/include/wifi_status_led.h))
+- See [RELEASE_NOTES_v3.22.0.md](docs/releases/RELEASE_NOTES_v3.22.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.21.0 (2026-11-22) - SMS gateway fleet OTA
 - 📱 **SMS gateway fw 1.1.2** — status JSON (`device`, `fw`, `ip`, `ota_port`); `pio run` flashes via the fleet hook; SIM800 is probed before PWRKEY so a reboot does not turn it off

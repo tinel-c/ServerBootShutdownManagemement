@@ -9,7 +9,8 @@ Device projects live in **separate Git repositories** and are included here as *
 | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | [tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination](https://github.com/tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination) | ESP32-WROOM-32E + 4× BT137S (RY1–4: IO32/25/27/12, LED IO5) — 230 V illumination; fleet OTA after `pio run` ([README](PlatformIO_esp32-4ch-thyristor-board-illumination/README.md), [device_fleet.py](../scripts/status/device_fleet.py)) |
 | `device/victron-multiplus-ii/` | *(in-repo docs)* | Victron MultiPlus-II — GX/Modbus/MQTT integration ([README](victron-multiplus-ii/README.md)) |
 | `device/huawei-inverter/` | *(in-repo docs)* | Huawei SUN2000 — Modbus/MQTT integration ([README](huawei-inverter/README.md)) |
-| `device/energy-consumers/` | Tuya + Tasmota smart meters → `energy/consumers/*`, flow **840** ([README](energy-consumers/README.md), [agent playbook](../docs/ENERGY_CONSUMER_ADD.md)) |
+| `device/energy-consumers/` | *(in-repo)* | Tuya + Tasmota smart meters → `energy/consumers/*`, flow **840** ([README](energy-consumers/README.md), [agent playbook](../docs/ENERGY_CONSUMER_ADD.md)) |
+| `device/tasmota/` | *(in-repo catalog)* | Tasmota automation boards (gates, irrigation, pump, lights, meters). Online list for the Windows client ([catalog](tasmota/catalog.yaml), [README](tasmota/README.md)) |
 | `device/grundfos-scala1/` | *(in-repo docs)* | Grundfos SCALA1 — **planned** BLE/MQTT scaffolding ([README](grundfos-scala1/README.md), [GRUNDGOS_SCALA1.md](../docs/GRUNDGOS_SCALA1.md)) |
 
 **Clone with all device firmware:**  

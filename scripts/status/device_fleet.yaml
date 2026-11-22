@@ -1,4 +1,6 @@
 # Repo firmware devices watched by scripts/status/device_fleet.py.
+# Windows ClientMonitor loads this file from GitHub (raw main), not from a local database.
+# Tasmota boards are listed separately in device/tasmota/catalog.yaml.
 # status_topic: any message means the device is live.
 # expected: false excludes from the Windows client "should be online" count (default true).
 # flash: true is the default for every new ESP device (post-build fleet OTA).

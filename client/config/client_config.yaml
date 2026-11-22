@@ -18,10 +18,17 @@ client:
     github_repo: "${GITHUB_REPO:}"  # Format: owner/repo
 
 # Firmware device fleet (tray → Device Fleet window)
+# catalog: github fetches scripts/status/device_fleet.yaml and device/tasmota/catalog.yaml.
+# catalog: local uses registry, or the bundled yaml, and does not call GitHub.
 device_fleet:
   enabled: ${DEVICE_FLEET_ENABLED:true}
-  registry: "${DEVICE_FLEET_REGISTRY:}"  # optional absolute path to device_fleet.yaml
+  catalog: "${DEVICE_FLEET_CATALOG:github}"
+  github_repo: "${DEVICE_FLEET_GITHUB_REPO:tinel-c/ServerBootShutdownManagemement}"
+  github_ref: "${DEVICE_FLEET_GITHUB_REF:main}"
+  registry: "${DEVICE_FLEET_REGISTRY:}"  # set a file path to force the local registry
   listen_sec: ${DEVICE_FLEET_LISTEN_SEC:20}
+  tasmota_scan_sec: ${DEVICE_FLEET_TASMOTA_SCAN_SEC:8}
+  tasmota_http_scan: ${DEVICE_FLEET_TASMOTA_HTTP_SCAN:true}
 
 mqtt:
   broker:
@@ -38,6 +45,8 @@ mqtt:
     presence: "clients/{client_id}/presence"
     heartbeat: "clients/{client_id}/heartbeat"
     shutdown: "clients/{client_id}/command/shutdown"
+    update: "clients/{client_id}/command/update"
+    update_status: "clients/{client_id}/update"
     response: "clients/{client_id}/response"
   
   qos: 1

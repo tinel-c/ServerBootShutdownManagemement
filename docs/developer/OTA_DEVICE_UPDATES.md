@@ -47,8 +47,9 @@ Registry and state live in the monorepo:
 | [scripts/status/device_fleet.yaml](../../scripts/status/device_fleet.yaml) | Device list, status topics, flash flags (`expected` for client counts) |
 | [scripts/status/device_fleet.py](../../scripts/status/device_fleet.py) | `status` / `watch` / `flash` |
 | `scripts/status/device_fleet_state.json` | Local memory (IP, firmware, last_seen); gitignored |
-| [client/device_fleet_panel.py](../../client/device_fleet_panel.py) | Windows tray **Device Fleet…** UI (online/expected, `fw`, OTA upload) |
-| [client/config/device_fleet.yaml](../../client/config/device_fleet.yaml) | Bundled registry for Program Files installs (keep in sync) |
+| [client/device_fleet_panel.py](../../client/device_fleet_panel.py) | Windows tray **Device Fleet…** UI (online/expected, `fw`, OTA upload, Tasmota scan) |
+| [device/tasmota/catalog.yaml](../../device/tasmota/catalog.yaml) | Tasmota boards merged into that same list |
+| [client/config/device_fleet.yaml](../../client/config/device_fleet.yaml) | Offline fallback only. The client fetches the two files above from GitHub |
 
 ```bash
 # One-shot sighting (writes device_fleet_state.json)

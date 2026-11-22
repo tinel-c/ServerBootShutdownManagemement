@@ -81,3 +81,63 @@ def test_summarize_online_expected():
     assert by_id["online-dev"]["fw"] == "0.2.2"
     assert by_id["offline-dev"]["can_upload"] is False
     assert "offline" in by_id["offline-dev"]["upload_reason"]
+    assert by_id["online-dev"]["kind"] == "firmware"
+
+
+def test_tasmota_lwt_offline_is_not_online():
+    now = time.time()
+    registry = {
+        "devices": [
+            {
+                "id": "tasmota/pompaApa",
+                "kind": "tasmota",
+                "topic": "pompaApa",
+                "name": "Water Pump",
+                "status_topic": "tele/pompaApa/LWT",
+                "timeout_sec": 660,
+            }
+        ]
+    }
+    state = {
+        "devices": {
+            "tasmota/pompaApa": {
+                "last_seen": now - 2,
+                "last_payload": "Offline",
+            }
+        }
+    }
+    rows = build_device_rows(registry, state, now=now)
+    assert rows[0]["online"] is False
+    assert rows[0]["can_upload"] is False
+    assert rows[0]["name"] == "Water Pump"
+
+
+def test_local_catalog_includes_tasmota_folder(tmp_path: Path):
+    from fleet_bridge import FleetBridge
+
+    registry = tmp_path / "device_fleet.yaml"
+    registry.write_text(
+        "broker: {host: 127.0.0.1, port: 1883}\n"
+        "devices:\n"
+        "  - id: demo\n"
+        "    status_topic: demo/status\n"
+        "    timeout_sec: 30\n",
+        encoding="utf-8",
+    )
+    bridge = FleetBridge(
+        {
+            "device_fleet": {
+                "catalog": "local",
+                "registry": str(registry),
+                "state": str(tmp_path / "state.json"),
+                "cache": str(tmp_path / "cache.yaml"),
+            }
+        }
+    )
+    assert bridge.catalog_source == "local"
+    ids = [row["id"] for row in bridge.rows()]
+    assert ids[0] == "demo"
+    assert "tasmota/pompaApa" in ids
+    pump = next(row for row in bridge.rows() if row["id"] == "tasmota/pompaApa")
+    assert pump["kind"] == "tasmota"
+    assert pump["can_upload"] is False

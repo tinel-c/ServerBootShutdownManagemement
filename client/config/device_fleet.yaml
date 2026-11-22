@@ -1,5 +1,6 @@
-# Bundled copy for Windows ClientMonitor installs.
-# Source of truth in the monorepo: scripts/status/device_fleet.yaml
+# Offline fallback for Windows ClientMonitor.
+# The client fetches scripts/status/device_fleet.yaml and device/tasmota/catalog.yaml
+# from GitHub. This file is used only when that fetch fails and no cache exists.
 # status_topic: any message means the device is live.
 # expected: false excludes a device from the "should be online" count (default true).
 # flash: true is the default for every new ESP device (post-build fleet OTA).

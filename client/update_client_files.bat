@@ -12,7 +12,7 @@ REM Check for administrator privileges
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo ERROR: This script must be run as Administrator!
-    pause
+    if "%CLIENT_UPDATE_INTERACTIVE%"=="1" pause
     exit /b 1
 )
 
@@ -23,7 +23,7 @@ set UPDATE_SOURCE=%~dp0
 if not exist "%INSTALL_DIR%" (
     echo ERROR: Installation directory not found at %INSTALL_DIR%
     echo Please run install_client.bat first.
-    pause
+    if "%CLIENT_UPDATE_INTERACTIVE%"=="1" pause
     exit /b 1
 )
 
@@ -40,9 +40,13 @@ if exist "%BACKUP_DIR%" (
 mkdir "%BACKUP_DIR%"
 xcopy /E /I /Q /Y "%INSTALL_DIR%\*" "%BACKUP_DIR%\" >nul 2>&1
 if %errorLevel% neq 0 (
-    echo WARNING: Backup may be incomplete. Continue anyway? (Y/N)
-    choice /C YN /N
-    if errorlevel 2 exit /b 1
+    echo WARNING: Backup may be incomplete.
+    if "%CLIENT_UPDATE_INTERACTIVE%"=="1" (
+        choice /C YN /N
+        if errorlevel 2 exit /b 1
+    ) else (
+        echo Continuing with the update.
+    )
 )
 echo Backup created at %BACKUP_DIR%
 
@@ -59,9 +63,12 @@ if %errorLevel% equ 0 (
     timeout /t 2 /nobreak >nul
 )
 
-REM Kill any running processes
-taskkill /F /IM python.exe /FI "WINDOWTITLE eq ClientMonitor*" >nul 2>&1
-taskkill /F /IM pythonw.exe /FI "WINDOWTITLE eq ClientServerBootShutdownManagement*" >nul 2>&1
+REM Stop the tray client. Window title filters miss pythonw, so match the script.
+set "PIDFILE=%LOCALAPPDATA%\ClientMonitor\client.pid"
+if exist "%PIDFILE%" (
+    for /f "usebackq delims=" %%P in ("%PIDFILE%") do taskkill /PID %%P /F >nul 2>&1
+)
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -and $_.CommandLine -like '*client_monitor.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>&1
 taskkill /F /IM ClientMonitor.exe >nul 2>&1
 
 timeout /t 1 /nobreak >nul
@@ -88,6 +95,16 @@ if exist "%UPDATE_SOURCE%fleet_bridge.py" (
     echo  - fleet_bridge.py
 )
 
+if exist "%UPDATE_SOURCE%device_catalog.py" (
+    copy /Y "%UPDATE_SOURCE%device_catalog.py" "%INSTALL_DIR%\" >nul
+    echo  - device_catalog.py
+)
+
+if exist "%UPDATE_SOURCE%tasmota_discover.py" (
+    copy /Y "%UPDATE_SOURCE%tasmota_discover.py" "%INSTALL_DIR%\" >nul
+    echo  - tasmota_discover.py
+)
+
 if exist "%UPDATE_SOURCE%device_fleet_panel.py" (
     copy /Y "%UPDATE_SOURCE%device_fleet_panel.py" "%INSTALL_DIR%\" >nul
     echo  - device_fleet_panel.py
@@ -96,6 +113,16 @@ if exist "%UPDATE_SOURCE%device_fleet_panel.py" (
 if exist "%UPDATE_SOURCE%requirements_client.txt" (
     copy /Y "%UPDATE_SOURCE%requirements_client.txt" "%INSTALL_DIR%\" >nul
     echo  - requirements_client.txt
+)
+
+if exist "%UPDATE_SOURCE%VERSION" (
+    copy /Y "%UPDATE_SOURCE%VERSION" "%INSTALL_DIR%\" >nul
+    echo  - VERSION
+)
+
+if exist "%UPDATE_SOURCE%update_client_files.bat" (
+    copy /Y "%UPDATE_SOURCE%update_client_files.bat" "%INSTALL_DIR%\" >nul
+    echo  - update_client_files.bat
 )
 
 REM Copy config files (preserve user settings by not overwriting .env)
@@ -186,7 +213,12 @@ if %errorLevel% equ 0 (
     goto :update_complete
 ) else (
     echo WARNING: Could not start via service or scheduled task.
-    echo Please start manually or log out and back in.
+    if exist "%INSTALL_DIR%\run_hidden.vbs" (
+        echo Starting with run_hidden.vbs ...
+        wscript.exe "%INSTALL_DIR%\run_hidden.vbs"
+    ) else (
+        echo Please start manually or log out and back in.
+    )
 )
 
 :update_complete
@@ -236,7 +268,7 @@ if %VERIFY_OK% equ 0 (
     echo Rollback complete. Previous version restored.
     echo.
     echo Please check the logs and try updating again.
-    pause
+    if "%CLIENT_UPDATE_INTERACTIVE%"=="1" pause
     exit /b 1
 )
 
@@ -259,4 +291,4 @@ echo   4. Check tooltip shows: v2.4.0 and update check countdown
 echo.
 echo You can delete the backup folder once you confirm everything works.
 echo.
-pause
+if "%CLIENT_UPDATE_INTERACTIVE%"=="1" pause

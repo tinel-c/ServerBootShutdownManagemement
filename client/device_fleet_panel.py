@@ -17,6 +17,16 @@ logger = logging.getLogger(__name__)
 _open_panel: Optional["DeviceFleetPanel"] = None
 
 
+def _device_label(row: Dict[str, Any]) -> str:
+    if row.get("kind") != "tasmota":
+        return str(row.get("id") or "")
+    name = str(row.get("name") or row.get("topic") or row.get("id") or "")
+    topic = str(row.get("topic") or "")
+    if topic and topic != name:
+        return f"{name} ({topic})"
+    return name
+
+
 def raise_device_fleet_panel() -> bool:
     """If a panel is already open, schedule raise and return True."""
     global _open_panel
@@ -55,8 +65,8 @@ class DeviceFleetPanel:
         self.bridge = FleetBridge(config)
         self.root = tk.Tk()
         self.root.title("Device Fleet")
-        self.root.geometry("980x520")
-        self.root.minsize(720, 400)
+        self.root.geometry("1120x560")
+        self.root.minsize(860, 420)
 
         self._rows: List[Dict[str, Any]] = []
         self._selected_id: Optional[str] = None
@@ -78,6 +88,8 @@ class DeviceFleetPanel:
         btns.pack(side=tk.RIGHT)
         self.refresh_btn = ttk.Button(btns, text="Refresh", command=self._on_refresh)
         self.refresh_btn.pack(side=tk.LEFT, padx=4)
+        self.scan_btn = ttk.Button(btns, text="Scan Tasmota", command=self._on_scan)
+        self.scan_btn.pack(side=tk.LEFT, padx=4)
         self.upload_btn = ttk.Button(
             btns, text="Upload firmware…", command=self._on_upload, state=tk.DISABLED
         )
@@ -86,16 +98,17 @@ class DeviceFleetPanel:
         mid = ttk.Frame(self.root, padding=(8, 0, 8, 0))
         mid.pack(fill=tk.BOTH, expand=True)
 
-        cols = ("id", "status", "fw", "ip", "age", "ota_port", "upload")
+        cols = ("kind", "id", "status", "fw", "ip", "age", "ota_port", "upload")
         self.tree = ttk.Treeview(mid, columns=cols, show="headings", selectmode="browse")
         headings = {
-            "id": ("Device", 320),
+            "kind": ("Kind", 90),
+            "id": ("Device", 340),
             "status": ("Status", 80),
-            "fw": ("Firmware", 90),
+            "fw": ("Firmware", 140),
             "ip": ("IP", 120),
             "age": ("Age", 70),
             "ota_port": ("OTA port", 80),
-            "upload": ("Upload", 160),
+            "upload": ("Upload", 180),
         }
         for key, (label, width) in headings.items():
             self.tree.heading(key, text=label)
@@ -120,7 +133,8 @@ class DeviceFleetPanel:
 
     def run(self) -> None:
         self._append_log(
-            f"Registry: {self.bridge.registry_path}\n"
+            f"Catalog: {self.bridge.catalog_note}\n"
+            f"Registry file: {self.bridge.registry_path}\n"
             f"State: {self.bridge.state_path}"
         )
         # Show cached rows immediately, then start live watch.
@@ -146,13 +160,13 @@ class DeviceFleetPanel:
     def _apply_rows(self, rows: List[Dict[str, Any]]) -> None:
         self._rows = rows or []
         summary = summarize_rows(self._rows)
+        extra = ""
+        if summary["registered"] != summary["expected"]:
+            extra += f"  (registered {summary['registered']})"
+        if summary.get("tasmota"):
+            extra += f"   Tasmota {summary['tasmota_online']}/{summary['tasmota']}"
         self.summary_var.set(
-            f"Online {summary['online_expected']} / Expected {summary['expected']}"
-            + (
-                f"  (registered {summary['registered']})"
-                if summary["registered"] != summary["expected"]
-                else ""
-            )
+            f"Online {summary['online_expected']} / Expected {summary['expected']}{extra}"
         )
         selected = self._selected_id
         for item in self.tree.get_children():
@@ -166,7 +180,8 @@ class DeviceFleetPanel:
                 tk.END,
                 iid=iid,
                 values=(
-                    iid,
+                    "Tasmota" if row.get("kind") == "tasmota" else "Firmware",
+                    _device_label(row),
                     "online" if row.get("online") else "offline",
                     row.get("fw") or "—",
                     row.get("ip") or "—",
@@ -207,33 +222,90 @@ class DeviceFleetPanel:
 
     def _set_busy(self, busy: bool) -> None:
         self._busy = busy
-        self.refresh_btn.configure(state=tk.DISABLED if busy else tk.NORMAL)
+        state = tk.DISABLED if busy else tk.NORMAL
+        self.refresh_btn.configure(state=state)
+        self.scan_btn.configure(state=state)
         self._update_upload_button()
 
     def _on_refresh(self) -> None:
         if self._busy:
             return
         self._set_busy(True)
-        self.status_var.set("Refreshing MQTT sightings…")
+        self.status_var.set("Fetching catalog and MQTT sightings…")
 
         def work() -> None:
             try:
-                rows = self.bridge.refresh()
-                self.root.after(0, lambda: self._refresh_done(rows, None))
+                rows = self.bridge.refresh(reload_catalog=True)
+                note = self.bridge.catalog_note
+                self.root.after(0, lambda: self._refresh_done(rows, None, note))
             except Exception as exc:
-                self.root.after(0, lambda: self._refresh_done([], exc))
+                self.root.after(0, lambda: self._refresh_done([], exc, ""))
 
         threading.Thread(target=work, daemon=True).start()
 
-    def _refresh_done(self, rows: List[Dict[str, Any]], err: Optional[BaseException]) -> None:
+    def _refresh_done(
+        self,
+        rows: List[Dict[str, Any]],
+        err: Optional[BaseException],
+        note: str = "",
+    ) -> None:
         self._set_busy(False)
         if err:
             self._append_log(f"Refresh failed: {err}")
             self.status_var.set(f"Refresh failed: {err}")
             return
         self._apply_rows(rows)
+        if note:
+            self._append_log(f"Catalog: {note}")
         self._append_log("Refresh complete")
         self.status_var.set("Refresh complete")
+
+    def _on_scan(self) -> None:
+        if self._busy:
+            return
+        self._set_busy(True)
+        self.status_var.set("Scanning Tasmota on MQTT and the LAN…")
+        self._append_log("Tasmota scan started")
+
+        def work() -> None:
+            try:
+                report = self.bridge.scan_tasmota()
+                rows = self.bridge.rows()
+                self.root.after(0, lambda: self._scan_done(rows, report, None))
+            except Exception as exc:
+                self.root.after(0, lambda: self._scan_done([], {}, exc))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _scan_done(
+        self,
+        rows: List[Dict[str, Any]],
+        report: Dict[str, Any],
+        err: Optional[BaseException],
+    ) -> None:
+        self._set_busy(False)
+        if err:
+            self._append_log(f"Tasmota scan failed: {err}")
+            self.status_var.set(f"Tasmota scan failed: {err}")
+            return
+        self._apply_rows(rows)
+        added = report.get("added") or []
+        self._append_log(
+            f"Tasmota scan: MQTT {report.get('mqtt', 0)}, "
+            f"HTTP {report.get('http', 0)}, "
+            f"added {len(added)}, updated {len(report.get('updated') or [])}"
+        )
+        if report.get("subnets"):
+            self._append_log("HTTP subnets: " + ", ".join(report["subnets"]))
+        if report.get("catalog_path"):
+            self._append_log(f"Updated {report['catalog_path']}")
+        if report.get("error"):
+            self._append_log(str(report["error"]))
+        for device_id in added:
+            self._append_log(f"  + {device_id}")
+        self.status_var.set(
+            f"Tasmota scan finished ({report.get('mqtt', 0)} MQTT, {report.get('http', 0)} HTTP)"
+        )
 
     def _on_upload(self) -> None:
         row = self._selected_row()

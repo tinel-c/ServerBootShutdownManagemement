@@ -47,6 +47,12 @@ Write-Host "Creating GitHub release $Tag..."
 Write-Host "  Title: $Title"
 Write-Host "  Notes: docs/releases/RELEASE_NOTES_v$Version.md"
 
+$ClientVersionFile = Join-Path $RepoRoot "client\VERSION"
+$ClientVersion = (Get-Content $ClientVersionFile -TotalCount 1).Trim().TrimStart("v", "V")
+if ($ClientVersion -ne $Version) {
+    Write-Error "client/VERSION is $ClientVersion but the release tag is $Version. Keep them the same so installed PCs report the release they are running."
+}
+
 & gh release create $Tag --title $Title --notes-file $NotesFile
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -57,4 +63,17 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+Write-Host "Packaging Windows client for installed PCs..."
+python (Join-Path $RepoRoot "scripts\release\package_client.py")
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Client package failed. The GitHub release exists, but PCs will not see a client zip."
+}
+$ClientZip = Join-Path $RepoRoot "dist\client-v$Version.zip"
+& gh release upload $Tag $ClientZip --clobber
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Could not upload $ClientZip. Installed PCs only update when a *client*.zip asset is on the release."
+}
+
 Write-Host "Done: https://github.com/tinel-c/ServerBootShutdownManagemement/releases/tag/$Tag"
+Write-Host "Online PCs update within 24 hours, or immediately with:"
+Write-Host "  python scripts/client/deploy_client_update.py --notify --status"

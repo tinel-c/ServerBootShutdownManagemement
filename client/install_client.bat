@@ -53,9 +53,13 @@ echo [3/6] Copying application files...
 copy /Y "%~dp0client_monitor.py" "%INSTALL_DIR%\" >nul
 if exist "%~dp0auto_updater.py" copy /Y "%~dp0auto_updater.py" "%INSTALL_DIR%\" >nul
 if exist "%~dp0fleet_bridge.py" copy /Y "%~dp0fleet_bridge.py" "%INSTALL_DIR%\" >nul
+if exist "%~dp0device_catalog.py" copy /Y "%~dp0device_catalog.py" "%INSTALL_DIR%\" >nul
+if exist "%~dp0tasmota_discover.py" copy /Y "%~dp0tasmota_discover.py" "%INSTALL_DIR%\" >nul
 if exist "%~dp0device_fleet_panel.py" copy /Y "%~dp0device_fleet_panel.py" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0uninstall_client.bat" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0requirements_client.txt" "%INSTALL_DIR%\" >nul
+if exist "%~dp0VERSION" copy /Y "%~dp0VERSION" "%INSTALL_DIR%\" >nul
+if exist "%~dp0update_client_files.bat" copy /Y "%~dp0update_client_files.bat" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0config\client_config.yaml" "%INSTALL_DIR%\config\" >nul
 if exist "%~dp0config\device_fleet.yaml" copy /Y "%~dp0config\device_fleet.yaml" "%INSTALL_DIR%\config\" >nul
 

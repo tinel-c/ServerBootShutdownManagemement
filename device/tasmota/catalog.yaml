@@ -1,0 +1,187 @@
+# Tasmota devices on the automation LAN.
+# The Windows client fetches this file from GitHub and lists it with the firmware fleet.
+# Device Fleet → Scan Tasmota refreshes addresses and adds newly found boards.
+version: 1
+devices:
+  - id: tasmota/sursaAcvariu
+    topic: sursaAcvariu
+    name: Aquarium Light
+    role: garden
+    status_topic: tele/sursaAcvariu/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    hostname: sursaAcvariu-3926
+    mac: "4C:EB:D6:B7:8F:56"
+    ip: 192.168.2.137
+    fw: 15.0.1(release-tasmota)
+    hardware: ESP8285N08
+    module: 1
+    friendly_name: sursaAcvariu
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/frontHousePower
+    topic: frontHousePower
+    name: Front House Power
+    role: garden
+    status_topic: tele/frontHousePower/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    hostname: frontHousePower-4738
+    mac: "5C:CF:7F:15:12:82"
+    ip: 192.168.2.202
+    fw: 14.6.0(release-lite)
+    hardware: ESP8266EX
+    module: 18
+    friendly_name: frontHousePower1
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/GardenAutomationLights
+    topic: GardenAutomationLights
+    name: Garden Lights
+    role: garden
+    status_topic: tele/GardenAutomationLights/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+  - id: tasmota/sonoffPower320D_afara
+    topic: sonoffPower320D_afara
+    name: Garden Power Hut
+    role: garden
+    status_topic: tele/sonoffPower320D_afara/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    hostname: sonoffPower320D-afara-1236
+    mac: "C0:49:EF:CC:84:D4"
+    ip: 192.168.2.7
+    fw: 13.0.0(tasmota32)
+    hardware: ESP32-D0WD-V3 rev.3
+    module: 0
+    friendly_name: Tasmota
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/IrigationSystem
+    topic: IrigationSystem
+    name: Irrigation System
+    role: garden
+    status_topic: tele/IrigationSystem/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/lumina1sufragerie
+    topic: lumina1sufragerie
+    name: Living room light 1
+    role: house
+    status_topic: tele/lumina1sufragerie/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/lumina2sufragerie
+    topic: lumina2sufragerie
+    name: Living room light 2
+    role: house
+    status_topic: tele/lumina2sufragerie/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/MainGate
+    topic: MainGate
+    name: Main Gate
+    role: gates
+    status_topic: tele/MainGate/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/automatizare_poarta
+    topic: automatizare_poarta
+    name: Main Sliding Gate
+    role: gates
+    status_topic: tele/automatizare_poarta/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    hostname: automatizare-poarta-2180
+    mac: "90:38:0C:A8:C8:84"
+    ip: 192.168.2.96
+    fw: 12.5.0(bluetooth)
+    hardware: ESP32-D0WD-V3 rev.3
+    module: 0
+    friendly_name: Main Sliding Gate
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/LuncaCetatuiiSlidingGateAutomation
+    topic: LuncaCetatuiiSlidingGateAutomation
+    name: Primary Sliding Gate
+    role: gates
+    status_topic: tele/LuncaCetatuiiSlidingGateAutomation/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+  - id: tasmota/portaSecundara
+    topic: portaSecundara
+    name: Secondary Sliding Gate
+    role: gates
+    status_topic: tele/portaSecundara/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+  - id: tasmota/pompaApa
+    topic: pompaApa
+    name: Water Pump
+    role: garden
+    status_topic: tele/pompaApa/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    hostname: pompaApa-0007
+    mac: "CC:50:E3:2E:00:07"
+    ip: 192.168.2.17
+    fw: 13.4.0(tasmota)
+    hardware: ESP8266EX
+    module: 0
+    friendly_name: pompaApa
+    last_scan: "2026-11-22T11:37:53Z"
+  - id: tasmota/sonoffAtelier
+    topic: sonoffAtelier
+    name: Workshop Sonoff
+    role: workshop
+    status_topic: tele/sonoffAtelier/LWT
+    timeout_sec: 660
+    expected: true
+    kind: tasmota
+    flash: false
+    path: device/tasmota
+    hostname: sonoffAtelier-6576
+    mac: "DC:4F:22:AD:19:B0"
+    ip: 192.168.2.108
+    fw: 8.3.1(tasmota)
+    hardware: ESP8285
+    module: 7
+    friendly_name: sonoffAtelier
+    last_scan: "2026-11-22T11:37:53Z"

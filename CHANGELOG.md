@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.25.0] - 2026-11-22
+
+### Added - Windows client self-update for every installed PC
+
+- **Client Monitor 3.25.0** reads `client/VERSION` and, when a newer GitHub release exists, downloads it and runs `update_client_files.bat` without waiting for a keypress. `.env` is kept. The check runs at startup and then on the configured interval (default 24 hours).
+- **Fleet rollout:** `scripts/release/create_release.ps1` uploads `dist/client-vX.Y.Z.zip`. Installed PCs, including 3.11.2, apply any release asset whose name contains `client` and ends in `.zip`.
+- **Wake online PCs:** `python scripts/client/deploy_client_update.py --notify` publishes `clients/all/command/update`. `--status` lists `clients/+/presence` and `clients/+/update` (version is in presence and heartbeat).
+
 ## [3.24.0] - 2026-11-22
 
 ### Added - ESP8266 main gate fleet contract

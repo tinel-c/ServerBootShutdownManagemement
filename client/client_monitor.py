@@ -7,6 +7,7 @@ Includes system tray icon with status indicators
 
 import os
 import sys
+import tempfile
 import time
 import json
 import socket
@@ -355,13 +356,7 @@ class SystemTrayIcon:
         try:
             if self.monitor.auto_updater:
                 logger.info("Manual update check requested")
-                # Force check regardless of interval
-                self.monitor.auto_updater.last_check = None
-                update_thread = threading.Thread(
-                    target=self.monitor._check_updates_async,
-                    daemon=True
-                )
-                update_thread.start()
+                self.monitor.request_update()
                 self.add_request("Checking updates...")
             else:
                 logger.warning("Auto-updater not available")
@@ -434,6 +429,7 @@ class ClientMonitor:
         self.next_heartbeat = 0
         self._device_fleet_panel_request = False
         self._device_fleet_panel_lock = threading.Lock()
+        self._update_gate = threading.Lock()
         self.auto_updater = None
         
         if self.use_tray:
@@ -448,7 +444,11 @@ class ClientMonitor:
         if AUTO_UPDATE_AVAILABLE and self.config.get('client', {}).get('auto_update', {}).get('enabled', True):
             try:
                 check_interval = self.config.get('client', {}).get('auto_update', {}).get('check_interval_hours', 24)
-                self.auto_updater = AutoUpdater(check_interval_hours=check_interval)
+                repo = str(self.config.get('client', {}).get('auto_update', {}).get('github_repo') or "").strip()
+                self.auto_updater = AutoUpdater(
+                    check_interval_hours=check_interval,
+                    repo=repo or None,
+                )
                 logger.info(f"Auto-updater initialized (check interval: {check_interval}h)")
             except Exception as e:
                 logger.warning(f"Could not initialize auto-updater: {e}")
@@ -584,6 +584,14 @@ class ClientMonitor:
     def _on_message(self, client, userdata, msg):
         """Callback when message received"""
         try:
+            topic = msg.topic or ""
+            if topic.endswith("/command/update"):
+                logger.info("Update command received on %s", topic)
+                self.request_update()
+                if self.tray_icon:
+                    self.tray_icon.add_request("Update check")
+                return
+
             payload = json.loads(msg.payload.decode())
             
             # Handle client shutdown command
@@ -658,6 +666,14 @@ class ClientMonitor:
         )
         self.mqtt_client.subscribe(shutdown_topic, qos=1)
         logger.info(f"Subscribed to shutdown commands: {shutdown_topic}")
+
+        update_topic = self.config['mqtt']['topics'].get(
+            'update',
+            'clients/{client_id}/command/update',
+        ).replace('{client_id}', self.client_id)
+        self.mqtt_client.subscribe(update_topic, qos=1)
+        self.mqtt_client.subscribe("clients/all/command/update", qos=1)
+        logger.info("Subscribed to update commands: %s and clients/all/command/update", update_topic)
     
     def _on_publish(self, client, userdata, mid):
         """Callback when message is published"""
@@ -676,6 +692,7 @@ class ClientMonitor:
             "client_id": self.client_id,
             "timestamp": datetime.now().isoformat(),
             "ip_address": self._get_ip_address(),
+            "version": self.client_version(),
         }
         
         payload = json.dumps(message)
@@ -705,6 +722,7 @@ class ClientMonitor:
             "hostname": socket.gethostname(),
             "timestamp": datetime.now().isoformat(),
             "uptime": self._get_uptime(),
+            "version": self.client_version(),
         }
         
         payload = json.dumps(message)
@@ -900,11 +918,7 @@ class ClientMonitor:
                 try:
                     if self.auto_updater.should_check_for_updates():
                         logger.info("Checking for updates...")
-                        update_thread = threading.Thread(
-                            target=self._check_updates_async,
-                            daemon=True
-                        )
-                        update_thread.start()
+                        self.request_update(force=False)
                 except Exception as e:
                     logger.error(f"Error checking for updates: {e}")
                 update_checked = True
@@ -946,8 +960,71 @@ class ClientMonitor:
                 # Even if no update, refresh the icon to show "up to date" status
                 if self.tray_icon and result.get('checked'):
                     self.tray_icon.add_request("Up to date")
+            self._publish_update_status(result)
         except Exception as e:
             logger.error(f"Error in update check: {e}", exc_info=True)
+
+    def client_version(self):
+        """Installed client version from client/VERSION."""
+        if self.auto_updater:
+            return self.auto_updater.current_version
+        return "unknown"
+
+    def request_update(self, force=True):
+        """Check GitHub now and install when a newer release exists.
+
+        Tray menu and MQTT ``clients/all/command/update`` both land here.
+        A second request while one is running is ignored.
+        """
+        if not self.auto_updater:
+            logger.warning("Auto-updater not available")
+            return
+        if not self._update_gate.acquire(blocking=False):
+            logger.info("Update check already running")
+            return
+
+        def run():
+            try:
+                if force:
+                    self.auto_updater.last_check = None
+                self._check_updates_async()
+            finally:
+                self._update_gate.release()
+
+        threading.Thread(target=run, name="client-update", daemon=True).start()
+
+    def _publish_update_status(self, result):
+        """Retained fleet status so deploy_client_update.py --status can see this PC."""
+        if not self.mqtt_client or not self.connected:
+            return
+        topic = self.config['mqtt']['topics'].get(
+            'update_status',
+            'clients/{client_id}/update',
+        ).replace('{client_id}', self.client_id)
+        payload = {
+            "client_id": self.client_id,
+            "hostname": socket.gethostname(),
+            "version": result.get("current_version") or self.client_version(),
+            "latest": result.get("latest_version"),
+            "update_available": bool(result.get("update_available")),
+            "installed": bool(result.get("installed")),
+            "error": result.get("error"),
+            "timestamp": datetime.now().isoformat(),
+        }
+        self.mqtt_client.publish(
+            topic,
+            json.dumps(payload),
+            qos=self.config['mqtt'].get('qos', 1),
+            retain=True,
+        )
+    
+    def _write_pid_file(self):
+        pid_path = Path(os.getenv("LOCALAPPDATA", tempfile.gettempdir())) / "ClientMonitor" / "client.pid"
+        try:
+            pid_path.parent.mkdir(parents=True, exist_ok=True)
+            pid_path.write_text(str(os.getpid()), encoding="utf-8")
+        except OSError as exc:
+            logger.warning("Could not write pid file %s: %s", pid_path, exc)
     
     def _setup_mqtt(self):
         """Setup MQTT client"""
@@ -977,7 +1054,8 @@ class ClientMonitor:
             "hostname": socket.gethostname(),
             "client_id": self.client_id,
             "timestamp": datetime.now().isoformat(),
-            "reason": "connection_lost"
+            "reason": "connection_lost",
+            "version": self.client_version(),
         })
         self.mqtt_client.will_set(will_topic, will_message, qos=1, retain=False)
         
@@ -1026,6 +1104,7 @@ class ClientMonitor:
         """Start the client monitor"""
         logger.info("Starting Client Monitor...")
         self.running = True
+        self._write_pid_file()
         
         # Setup and connect MQTT
         self._setup_mqtt()

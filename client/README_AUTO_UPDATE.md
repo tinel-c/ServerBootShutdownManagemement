@@ -4,6 +4,24 @@
 
 The Client Monitor includes an automatic update system that checks GitHub for new releases and installs them automatically. This ensures all clients stay up-to-date with the latest features and security patches.
 
+## Roll out to every installed PC
+
+There is no list of PCs to push to. Each install pulls the latest GitHub release.
+
+1. Set `client/VERSION` to the same number as the git tag.
+2. Publish the release with `scripts/release/create_release.ps1`. It builds `dist/client-vX.Y.Z.zip` and uploads it. The asset name must contain `client` and end in `.zip`. Copies from 3.11.2 onward already look for that file.
+3. Wake PCs that are online so they do not wait out the 24 hour timer:
+
+```bash
+python scripts/client/deploy_client_update.py --notify --status
+```
+
+`--notify` publishes `clients/all/command/update` on the automation broker (`192.168.2.4`). Each client also listens on `clients/<id>/command/update`. `--status` prints the version from `clients/+/presence` and `clients/+/update`.
+
+PCs that are off update the next time someone logs on (the scheduled task starts the client, which checks GitHub). The task runs at logon with highest privileges so the copy into `C:\Program Files\ClientMonitor` can succeed. `config\.env` is not replaced. The unattended log is `%LOCALAPPDATA%\ClientMonitor\update.log`.
+
+After this build, a release without a client zip still updates, because the client falls back to the tag zipball. The 3.11.2 updater does not do that, so the first hop still needs the zip asset.
+
 ## Features
 
 ### 1. Automatic Update Checks

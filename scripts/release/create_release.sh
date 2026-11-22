@@ -48,12 +48,22 @@ fi
 # Avoid proxy issues in some IDE terminals (same as legacy release_push scripts)
 unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy 2>/dev/null || true
 
+CLIENT_VERSION="$(tr -d '[:space:]' < client/VERSION)"
+CLIENT_VERSION="${CLIENT_VERSION#v}"
+if [[ "$CLIENT_VERSION" != "$VERSION" ]]; then
+  echo "client/VERSION is ${CLIENT_VERSION} but the release tag is ${VERSION}." >&2
+  exit 1
+fi
+
 echo "Creating GitHub release ${TAG}..."
 echo "  Title: ${TITLE}"
 echo "  Notes: ${NOTES_FILE}"
 
 if gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE"; then
+  python scripts/release/package_client.py
+  gh release upload "$TAG" "dist/client-v${VERSION}.zip" --clobber
   echo "Done: https://github.com/tinel-c/ServerBootShutdownManagemement/releases/tag/${TAG}"
+  echo "Online PCs: python scripts/client/deploy_client_update.py --notify --status"
 else
   echo >&2
   echo "If gh failed, create the release in the browser:" >&2

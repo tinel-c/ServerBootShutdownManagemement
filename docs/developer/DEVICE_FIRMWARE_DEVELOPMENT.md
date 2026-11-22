@@ -95,7 +95,7 @@ On Windows, local `espota` often fails after the UDP invite (`No response from d
 
 ## Windows client (status + manual OTA)
 
-The tray app under [`client/`](../../client/) exposes **Device Fleet…** ([`device_fleet_panel.py`](../../client/device_fleet_panel.py)): expected vs online counts, firmware/`ip`, and per-device `.bin` upload through [`device_fleet.py`](../../scripts/status/device_fleet.py). Registry for installs: [`client/config/device_fleet.yaml`](../../client/config/device_fleet.yaml) (keep aligned with [`scripts/status/device_fleet.yaml`](../../scripts/status/device_fleet.yaml)). Details: [README_CLIENT.md](../../client/README_CLIENT.md).
+The tray app under [`client/`](../../client/) exposes **Device Fleet…** ([`device_fleet_panel.py`](../../client/device_fleet_panel.py)): expected vs online counts, firmware/`ip`, and per-device `.bin` upload through [`device_fleet.py`](../../scripts/status/device_fleet.py). The list is fetched from GitHub (`scripts/status/device_fleet.yaml` and [`device/tasmota/catalog.yaml`](../../device/tasmota/catalog.yaml)). [`client/config/device_fleet.yaml`](../../client/config/device_fleet.yaml) is only the offline fallback. **Scan Tasmota** merges boards on the LAN into that catalog. Details: [README_CLIENT.md](../../client/README_CLIENT.md).
 
 ## Do not
 

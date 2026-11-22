@@ -9,7 +9,7 @@ Windows client application for the Server Boot/Shutdown Management System. Monit
 - 🔄 **Auto-Reconnect** - Handles network interruptions gracefully
 - 🎨 **System Tray Icon** - Color-coded status indicator with server information
 - 📊 **Server Status Tracking** - Monitors target server state in real-time
-- 📟 **Device Fleet** - Tray → **Device Fleet…**: expected vs online counts, firmware version, IP, and per-device OTA upload (`.bin`)
+- 📟 **Device Fleet** - Tray → **Device Fleet…**: online catalog from GitHub, expected vs online counts, firmware version, IP, per-device OTA upload (`.bin`), and a Tasmota LAN scan
 - 🔒 **Single instance** - A Windows mutex blocks a second `client_monitor.py` (Task Scheduler / VBS / manual); the duplicate exits immediately
 - 📝 **Logging** - Detailed logs for troubleshooting
 - ⚙️ **Easy Configuration** - Simple YAML with environment variable placeholder support
@@ -124,8 +124,13 @@ client:
 
 device_fleet:
   enabled: true
-  registry: ""          # optional path; default monorepo or config/device_fleet.yaml
+  catalog: github       # github (default) or local
+  github_repo: tinel-c/ServerBootShutdownManagemement
+  github_ref: main
+  registry: ""          # set a file path to force a local registry
   listen_sec: 20
+  tasmota_scan_sec: 8
+  tasmota_http_scan: true
 
 mqtt:
   broker:
@@ -143,13 +148,20 @@ mqtt:
 
 ### Device Fleet window
 
-Tray menu **Device Fleet…** opens a status panel driven by [`config/device_fleet.yaml`](config/device_fleet.yaml) (keep in sync with monorepo [`scripts/status/device_fleet.yaml`](../scripts/status/device_fleet.yaml)):
+Tray menu **Device Fleet…** loads the device list from GitHub:
+
+- [`scripts/status/device_fleet.yaml`](../scripts/status/device_fleet.yaml) — PlatformIO firmware
+- [`device/tasmota/catalog.yaml`](../device/tasmota/catalog.yaml) — Tasmota boards in the device folder
+
+`config/device_fleet.yaml` is an offline fallback. A copy under `%LOCALAPPDATA%\ClientMonitor\` is a cache, not the catalog. Set `catalog: local` or `registry` to a file path to stay on disk.
 
 | Column | Meaning |
 |--------|---------|
 | Online X / Expected Y | Fresh MQTT sightings vs registry entries (`expected: false` excluded from Y) |
-| Firmware | `fw` from JSON status when published (`—` otherwise) |
-| Upload firmware… | Pick a `.bin`; OTA via `device_fleet.py` (`FLEET_OTA_VIA=auto`, broker SSH fallback on Windows) |
+| Tasmota A/B | Online Tasmota boards out of the catalog |
+| Firmware | `fw` from JSON status, or the Tasmota version from the last scan |
+| Upload firmware… | Pick a `.bin` for a PlatformIO device; OTA via `device_fleet.py` (`FLEET_OTA_VIA=auto`, broker SSH fallback on Windows) |
+| Scan Tasmota | Ask `cmnd/tasmotas/Status` (and each known topic) on the broker, then probe the LAN `/24` once for a Tasmota web UI. From a checkout of this repo the scan rewrites `device/tasmota/catalog.yaml` |
 
 Requires MQTT broker access. OTA needs PlatformIO `espota.py` and (for broker fallback) the SSH key to `192.168.2.4`. See [DEVICE_FIRMWARE_DEVELOPMENT.md](../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
 

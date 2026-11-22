@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.24.0] - 2026-11-22
+
+### Added - ESP8266 main gate fleet contract
+
+- **Firmware 1.0.0** in `PlatformIO_ESP8266_Main_Entry` publishes `gate/main/status` (`device`, `fw`, `ip`, `ota_port` 8266) and binds ArduinoOTA after Wi-Fi has an address. `MainGate` relay topics are unchanged. Relay 3 turns off when OTA starts. The GPIO2 LED follows the Wi-Fi blink pattern, and the board enrolls on the SMS watchdog.
+- **`flash` stays false** until that image is UART-flashed once. The running board has no OTA listener, so `pio run` cannot update it yet.
+- **One password template:** `src/password.h_template`. Real values stay in gitignored `src/password.h`.
+
 ## [3.23.0] - 2026-11-22
 
 ### Changed - SMS watchdog re-enroll, dashboard timeout, single tray client

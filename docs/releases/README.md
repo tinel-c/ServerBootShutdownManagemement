@@ -37,6 +37,7 @@ gh release create vX.Y.Z --title "vX.Y.Z — …" --notes-file docs/releases/REL
 
 | Version | Notes |
 |---------|-------|
+| v3.24.0 | [RELEASE_NOTES_v3.24.0.md](RELEASE_NOTES_v3.24.0.md) — Main gate fleet status, single password template |
 | v3.23.0 | [RELEASE_NOTES_v3.23.0.md](RELEASE_NOTES_v3.23.0.md) — SMS watchdog re-enroll, dashboard timeout, single tray client |
 | v3.22.0 | [RELEASE_NOTES_v3.22.0.md](RELEASE_NOTES_v3.22.0.md) — Thyristor dashboard, Wi-Fi LED protocol |
 | v3.21.0 | [RELEASE_NOTES_v3.21.0.md](RELEASE_NOTES_v3.21.0.md) — SMS gateway fleet OTA, SIM800 boot |

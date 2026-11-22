@@ -942,11 +942,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.23.0  
+**Version:** 3.24.0  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.24.0 (2026-11-22) - Main gate fleet status
+- 🚪 **ESP8266 fw 1.0.0** — `gate/main/status` plus ArduinoOTA on port 8266; `MainGate` relay topics unchanged
+- 🔒 **First flash is UART** — `flash` stays false until that image is on the board
+- 🔑 **One password template** — `src/password.h_template`; `src/password.h` stays gitignored
+- See [RELEASE_NOTES_v3.24.0.md](docs/releases/RELEASE_NOTES_v3.24.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.23.0 (2026-11-22) - Watchdog re-enroll and single tray client
 - 📱 **SMS gateway fw 1.1.3** — same-interval watchdog re-enroll is silent

@@ -32,7 +32,7 @@ Over-The-Air (OTA) updates allow firmware to be updated remotely without physica
 
 | Device | Path | Automatic post-build OTA |
 |--------|------|--------------------------|
-| SMS Gateway (ESP32 + SIM800) | `device/esp32-sms-gateway/` | No (watch only until status publishes `ip`) |
+| SMS Gateway (ESP32 + SIM800) | `device/PlatformIO_esp32-sms-gateway/` | No (watch only until status publishes `ip`) |
 | 4-ch thyristor illumination (RY1–4 IO32/26/27/12, LED IO5) | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | Yes — after `pio run` when the board is online |
 | ESP8266 main gate | `device/PlatformIO_ESP8266_Main_Entry/` | No (watch only) |
 
@@ -164,7 +164,7 @@ OTA is automatically enabled when:
 #### Step 1: Build Firmware
 
 ```bash
-cd device/esp32-sms-gateway
+cd device/PlatformIO_esp32-sms-gateway
 
 # Build for target device
 pio run -e lilygo-t-call
@@ -249,7 +249,7 @@ if (mqttConnected) {
 
 ```bash
 # Terminal 1: Monitor device serial output
-cd device/esp32-sms-gateway
+cd device/PlatformIO_esp32-sms-gateway
 pio device monitor
 
 # Terminal 2: Monitor MQTT OTA topics
@@ -352,7 +352,7 @@ sleep 10
 #### Build Release Firmware
 
 ```bash
-cd device/esp32-sms-gateway
+cd device/PlatformIO_esp32-sms-gateway
 
 # Clean previous builds
 pio run --target clean
@@ -699,7 +699,7 @@ jobs:
       
     - name: Build Firmware
       run: |
-        cd device/esp32-sms-gateway
+        cd device/PlatformIO_esp32-sms-gateway
         pio run -e lilygo-t-call
         
     - name: Deploy to Devices
@@ -708,7 +708,7 @@ jobs:
         MQTT_BROKER: ${{ secrets.MQTT_BROKER }}
         OTA_PASSWORD: ${{ secrets.OTA_PASSWORD }}
       run: |
-        cd device/esp32-sms-gateway
+        cd device/PlatformIO_esp32-sms-gateway
         ./scripts/deploy_ota.sh
 ```
 
@@ -732,7 +732,7 @@ jobs:
       
     - name: Build Firmware
       run: |
-        cd device/esp32-sms-gateway
+        cd device/PlatformIO_esp32-sms-gateway
         pio run -e esp32dev
         
     - name: Test OTA (if device available)
@@ -747,16 +747,16 @@ jobs:
 
 ### SMS Gateway Device
 
-**Location:** `device/esp32-sms-gateway/`
+**Location:** `device/PlatformIO_esp32-sms-gateway/`
 
 **OTA Configuration:**
 - Port: 3232
-- Hostname: `esp32-sms-gateway`
+- Hostname (ArduinoOTA): `esp32-sms-gateway` (fleet / repo id: `PlatformIO_esp32-sms-gateway`)
 - Password: Set in `include/passwords.h`
 
 **Quick Update:**
 ```bash
-cd device/esp32-sms-gateway
+cd device/PlatformIO_esp32-sms-gateway
 
 # Enable OTA
 mosquitto_pub -h <mqtt_broker> \
@@ -781,7 +781,7 @@ mosquitto_sub -h <mqtt_broker> \
 - [ArduinoOTA Library](https://github.com/esp8266/Arduino/tree/master/libraries/ArduinoOTA)
 - [ESP32 OTA Updates](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/ota.html)
 - [Project MQTT Protocol](MQTT_PROTOCOL.md)
-- [Device README](../device/esp32-sms-gateway/README.md)
+- [Device README](../device/PlatformIO_esp32-sms-gateway/README.md)
 
 ---
 

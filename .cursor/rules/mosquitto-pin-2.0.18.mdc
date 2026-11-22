@@ -9,7 +9,7 @@ On `192.168.2.4`, use **apt** `mosquitto.service` (not the snap). Stay on **2.0.
 
 ## Why
 
-Mosquitto **2.1.2** (mosquitto-dev PPA) aborted with `free(): double free detected in tcache 2`, restarting hundreds of times. That disconnects MQTT clients — notably **esp32-sms-gateway** (`192.168.2.60`, client id `esp32-sms-gateway`). Disk-full on `/` (e.g. huge Home Assistant log) also breaks persistence and worsens outages.
+Mosquitto **2.1.2** (mosquitto-dev PPA) aborted with `free(): double free detected in tcache 2`, restarting hundreds of times. That disconnects MQTT clients — notably the SMS gateway at `192.168.2.60` (fleet id `PlatformIO_esp32-sms-gateway`; on-device MQTT client id may still be `esp32-sms-gateway` until reflash). Disk-full on `/` (e.g. huge Home Assistant log) also breaks persistence and worsens outages.
 
 ## Required behavior
 
@@ -35,7 +35,8 @@ Verify: `mosquitto -h` → 2.0.18; `timeout 30 mosquitto_sub -h localhost -t 'sm
 | Item | Value |
 |------|--------|
 | IP | `192.168.2.60` |
-| MQTT client id | `esp32-sms-gateway` |
+| Fleet / repo id | `PlatformIO_esp32-sms-gateway` |
+| MQTT client id | Prefer `PlatformIO_esp32-sms-gateway`; live units may still use `esp32-sms-gateway` |
 | Status topic | `sms/gateway/status` |
 
 Docs: [docs/developer/SERVER_DEPLOY.md](docs/developer/SERVER_DEPLOY.md).

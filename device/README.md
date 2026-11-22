@@ -4,7 +4,7 @@ Device projects live in **separate Git repositories** and are included here as *
 
 | Path (this repo) | Upstream | Device |
 |------------------|----------|--------|
-| `device/esp32-sms-gateway/` | [tinel-c/esp32-sms-gateway](https://github.com/tinel-c/esp32-sms-gateway) | ESP32 + SIM800 (LilyGo T-Call) — SMS/MQTT gateway |
+| `device/PlatformIO_esp32-sms-gateway/` | [tinel-c/PlatformIO_esp32-sms-gateway](https://github.com/tinel-c/PlatformIO_esp32-sms-gateway) | ESP32 + SIM800 (LilyGo T-Call) — SMS/MQTT gateway |
 | `device/PlatformIO_ESP8266_Main_Entry/` | [tinel-c/PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry) | ESP8266 — main gate (Node-RED 210–212, 514) |
 | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | [tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination](https://github.com/tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination) | ESP32-WROOM-32E + 4× BT137S (RY1–4: IO32/26/27/12, LED IO5) — 230 V illumination; fleet OTA after `pio run` ([README](PlatformIO_esp32-4ch-thyristor-board-illumination/README.md), [device_fleet.py](../scripts/status/device_fleet.py)) |
 | `device/victron-multiplus-ii/` | *(in-repo docs)* | Victron MultiPlus-II — GX/Modbus/MQTT integration ([README](victron-multiplus-ii/README.md)) |
@@ -20,4 +20,4 @@ Device projects live in **separate Git repositories** and are included here as *
 
 **Refresh pinned revisions** after you pull in a submodule: from the monorepo root, `git add device/<name>` and commit the updated gitlink.
 
-If you see an old inline path `device/sms-gateway/` on disk from before the submodule move, **close any editor using that folder**, delete `device/sms-gateway`, and run `git submodule update --init` so only `device/esp32-sms-gateway` remains.
+If you see an old inline path `device/sms-gateway/` on disk from before the submodule move, **close any editor using that folder**, delete `device/sms-gateway`, and run `git submodule update --init` so only `device/PlatformIO_esp32-sms-gateway` remains.

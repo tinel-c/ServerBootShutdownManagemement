@@ -17,8 +17,8 @@ devices:
     pio_env: esp32dev
     ota_port: 3232
 
-  - id: esp32-sms-gateway
-    path: device/esp32-sms-gateway
+  - id: PlatformIO_esp32-sms-gateway
+    path: device/PlatformIO_esp32-sms-gateway
     status_topic: sms/gateway/status
     timeout_sec: 720
     flash: false

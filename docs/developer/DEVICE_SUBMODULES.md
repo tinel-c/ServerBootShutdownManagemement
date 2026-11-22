@@ -12,7 +12,7 @@ How to **develop, flash, and OTA** firmware once the submodule exists: [DEVICE_F
 
 | Path under `device/` | Rule |
 |----------------------|------|
-| **Directory name** | Prefer the **GitHub repository name** (e.g. `esp32-sms-gateway`, `PlatformIO_ESP8266_Main_Entry`) so paths match upstream and are easy to find. |
+| **Directory name** | Prefer the **GitHub repository name** (e.g. `PlatformIO_esp32-sms-gateway`, `PlatformIO_ESP8266_Main_Entry`) so paths match upstream and are easy to find. |
 | **Submodule** | Always added with `git submodule add <url> device/<path>`. Do not copy firmware trees into the monorepo without a submodule. |
 
 ## Adding a new device repository
@@ -41,7 +41,7 @@ How to **develop, flash, and OTA** firmware once the submodule exists: [DEVICE_F
 
 ## Releasing and CI
 
-- Tag **device releases** in the **device repository** (e.g. `v1.0.0` on `esp32-sms-gateway`).
+- Tag **device releases** in the **device repository** (e.g. `v1.0.0` on `PlatformIO_esp32-sms-gateway`).
 - Tag the **automation** repository when a bundle of submodules and flows is known good; release notes can list each **pinned** submodule commit or tag for reproducible builds.
 
 ## Checklist (copy for issues/PRs)
@@ -52,4 +52,4 @@ How to **develop, flash, and OTA** firmware once the submodule exists: [DEVICE_F
 - [ ] No secrets in the submodule’s tracked files.
 - [ ] `git submodule update --init --recursive` verified on a fresh clone.
 
-**Existing examples:** [esp32-sms-gateway](https://github.com/tinel-c/esp32-sms-gateway), [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry).
+**Existing examples:** [PlatformIO_esp32-sms-gateway](https://github.com/tinel-c/PlatformIO_esp32-sms-gateway), [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry).

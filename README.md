@@ -786,7 +786,7 @@ ServerBootShutdownManagemement/
 ├── device/                         # Hardware integrations (Modbus, ESP32, …)
 │   ├── victron-multiplus-ii/       # Cerbo GX → energy/victron/*
 │   ├── huawei-inverter/            # SUN2000 → energy/huawei/*
-│   ├── esp32-sms-gateway/          # Git submodule → SMS/OTA firmware
+│   ├── PlatformIO_esp32-sms-gateway/  # Git submodule → SMS/OTA firmware
 │   ├── PlatformIO_esp32-4ch-thyristor-board-illumination/  # Git submodule → 4× 230 V thyristor switch + auto-OTA
 │   └── README.md
 │

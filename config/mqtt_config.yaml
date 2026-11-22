@@ -36,7 +36,7 @@ mqtt:
     sms_receive_timestamp: "sms/gateway/receive/timestamp"
     sms_send_response: "sms/gateway/send/response"
     sms_send_timestamp: "sms/gateway/send/timestamp"
-    sms_ota_command: "sms/gateway/command/ota"
+    # OTA listens after Wi-Fi has an IP (fw >= 1.1.0). No enable command.
     sms_ota_status: "sms/gateway/ota/status"
     sms_ota_progress: "sms/gateway/ota/progress"
   

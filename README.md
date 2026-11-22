@@ -121,7 +121,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 💡 **Lights & power** (300–321) — garden Sonoff, Tapo monitor
 - 📹 **Cameras** (611–613) — Tapo ONVIF dashboard, per-camera watchdog, unified watchdog UI · 🐠 **Aquarium** (500–501) · 💧 **Water pump** (410–411, Tasmota)
 - 🔜 **Grundfos SCALA1** (412–413) — *planned* BLE booster; see [docs/GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md)
-- 📱 **SMS gateway** (510–514) — ESP32, multi-reply HELP, OTA
+- 📱 **SMS gateway** (510–514) — ESP32, multi-reply HELP, fleet OTA (`fw` ≥ 1.1.0 publishes `device`, `fw`, `ip`, `ota_port`; `pio run` flashes it)
 
 </details>
 

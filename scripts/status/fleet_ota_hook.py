@@ -62,6 +62,9 @@ def register(env, device_id: str) -> None:
 
     def after_build(source, target, env):  # noqa: ARG001
         firmware = Path(str(target[0]))
+        if not firmware.is_absolute():
+            firmware = Path(env["PROJECT_DIR"]).resolve() / firmware
+        firmware = firmware.resolve()
         if os.environ.get("SKIP_FLEET_OTA") == "1":
             print("ota_after_build: SKIP_FLEET_OTA=1 — leaving {}".format(firmware))
             return

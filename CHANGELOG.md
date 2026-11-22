@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed - SMS gateway fleet OTA (firmware 1.1.1)
+
+- SMS gateway status `sms/gateway/status` is JSON with `device`, `fw`, `ip`, and `ota_port` (3232). ArduinoOTA binds after Wi-Fi has an address. `pio run -e lilygo-t-call` flashes through `scripts/status/fleet_ota_hook.py`.
+- That contract is the default for every new ESP device: [device/templates/platformio-esp32](device/templates/platformio-esp32/README.md), [DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
+- Retired `sms/gateway/command/ota`. First install of 1.1.x on a board that never ran this image still needs UART (`SKIP_FLEET_OTA=1`).
+- Verified 2026-11-22 on `192.168.2.60`: `pio run -e lilygo-t-call` uploaded `1.1.1`. Windows espota failed locally; the fleet retry on `192.168.2.4` finished, and `sms/gateway/status` came back with `fw` `1.1.1`, `ip` `192.168.2.60`, `ota_port` 3232.
+
 ## [3.20.0] - 2026-09-20
 
 ### Added - Host metrics MQTT + Host dashboard

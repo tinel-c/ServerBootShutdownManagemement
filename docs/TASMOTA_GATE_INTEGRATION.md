@@ -8,7 +8,7 @@ This document covers MQTT integration for the **main gate** controller. The **cu
 
 The deployed controller is built from **[PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)** (ESP8266 4-relay board: keypad, MQTT, mains-aware WiFi/MQTT recovery, coil protection on the gate relay). Topic layout matches that repository’s MQTT quick reference.
 
-**Main gate actuator:** **Relay 3** (not Relay 2).
+**Main gate actuator:** **Relay 3** (not Relay 2). From firmware **1.0.0**, fleet status is `gate/main/status` (`device`, `fw`, `ip`, `ota_port` 8266). Relay topics are unchanged.
 
 **Commands (Node-RED → device):**
 ```

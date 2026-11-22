@@ -28,7 +28,9 @@ devices:
 
   - id: PlatformIO_ESP8266_Main_Entry
     path: device/PlatformIO_ESP8266_Main_Entry
-    status_topic: MainGate/STAT/reccurentStatusRelay4
-    timeout_sec: 180
+    status_topic: gate/main/status
+    timeout_sec: 90
+    # Stay false until firmware 1.0.0 is on the board. The previous image has no OTA listener.
     flash: false
+    pio_env: esp12e
     ota_port: 8266

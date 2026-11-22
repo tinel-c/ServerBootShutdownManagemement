@@ -1,7 +1,11 @@
 #pragma once
 
 #include <Arduino.h>
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#else
 #include <WiFi.h>
+#endif
 
 // Wi-Fi status LED for every new ESP device that has a single indicator LED.
 // Copy this header into the device repo. Include board_pins.h first.

@@ -102,6 +102,25 @@ Node-RED page: `/dashboard/illumination` from [nodered/flows/330-4ch-thyristor-i
 
 The blue LED on IO5 is the Wi-Fi indicator (`fw` ≥ 0.2.7), not a channel lamp. It is lit when the pin is low. Associated: lit, with an 80 ms dark wink every 2 s. Joining: 100 ms blink for 3 s after `WiFi.begin`. Down: 500 ms blink. Failure (no SSID, connect failed, or link lost): two short flashes every 1.2 s. New ESP devices copy [device/templates/platformio-esp32/include/wifi_status_led.h](../device/templates/platformio-esp32/include/wifi_status_led.h).
 
+### Main gate (Domain: gate/main and MainGate)
+
+The ESP8266 firmware [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry) keeps the existing `MainGate/CMD/*` and `MainGate/STAT/*` relay topics. From `fw` 1.0.0 it also publishes a fleet snapshot and accepts ArduinoOTA.
+
+| Setting | Value |
+|---------|--------|
+| Client id | `PlatformIO_ESP8266_Main_Entry` |
+| DHCP / ArduinoOTA hostname | `esp8266-main-gate` |
+| OTA port | 8266 |
+| Status LED | GPIO2, lit when low |
+
+| Topic | Direction | Payload |
+|-------|-----------|---------|
+| `gate/main/status` | Device → fleet | JSON: `device`, `fw`, `ip`, `ota_port` (not retained) |
+| `MainGate/CMD/Relay3` | Dashboard → device | `ON` / `OFF` gate pulse. Unchanged |
+| `MainGate/STAT/reccurentStatusRelay4` | Device → Node-RED | `ON` / `OFF`. Still the Node-RED liveness topic |
+
+`flash` stays false in the fleet registry until this image is UART-flashed once. Later updates are `pio run -e esp12e`. OTA start forces Relay 3 off. Mains-off mode drops Wi-Fi, so OTA runs only while mains is on.
+
 ### Victron Energy Topics (Domain: energy/victron)
 
 Published by **`victron-mqtt-publisher.service`** on the automation server (`scripts/victron_mqtt_publisher.py`). The service polls the Cerbo GX via **Modbus TCP** every **10 seconds** (configurable) and publishes to the central MQTT broker.

@@ -39,7 +39,7 @@ Publish on a dedicated status topic listed in `device_fleet.yaml`. Commands and 
 
 Confirm polarity on the hardware. Reference: thyristor IO5, lit when the pin is low, `fw` ≥ 0.2.7. Dashboard: `/dashboard/illumination`.
 
-**Default for every new device:** `flash: true`, status interval about 30 s, `upload_protocol = esptool`, the template post script, SMS watchdog self-registration, and the Wi-Fi LED protocol when the board has one indicator LED. Set `flash: false` only when the firmware cannot accept ArduinoOTA yet (the ESP8266 main gate is the current exception).
+**Default for every new device:** `flash: true`, status interval about 30 s, `upload_protocol = esptool`, the template post script, SMS watchdog self-registration, and the Wi-Fi LED protocol when the board has one indicator LED. Set `flash: false` only until the running image binds ArduinoOTA and publishes `ip`. The ESP8266 main gate source does that from `fw` 1.0.0; `flash` stays false until that image is UART-flashed once.
 
 ## Flash paths (do not mix)
 

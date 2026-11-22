@@ -53,13 +53,19 @@ Call `updateWifiStatusLed(lastWifiBeginMs)` from `loop()`. Pass `millis()` of th
 
 The LED shows Wi-Fi only. Do not tie it to load or channel state.
 
-## 3. Registry
+## 3. Registry, client, and Node-RED
 
-Add the device to both fleet files with `flash: true` (the default for every new device that speaks this contract):
+Add the same device entry to both fleet files with `flash: true` (the default once this contract is on the board):
 
-- `scripts/status/device_fleet.yaml`
-- `client/config/device_fleet.yaml`
+- `scripts/status/device_fleet.yaml` — the catalog the Windows tray loads from GitHub
+- `client/config/device_fleet.yaml` — the offline copy
 
 Set `flash: false` only when the firmware cannot accept ArduinoOTA yet.
 
-Playbook: [docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md](../../../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
+Then wire the rest of the contract, in [docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md](../../../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md):
+
+- `client/device_commands.py` — `commands_for` and `status_topics` for every command and status topic, plus a test
+- A Node-RED page generated like flow 330 (`generate-flow-NNN.mjs`, committed JSON, `deploy-flow-NNN.mjs`) whose buttons publish those same payloads
+- Topic table in `docs/MQTT_PROTOCOL.md`, `nodered/flows/README.md`, and `device/README.md`
+
+The fleet id is one string: repo name, MQTT client id, status `device`, watchdog `name`, and YAML `id`.

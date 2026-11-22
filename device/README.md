@@ -1,6 +1,8 @@
 # Device firmware
 
-Device projects live in **separate Git repositories** and are included here as **git submodules** so each firmware can have its own history, issues, and releases. Adding/pinning submodules: [DEVICE_SUBMODULES.md](../docs/developer/DEVICE_SUBMODULES.md). **Develop / UART / fleet OTA** (required pattern for agents): [DEVICE_FIRMWARE_DEVELOPMENT.md](../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
+Device projects live in **separate Git repositories** and are included here as **git submodules** so each firmware can have its own history, issues, and releases. Adding/pinning submodules: [DEVICE_SUBMODULES.md](../docs/developer/DEVICE_SUBMODULES.md).
+
+**New device (required):** [DEVICE_FIRMWARE_DEVELOPMENT.md](../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md). Copy [templates/platformio-esp32](templates/platformio-esp32/README.md). One fleet id, then MQTT, OTA, the SMS watchdog, a Device Fleet row and command buttons, and a Node-RED page that sends those same commands.
 
 | Path (this repo) | Upstream | Device |
 |------------------|----------|--------|

@@ -6,6 +6,8 @@ This project started as a way to remotely boot and shut down two Proxmox servers
 
 Everything talks over **MQTT**. Node-RED provides dashboards and logic. Python systemd services handle hardware control, Modbus polling, and health checks. You operate it from a browser, Telegram, or SMS — and the system can act on its own when clients connect, solar surplus appears, or a device stops reporting.
 
+The same repository is the **firmware harness for the ESP family**. A new ESP32 or ESP8266 board starts from one template and ships with MQTT, over-the-air updates, an SMS watchdog, a Node-RED page, and a row in the Windows Device Fleet.
+
 <p align="center">
   <img src="docs/images/readme_access.png" alt="Control from anywhere — Dashboard, Telegram, SMS" width="49%" />
   <img src="docs/images/readme_servers.png" alt="Server management — WoL, iLO, Proxmox" width="49%" />
@@ -13,6 +15,9 @@ Everything talks over **MQTT**. Node-RED provides dashboards and logic. Python s
 <p align="center">
   <img src="docs/images/readme_energy.png" alt="Solar energy — Victron and Huawei via MQTT" width="49%" />
   <img src="docs/images/readme_home.png" alt="Home and courtyard automation" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/images/readme_esp_firmware.jpg" alt="ESP family firmware — ESP32 and ESP8266 boards on MQTT, with OTA, watchdog, dashboard, and fleet" width="100%" />
 </p>
 
 ## What It Does
@@ -49,6 +54,22 @@ Quick map of the five pillars — each has its own Node-RED flow range, MQTT top
 | **Gates** | Main, sliding, secondary — MQTT + Telegram |
 | **Irrigation** | Rain-smart zones, Open-Meteo, dashboard status |
 | **Lights & more** | Garden lights, water pump, aquarium, cameras |
+
+### 🔩 ESP device firmware
+
+![One harness for every ESP board](docs/images/readme_esp_lifecycle.jpg)
+
+ESP32 and ESP8266 firmware is built in this repo, not bolted on afterwards. Copy [`device/templates/platformio-esp32`](device/templates/platformio-esp32/README.md), keep **one fleet id**, and the board gets the same five pieces every time.
+
+| Piece | What the harness provides |
+|------------|---------|
+| **MQTT** | Status JSON (`device`, `fw`, `ip`, `ota_port`) and one command topic on `192.168.2.4:1883` |
+| **OTA** | UART for the first image, then `pio run` flashes the live board |
+| **Watchdog** | The SMS gateway texts only after a device has been silent |
+| **Dashboard** | A Node-RED page whose buttons publish those same commands |
+| **Device Fleet** | Online, firmware, IP, and one Windows-client button per command |
+
+Boards already on this path: the ESP32 SMS gateway, the ESP32 4-channel illumination switch, and the ESP8266 main gate. Playbook: [DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
 
 ### 📱 Control & alerts
 
@@ -122,6 +143,25 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the diagram below for the f
 - 📹 **Cameras** (611–613) — Tapo ONVIF dashboard, per-camera watchdog, unified watchdog UI · 🐠 **Aquarium** (500–501) · 💧 **Water pump** (410–411, Tasmota)
 - 🔜 **Grundfos SCALA1** (412–413) — *planned* BLE booster; see [docs/GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md)
 - 📱 **SMS gateway** (510–514) — ESP32, multi-reply HELP, fleet OTA (`fw` ≥ 1.1.0 publishes `device`, `fw`, `ip`, `ota_port`; `pio run` flashes it)
+
+</details>
+
+<details open>
+<summary><strong>🔩 ESP family firmware</strong></summary>
+
+![ESP32 and ESP8266 on the MQTT harness](docs/images/readme_esp_firmware.jpg)
+
+The harness creates device firmware for the ESP family. ESP32 and ESP8266 boards share one contract, copied from [`device/templates/platformio-esp32`](device/templates/platformio-esp32/README.md). Each board is its own Git repository, pinned here as a submodule.
+
+- 🧩 **One fleet id** — repo name, MQTT client id, status `device`, watchdog name, and the Device Fleet row
+- 📡 **MQTT** — status about every 30 s and a single command topic, documented in [MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md)
+- ⬆️ **OTA** — `ArduinoOTA` after Wi-Fi has an address; first flash is UART, later flashes are `pio run`
+- 🛡️ **Watchdog** — `smsWatchdogRegister` on connect and on the status cadence
+- 🪟 **Windows client** — the device appears in Device Fleet with live status and a button for every command
+- 🎛️ **Node-RED** — a generated dashboard page that sends the same payloads as those buttons
+- 💡 **Wi-Fi LED** — one blink language on every board that has a single indicator LED
+
+Live firmware: [SMS gateway](device/PlatformIO_esp32-sms-gateway/) (ESP32), [4-channel illumination](device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (ESP32), [main gate](device/PlatformIO_ESP8266_Main_Entry/) (ESP8266). Start a new board from [DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
 
 </details>
 
@@ -783,11 +823,13 @@ ServerBootShutdownManagemement/
 │   ├── mqtt_config.yaml
 │   └── server_config.yaml
 │
-├── device/                         # Hardware integrations (Modbus, ESP32, …)
+├── device/                         # Hardware integrations and ESP-family firmware
 │   ├── victron-multiplus-ii/       # Cerbo GX → energy/victron/*
 │   ├── huawei-inverter/            # SUN2000 → energy/huawei/*
-│   ├── PlatformIO_esp32-sms-gateway/  # Git submodule → SMS/OTA firmware
-│   ├── PlatformIO_esp32-4ch-thyristor-board-illumination/  # Git submodule → 4× 230 V thyristor switch + auto-OTA
+│   ├── PlatformIO_esp32-sms-gateway/  # Git submodule → ESP32 SMS gateway
+│   ├── PlatformIO_esp32-4ch-thyristor-board-illumination/  # Git submodule → ESP32 4× 230 V switch
+│   ├── PlatformIO_ESP8266_Main_Entry/ # Git submodule → ESP8266 main gate
+│   ├── templates/platformio-esp32/ # Copy this to start a new ESP32 or ESP8266 device
 │   └── README.md
 │
 ├── scripts/
@@ -852,6 +894,7 @@ ServerBootShutdownManagemement/
 | Grundfos SCALA1 *(planned)* | [docs/GRUNDGOS_SCALA1.md](docs/GRUNDGOS_SCALA1.md) |
 | Node-RED import order | [nodered/flows/README.md](nodered/flows/README.md) |
 | MQTT topic reference | [docs/MQTT_PROTOCOL.md](docs/MQTT_PROTOCOL.md) |
+| New ESP32 / ESP8266 firmware | [docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md) |
 | GitHub release | [docs/releases/](docs/releases/) + `scripts/release/create_release.sh` |
 
 ## Documentation
@@ -892,6 +935,7 @@ ServerBootShutdownManagemement/
 - [Commit Checklist](docs/developer/COMMIT_CHECKLIST.md) - Pre-flight checks
 - [Documentation Policy](docs/developer/DOCUMENTATION_POLICY.md) - Standards for docs
 - [OTA Device Updates](docs/developer/OTA_DEVICE_UPDATES.md) - OTA update development guide
+- [ESP device firmware](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md) - Required defaults for every new ESP32 or ESP8266 board (MQTT, OTA, watchdog, client, Node-RED)
 
 ### Release Information
 - [Changelog](CHANGELOG.md) - Complete version history
@@ -903,7 +947,7 @@ ServerBootShutdownManagemement/
 ### Hardware (pick what you use)
 - **Servers:** Dell T310 (WoL/IPMI + Proxmox), HP DL360p (iLO + Proxmox), and/or media server (SSH + Tuya PCIe)
 - **Automation host:** Ubuntu VM/PC on the LAN (runs this repo’s Python services and Node-RED)
-- **Optional:** Victron Cerbo GX, Huawei SUN2000, ESP32 SMS gateway, Tasmota/Sonoff IoT, Tapo cameras
+- **Optional:** Victron Cerbo GX, Huawei SUN2000, ESP32 or ESP8266 boards (SMS gateway, gates, lights), Tasmota/Sonoff IoT, Tapo cameras
 
 ### Software
 - Ubuntu 22.04+ on the automation server
@@ -942,11 +986,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.26.3  
+**Version:** 3.26.4  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.26.4 (2026-11-22) - ESP firmware harness
+- 🔩 **ESP32 and ESP8266** firmware starts from one template: MQTT, OTA, watchdog, Node-RED, and Device Fleet
+- 📘 **Playbook** lists every file a new board must touch
+- See [RELEASE_NOTES_v3.26.4.md](docs/releases/RELEASE_NOTES_v3.26.4.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.26.3 (2026-11-22) - Device Fleet commands
 - 🪟 **Device Fleet** shows an icon, live status for the selected device, and a button for every command that device accepts

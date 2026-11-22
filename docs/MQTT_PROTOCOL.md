@@ -6,6 +6,8 @@ This document defines the MQTT message format and protocol for the Dell T310 Man
 
 The system uses MQTT for remote commands, status updates, and telemetry. Most command/response payloads are **JSON**. Energy per-metric topics under `energy/victron/` and `energy/huawei/` use **plain-text scalars**; only `energy/victron/status` and `energy/huawei/status` are JSON snapshots.
 
+A new ESP device adds its topic table here before it is called done. Status is `<domain>/<slug>/status` (JSON with `device`, `fw`, `ip`, `ota_port`, not retained, about every 30 s). Commands are `<domain>/<slug>/command/set`. The same payloads go to the Node-RED page and to `client/device_commands.py`. Broker `192.168.2.4:1883`, anonymous, QoS 1. Full checklist: [DEVICE_FIRMWARE_DEVELOPMENT.md](developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
+
 ## Topics
 
 ### Command Topics (Client → Server)

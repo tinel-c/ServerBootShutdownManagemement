@@ -161,7 +161,10 @@ Tray menu **Device Fleet…** loads the device list from GitHub:
 | Tasmota A/B | Online Tasmota boards out of the catalog |
 | Firmware | `fw` from JSON status, or the Tasmota version from the last scan |
 | Upload firmware… | Pick a `.bin` for a PlatformIO device; OTA via `device_fleet.py` (`FLEET_OTA_VIA=auto`, broker SSH fallback on Windows) |
+| Selected device | Status text (online, firmware, IP, age, signal, last payload, live MQTT) and one button per command from [`device_commands.py`](device_commands.py). Payloads match the Node-RED page. |
 | Scan Tasmota | Ask `cmnd/tasmotas/Status` (and each known topic) on the broker, then probe the LAN `/24` once for a Tasmota web UI. From a checkout of this repo the scan rewrites `device/tasmota/catalog.yaml` |
+
+A new firmware row appears after `scripts/status/device_fleet.yaml` is on `main`. Its command buttons appear after the next client release, because `device_commands.py` is installed from the client zip. Adding a device: [DEVICE_FIRMWARE_DEVELOPMENT.md](../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
 
 Requires MQTT broker access. OTA needs PlatformIO `espota.py` and (for broker fallback) the SSH key to `192.168.2.4`. See [DEVICE_FIRMWARE_DEVELOPMENT.md](../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
 

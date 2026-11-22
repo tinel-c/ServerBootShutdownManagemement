@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.26.4] - 2026-11-22
+
+### Added - ESP firmware harness on the front page
+
+- The README shows that this repository builds ESP32 and ESP8266 firmware. A new board starts from `device/templates/platformio-esp32` and ships with MQTT, OTA, the SMS watchdog, a Node-RED page, and Device Fleet.
+- [DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md) is the checklist: one fleet id, the five defaults, every file to touch, and the order of work.
+
 ## [3.26.3] - 2026-11-22
 
 ### Added - Device Fleet commands

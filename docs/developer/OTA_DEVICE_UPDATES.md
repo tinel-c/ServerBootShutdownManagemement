@@ -70,7 +70,7 @@ The thyristor `platformio.ini` uses **esptool** for `pio run -t upload` (Serial 
 
 Thyristor firmware ≥ **0.2.2** starts ArduinoOTA only after Wi-Fi has an IP (serial: `OTA listening on …:3232`). An OTA reboot turns the 230 V channels off; the firmware already forces channels off on OTA start and on boot.
 
-Windows ClientMonitor tray → **Device Fleet…** shows online vs expected counts, firmware versions, and per-device `.bin` upload (same `device_fleet.py` / broker fallback). See [client/README_CLIENT.md](../../client/README_CLIENT.md) and [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md).
+Windows ClientMonitor tray → **Device Fleet…** shows online vs expected counts, firmware versions, per-device `.bin` upload (same `device_fleet.py` / broker fallback), and, for the selected device, live status plus a button per command (`client/device_commands.py`). See [client/README_CLIENT.md](../../client/README_CLIENT.md) and [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md).
 
 ### OTA Technology Stack
 

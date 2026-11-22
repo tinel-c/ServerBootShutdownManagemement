@@ -761,6 +761,10 @@ system/logs
 | UI | `/dashboard/host` — gauges + 1h / 25h / 1m charts |
 | Deploy | `node nodered/live-connection/scripts/generate-flow-910.mjs && node …/deploy-flow-910.mjs` |
 
+### New PlatformIO device
+
+Add a dashboard with the firmware, not afterwards. Copy flow 330: `generate-flow-NNN.mjs` writes `NNN-<slug>.json`, `deploy-flow-NNN.mjs` replaces that tab on Node-RED (`NODE_RED_BASE_URL`, default `http://192.168.2.4:1880`). Buttons publish the same topic and payload as `client/device_commands.py`. Status widgets subscribe to `<domain>/<slug>/status`. Record the page here and the topics in `docs/MQTT_PROTOCOL.md`. The full contract (MQTT, OTA, watchdog, client, this page) is [DEVICE_FIRMWARE_DEVELOPMENT.md](../../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
+
 ### 4-channel thyristor illumination (330)
 
 **File:** `330-4ch-thyristor-illumination.json`

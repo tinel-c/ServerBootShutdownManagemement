@@ -48,7 +48,7 @@ How to **develop, flash, and OTA** firmware once the submodule exists: [DEVICE_F
 
 - [ ] Device repo is public (or team has access) and default branch is buildable.
 - [ ] `git submodule add` used; `device/README.md` updated.
-- [ ] Fleet contract: status JSON has `device`, `fw`, `ip`, `ota_port`; `ArduinoOTA.begin()` after STA IP; `handle()` in `loop()`; `scripts/ota_after_build.py` calls `fleet_ota_hook.py`; both `device_fleet.yaml` files have `flash: true`. Copy [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md).
+- [ ] Fleet contract from [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md): one fleet id; status JSON `device`, `fw`, `ip`, `ota_port`; command topic; `ArduinoOTA.begin()` after STA IP; `scripts/ota_after_build.py`; both `device_fleet.yaml` files with `flash: true`; `smsWatchdogRegister`; `client/device_commands.py` plus a test; Node-RED `generate-flow-NNN.mjs` / `deploy-flow-NNN.mjs` with the same command payloads. Copy [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md).
 - [ ] Docs that referenced old paths (if any) updated.
 - [ ] No secrets in the submodule’s tracked files.
 - [ ] `git submodule update --init --recursive` verified on a fresh clone.

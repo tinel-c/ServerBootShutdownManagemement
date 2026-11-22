@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import socket
 import subprocess
 import sys
 import time
@@ -180,7 +181,30 @@ def find_espota() -> Path:
     )
 
 
-def run_espota(bin_path: Path, ip: str, port: int, password: Optional[str] = None) -> int:
+def guess_host_ip(remote_ip: str) -> Optional[str]:
+    """Local IPv4 used to reach remote_ip (espota -I). Avoids bind 0.0.0.0 callback misses."""
+    try:
+        probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            probe.connect((remote_ip, 9))
+            host_ip = probe.getsockname()[0]
+        finally:
+            probe.close()
+    except OSError:
+        return None
+    if not host_ip or host_ip.startswith("127."):
+        return None
+    return host_ip
+
+
+def _ssh_identity() -> Path:
+    override = os.environ.get("FLEET_OTA_SSH_KEY")
+    if override:
+        return Path(override)
+    return Path.home() / ".ssh" / "serverside_192_168_2_4_ed25519"
+
+
+def run_espota_local(bin_path: Path, ip: str, port: int, password: Optional[str] = None) -> int:
     espota = find_espota()
     cmd = [
         sys.executable,
@@ -191,12 +215,75 @@ def run_espota(bin_path: Path, ip: str, port: int, password: Optional[str] = Non
         str(port),
         "-f",
         str(bin_path),
+        "-r",
     ]
+    host_ip = guess_host_ip(ip)
+    if host_ip:
+        cmd.extend(["-I", host_ip])
     if password:
         cmd.extend(["-a", password])
     print(f"espota: {' '.join(cmd)}")
     completed = subprocess.run(cmd, check=False)
     return int(completed.returncode)
+
+
+def run_espota_via_broker(
+    bin_path: Path, ip: str, port: int, password: Optional[str] = None
+) -> int:
+    """Run espota on the MQTT broker host (bypasses Windows inbound firewall)."""
+    broker = os.environ.get("FLEET_OTA_BROKER", "192.168.2.4")
+    user = os.environ.get("FLEET_OTA_SSH_USER", "tinel")
+    key = _ssh_identity()
+    if not key.is_file():
+        print(f"broker OTA: SSH key not found: {key}", file=sys.stderr)
+        return 1
+    espota = find_espota()
+    remote_bin = f"/tmp/fleet-ota-{os.getpid()}.bin"
+    remote_espota = f"/tmp/fleet-espota-{os.getpid()}.py"
+    target = f"{user}@{broker}"
+    scp = ["scp", "-o", "BatchMode=yes", "-i", str(key)]
+    ssh = ["ssh", "-o", "BatchMode=yes", "-i", str(key), target]
+    print(f"espota via broker: {target} → {ip}:{port}")
+    for src, dst in ((bin_path, remote_bin), (espota, remote_espota)):
+        rc = subprocess.run(scp + [str(src), f"{target}:{dst}"], check=False)
+        if rc.returncode != 0:
+            print(f"broker OTA: scp failed for {src}", file=sys.stderr)
+            return int(rc.returncode)
+    ota = [
+        "python3",
+        remote_espota,
+        "-i",
+        ip,
+        "-p",
+        str(port),
+        "-f",
+        remote_bin,
+        "-r",
+        "-I",
+        broker,
+    ]
+    if password:
+        ota.extend(["-a", password])
+    # Quote remotely so paths stay intact.
+    remote_cmd = " ".join(ota) + f"; ec=$?; rm -f {remote_bin} {remote_espota}; exit $ec"
+    completed = subprocess.run(ssh + [remote_cmd], check=False)
+    return int(completed.returncode)
+
+
+def run_espota(bin_path: Path, ip: str, port: int, password: Optional[str] = None) -> int:
+    """Local espota, with optional SSH fallback to the automation broker.
+
+    FLEET_OTA_VIA=auto|local|broker (default auto). Windows often needs broker
+    because inbound TCP from the ESP is blocked by the firewall.
+    """
+    mode = (os.environ.get("FLEET_OTA_VIA") or "auto").strip().lower()
+    if mode == "broker":
+        return run_espota_via_broker(bin_path, ip, port, password=password)
+    rc = run_espota_local(bin_path, ip, port, password=password)
+    if rc == 0 or mode == "local":
+        return rc
+    print("espota local failed; retrying via broker …", file=sys.stderr)
+    return run_espota_via_broker(bin_path, ip, port, password=password)
 
 
 def _make_mqtt_client(client_id: str) -> "mqtt.Client":

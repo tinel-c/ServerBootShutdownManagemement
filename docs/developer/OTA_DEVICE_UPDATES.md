@@ -57,9 +57,11 @@ python scripts/status/device_fleet.py flash \
   --bin device/PlatformIO_esp32-4ch-thyristor-board-illumination/.pio/build/esp32dev/firmware.bin
 ```
 
-The thyristor `platformio.ini` runs `scripts/ota_after_build.py` after every successful `firmware.bin`. That hook calls `device_fleet.py flash`. Offline or missing IP is a soft success (the `.bin` remains). A failed `espota` to a live board fails the build post-step.
+The thyristor `platformio.ini` uses **esptool** for `pio run -t upload` (Serial Burn / first flash). It also runs `scripts/ota_after_build.py` after every successful `firmware.bin` from `pio run`. That hook calls `device_fleet.py flash`. Offline or missing IP is a soft success (the `.bin` remains) — do not rely on PlatformIO’s Upload button for OTA. A failed `espota` to a live board fails the build post-step.
 
-An OTA reboot turns the 230 V channels off; the firmware already forces channels off on OTA start and on boot.
+`device_fleet.py flash` binds espota with `-I` to the PC’s LAN IP. If the local attempt fails (common on Windows when the firewall blocks the ESP’s TCP callback), it retries over SSH on `192.168.2.4` (`FLEET_OTA_VIA=auto`). Force with `FLEET_OTA_VIA=broker` or `local`. SSH uses `%USERPROFILE%\.ssh\serverside_192_168_2_4_ed25519` (override with `FLEET_OTA_SSH_KEY`). Set `SKIP_FLEET_OTA=1` during `pio run` / UART upload when you must not touch a live board.
+
+Thyristor firmware ≥ **0.2.2** starts ArduinoOTA only after Wi-Fi has an IP (serial: `OTA listening on …:3232`). An OTA reboot turns the 230 V channels off; the firmware already forces channels off on OTA start and on boot.
 
 ### OTA Technology Stack
 
@@ -483,28 +485,25 @@ done
    - Check MQTT status topic
    - Ping device: `ping <device_ip>`
 
-#### Issue 2: Upload Timeout
+#### Issue 2: Upload Timeout / `No response from device`
 
 **Symptoms:**
-- Upload starts but times out
-- Progress stops at certain percentage
+- `Sending invitation` then `No response from device` (UDP OK, TCP callback never arrives)
+- Or invitation dots then `No response from the ESP` (device not listening)
+- Progress stops mid-transfer
 
 **Solutions:**
-1. Check network stability:
+1. Confirm MQTT status has a fresh `ip` and (thyristor) serial shows `OTA listening on <ip>:3232`.
+2. Prefer fleet flash (auto broker fallback) instead of PlatformIO `upload_protocol=espota`:
    ```bash
-   ping -c 10 <device_ip>
-   # Check for packet loss
+   python scripts/status/device_fleet.py flash \
+     --id PlatformIO_esp32-4ch-thyristor-board-illumination \
+     --bin device/PlatformIO_esp32-4ch-thyristor-board-illumination/.pio/build/esp32dev/firmware.bin
+   # or force: set FLEET_OTA_VIA=broker
    ```
-
-2. Increase timeout in PlatformIO:
-   ```ini
-   [env:lilygo-t-call]
-   upload_timeout = 120  # seconds
-   ```
-
-3. Check firewall:
-   - Ensure port 3232 is open
-   - Check router settings
+3. On Windows: allow inbound TCP to Python for the espota host port, or use the broker path above.
+4. Check network stability: `ping <device_ip>` — brownouts/Wi-Fi drops abort OTA.
+5. Do not use Upload → `127.0.0.1`; thyristor UART is `esptool` on COMx.
 
 #### Issue 3: Update Fails Mid-Transfer
 

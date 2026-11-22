@@ -89,7 +89,7 @@ Published by the ESP32 firmware [PlatformIO_esp32-4ch-thyristor-board-illuminati
 | `illumination/4ch-thyristor/ota/status` | Device → subscribers | `{"device","fw","state":"started\|completed\|error","detail"}` |
 | `illumination/4ch-thyristor/ota/progress` | Device → subscribers | `{"device","progress","total","percent"}` |
 
-GPIO map (confirmed): RY1=IO32, RY2=IO26, RY3=IO27, RY4=IO12, status LED=IO5. With that map, `outputs_enabled` is true. `ip` and `ota_port` feed [scripts/status/device_fleet.py](../scripts/status/device_fleet.py) for automatic post-build OTA.
+GPIO map (confirmed): RY1=IO32, RY2=IO26, RY3=IO27, RY4=IO12, status LED=IO5. With that map, `outputs_enabled` is true. `ip` and `ota_port` feed [scripts/status/device_fleet.py](../scripts/status/device_fleet.py) for automatic post-build OTA (fw ≥ 0.2.2 binds ArduinoOTA after STA has an IP; Windows fleet flash may fall back to espota on `192.168.2.4`).
 
 ### Victron Energy Topics (Domain: energy/victron)
 

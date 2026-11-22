@@ -942,16 +942,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.26.1  
+**Version:** 3.26.2  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
 
-### v3.26.1 (2026-11-22) - Tray client stays up when Device Fleet opens
-- 🪟 **Device Fleet** runs in its own process so Tk no longer aborts the tray client
+### v3.26.2 (2026-11-22) - UART upload and SMS domain gateway
 - 🔧 **Fleet flash off** no longer fails a UART upload after the firmware image is written
 - 📱 **SMS** splits ingress (514) from domain commands (515), including per-switch lights, irrigation, and energy
+- See [RELEASE_NOTES_v3.26.2.md](docs/releases/RELEASE_NOTES_v3.26.2.md) and [CHANGELOG.md](CHANGELOG.md)
+
+### v3.26.1 (2026-11-22) - Tray client stays up when Device Fleet opens
+- 🪟 **Device Fleet** runs in its own process so Tk no longer aborts the tray client
 - See [RELEASE_NOTES_v3.26.1.md](docs/releases/RELEASE_NOTES_v3.26.1.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.26.0 (2026-11-22) - Device builds on a new PC

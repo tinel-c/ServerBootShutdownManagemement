@@ -12,7 +12,7 @@ from auto_updater import is_newer, read_local_version, release_download_url  # n
 
 
 def test_version_file_matches_release_line():
-    assert read_local_version(CLIENT / "VERSION") == "3.26.1"
+    assert read_local_version(CLIENT / "VERSION") == "3.26.2"
 
 
 def test_is_newer_semver():

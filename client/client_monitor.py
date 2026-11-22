@@ -66,6 +66,10 @@ def setup_logging():
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# Named mutex so scheduled task / VBS / manual starts cannot stack instances.
+SINGLE_INSTANCE_MUTEX_NAME = "Local\\ClientMonitor_ServerBootShutdown"
+_single_instance_handle = None
+
 # Import auto-updater after logging is set up
 try:
     from auto_updater import AutoUpdater
@@ -73,6 +77,49 @@ try:
 except ImportError:
     logger.warning("Auto-updater module not available")
     AUTO_UPDATE_AVAILABLE = False
+
+
+def acquire_single_instance_lock() -> bool:
+    """Return True if this process owns the only allowed ClientMonitor instance."""
+    global _single_instance_handle
+    if sys.platform != "win32":
+        # Best-effort lock file for non-Windows (dev / rare).
+        lock_dir = Path(os.getenv("LOCALAPPDATA", str(SCRIPT_DIR))) / "ClientMonitor"
+        lock_dir.mkdir(parents=True, exist_ok=True)
+        lock_path = lock_dir / "client_monitor.pid"
+        if lock_path.is_file():
+            try:
+                old_pid = int(lock_path.read_text(encoding="utf-8").strip())
+                os.kill(old_pid, 0)
+                return False
+            except (ValueError, OSError, ProcessLookupError):
+                pass
+        lock_path.write_text(str(os.getpid()), encoding="utf-8")
+        _single_instance_handle = lock_path
+        return True
+
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetLastError(0)
+    kernel32.CreateMutexW.argtypes = [
+        wintypes.LPVOID,
+        wintypes.BOOL,
+        wintypes.LPCWSTR,
+    ]
+    kernel32.CreateMutexW.restype = wintypes.HANDLE
+    handle = kernel32.CreateMutexW(None, False, SINGLE_INSTANCE_MUTEX_NAME)
+    if not handle:
+        logger.error("CreateMutex failed; refusing to start without single-instance lock")
+        return False
+    ERROR_ALREADY_EXISTS = 183
+    # Must clear LastError before CreateMutex; otherwise a stale 183 looks like a duplicate.
+    if kernel32.GetLastError() == ERROR_ALREADY_EXISTS:
+        kernel32.CloseHandle(handle)
+        return False
+    _single_instance_handle = handle
+    return True
 
 
 class SystemTrayIcon:
@@ -1068,6 +1115,11 @@ def signal_handler(signum, frame):
 
 def main():
     """Main entry point"""
+    if not acquire_single_instance_lock():
+        # Exit quietly so Task Scheduler / VBS restarts do not look like failures.
+        logger.info("ClientMonitor already running — exiting duplicate instance")
+        sys.exit(0)
+
     logger.info("=" * 60)
     logger.info("Client PC Monitor Starting")
     logger.info("=" * 60)

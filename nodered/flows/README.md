@@ -534,8 +534,8 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 **Unified watchdog status dashboard**
 
 - Dashboard page `/dashboard/watchdog` — all monitored devices in one view
-- **Node-RED watchdogs** (flow 90): gates, garden, energy, water, SMS gateway
-- **Camera watchdogs** (flow 612): per-slug ICMP health with 3 min timeout; **snapshots on request** via Capture / `command/snapshot`
+- **Node-RED watchdogs** (flow 90): gates, garden, energy, water, SMS gateway. The SMS gateway card waits **12 minutes** (`sms/gateway/status` is published about every 5 minutes).
+- **Camera watchdogs** (flow 612): per-slug ICMP health with 3 min timeout; **snapshots on request** via Capture / `command/snapshot`. A refresh of the dashboard does not publish a snapshot unless the topic is `garden/camera/{slug}/command/snapshot`.
 - **SMS Gateway hardware** enrollments from `sms/gateway/watchdog/status`
 - Summary pills (online / offline / unknown) and cards grouped by category
 - Refreshes every 10 s; heartbeats update live via MQTT

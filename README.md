@@ -942,11 +942,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.22.0  
+**Version:** 3.23.0  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.23.0 (2026-11-22) - Watchdog re-enroll and single tray client
+- 📱 **SMS gateway fw 1.1.3** — same-interval watchdog re-enroll is silent
+- ⏱️ **Watchdog page** — SMS gateway card waits 12 minutes; snapshot commands need a camera topic
+- 🔒 **Tray client** — one `client_monitor.py` instance
+- See [RELEASE_NOTES_v3.23.0.md](docs/releases/RELEASE_NOTES_v3.23.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.22.0 (2026-11-22) - Thyristor dashboard and Wi-Fi LED protocol
 - 💡 **Illumination page** — `/dashboard/illumination` for the 4-channel thyristor (RY1–RY4 = IO32/IO25/IO27/IO12, firmware **0.2.7**)

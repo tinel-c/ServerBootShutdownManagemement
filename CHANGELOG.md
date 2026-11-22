@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.23.0] - 2026-11-22
+
+### Changed - SMS watchdog re-enroll, dashboard timeout, single tray client
+
+- **SMS gateway firmware 1.1.3** — re-enroll with the same name and interval does not send an “updated” SMS. A changed interval still does. The watch list stays RAM-only.
+- **Flow 613** — SMS gateway card timeout is 12 minutes. Dashboard refresh does not publish a camera snapshot unless the topic is `garden/camera/{slug}/command/snapshot`.
+- **Windows tray client** — a mutex stops a second `client_monitor.py` from stacking (Task Scheduler, VBS, or a manual start).
+
 ## [3.22.0] - 2026-11-22
 
 ### Added - 4-channel thyristor dashboard and Wi-Fi LED protocol

@@ -4,7 +4,7 @@ Device projects live in **separate Git repositories** and are included here as *
 
 | Path (this repo) | Upstream | Device |
 |------------------|----------|--------|
-| `device/PlatformIO_esp32-sms-gateway/` | [tinel-c/PlatformIO_esp32-sms-gateway](https://github.com/tinel-c/PlatformIO_esp32-sms-gateway) | ESP32 + SIM800 (LilyGo T-Call) — SMS/MQTT gateway; fleet OTA after `pio run` (`fw` ≥ 1.1.0) |
+| `device/PlatformIO_esp32-sms-gateway/` | [tinel-c/PlatformIO_esp32-sms-gateway](https://github.com/tinel-c/PlatformIO_esp32-sms-gateway) | ESP32 + SIM800 (LilyGo T-Call) — SMS/MQTT gateway; fleet OTA after `pio run` (`fw` ≥ 1.1.3, same-interval watchdog re-enroll is silent) |
 | `device/PlatformIO_ESP8266_Main_Entry/` | [tinel-c/PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry) | ESP8266 — main gate (Node-RED 210–212, 514) |
 | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | [tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination](https://github.com/tinel-c/PlatformIO_esp32-4ch-thyristor-board-illumination) | ESP32-WROOM-32E + 4× BT137S (RY1–4: IO32/25/27/12, LED IO5) — 230 V illumination; fleet OTA after `pio run` ([README](PlatformIO_esp32-4ch-thyristor-board-illumination/README.md), [device_fleet.py](../scripts/status/device_fleet.py)) |
 | `device/victron-multiplus-ii/` | *(in-repo docs)* | Victron MultiPlus-II — GX/Modbus/MQTT integration ([README](victron-multiplus-ii/README.md)) |

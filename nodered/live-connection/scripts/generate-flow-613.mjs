@@ -23,7 +23,8 @@ const NR_WATCHDOGS = [
   { id: "watchdog_victron", name: "Victron Energy", category: "Energy", topic: "energy/victron/status", timeoutMin: 2 },
   { id: "watchdog_huawei", name: "Huawei Solar", category: "Energy", topic: "energy/huawei/status", timeoutMin: 2 },
   { id: "watchdog_scala1", name: "Grundfos SCALA1", category: "Water", topic: "water/grundfos/scala1/status", timeoutMin: 2 },
-  { id: "watchdog_sms_gateway", name: "SMS Gateway", category: "Comms", topic: "sms/gateway/status", timeoutMin: 5 },
+  // Device publishes status every 5 min; allow slack for WiFi/GSM stalls
+  { id: "watchdog_sms_gateway", name: "SMS Gateway", category: "Comms", topic: "sms/gateway/status", timeoutMin: 12 },
 ];
 
 const MQTT_SUBS = [
@@ -622,6 +623,27 @@ const nodes = [
     templateScope: "local",
     x: 960,
     y: 2360,
+    wires: [["func_guard_cam_snap_cmd"]],
+  },
+  {
+    id: "func_guard_cam_snap_cmd",
+    type: "function",
+    z: "8becda4e1ec6a8b9",
+    name: "Guard snapshot MQTT topic",
+    func: `// ui-template refresh/resend can emit msgs without a topic — never publish those.
+const t = String(msg.topic || '');
+if (!/^garden\\/camera\\/[A-Za-z0-9_-]+\\/command\\/snapshot$/.test(t)) {
+    return null;
+}
+if (msg.payload == null) msg.payload = { action: 'snapshot' };
+return msg;`,
+    outputs: 1,
+    noerr: 0,
+    initialize: "",
+    finalize: "",
+    libs: [],
+    x: 1210,
+    y: 2360,
     wires: [["mqtt_out_cam_snap_cmd"]],
   },
   {
@@ -638,7 +660,7 @@ const nodes = [
     correl: "",
     expiry: "",
     broker: "mqtt_broker_local",
-    x: 1220,
+    x: 1460,
     y: 2360,
     wires: [],
   },

@@ -10,6 +10,7 @@ Windows client application for the Server Boot/Shutdown Management System. Monit
 - 🎨 **System Tray Icon** - Color-coded status indicator with server information
 - 📊 **Server Status Tracking** - Monitors target server state in real-time
 - 📟 **Device Fleet** - Tray → **Device Fleet…**: expected vs online counts, firmware version, IP, and per-device OTA upload (`.bin`)
+- 🔒 **Single instance** - A Windows mutex blocks a second `client_monitor.py` (Task Scheduler / VBS / manual); the duplicate exits immediately
 - 📝 **Logging** - Detailed logs for troubleshooting
 - ⚙️ **Easy Configuration** - Simple YAML with environment variable placeholder support
 - ⏱️ **Heartbeat Countdown** - Real-time countdown to next heartbeat in tray icon

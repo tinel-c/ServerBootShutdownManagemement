@@ -57,16 +57,15 @@ Published by `host-metrics-publisher.service` every ~15 s. See [HOST_METRICS.m
 | Topic | Purpose | QoS | Direction |
 |-------|---------|-----|-----------|
 | `sms/gateway/command/send` | Send SMS command | 1 | Dashboard → Device |
-| `sms/gateway/status` | Device status timestamp | 1 | Device → Dashboard |
-| `sms/gateway/status/timestamp` | Last status update | 1 | Device → Dashboard |
+| `sms/gateway/status` | Fleet status JSON (`device`, `fw`, `ip`, `ota_port`, `wifi`, `mqtt`, `gsm`, `uptime_s`, `rssi`, `boot_count`, `timestamp`) | 1 | Device → Dashboard |
+| `sms/gateway/status/timestamp` | Last status update (ISO8601) | 1 | Device → Dashboard |
 | `sms/gateway/receive/from` | Phone number of received SMS | 1 | Device → Dashboard |
 | `sms/gateway/receive/text` | Text content of received SMS | 1 | Device → Dashboard |
 | `sms/gateway/receive/timestamp` | Timestamp when SMS was received | 1 | Device → Dashboard |
 | `sms/gateway/send/response` | Send operation result | 1 | Device → Dashboard |
 | `sms/gateway/send/timestamp` | Timestamp when SMS was sent | 1 | Device → Dashboard |
-| `sms/gateway/command/ota` | OTA enable/disable command | 1 | Dashboard → Device |
-| `sms/gateway/ota/status` | OTA update status | 1 | Device → Dashboard |
-| `sms/gateway/ota/progress` | OTA update progress | 1 | Device → Dashboard |
+| `sms/gateway/ota/status` | OTA update status (`device`, `fw`, `state`, `detail`) | 1 | Device → Dashboard |
+| `sms/gateway/ota/progress` | OTA update progress (`device`, `progress`, `total`, `percent`) | 1 | Device → Dashboard |
 | `sms/command/received` | Internal: new SMS for command processing | 1 | Node-RED 511 → 514 |
 
 ### 4-channel thyristor illumination (Domain: illumination/4ch-thyristor)
@@ -1276,17 +1275,24 @@ mosquitto_sub -h 192.168.2.4 -t 'water/grundfos/scala1/#' -v
 
 **Topic:** `sms/gateway/status`
 
-**Schema:**
-```
-ISO8601 timestamp string
+**Schema (`fw` ≥ 1.1.0):**
+```json
+{
+  "device": "PlatformIO_esp32-sms-gateway",
+  "fw": "1.1.0",
+  "ip": "192.168.2.60",
+  "ota_port": 3232,
+  "wifi": "connected",
+  "mqtt": "connected",
+  "gsm": "initialized",
+  "uptime_s": 12,
+  "rssi": -61,
+  "boot_count": 3,
+  "timestamp": "2026-01-25T17:00:00+0000"
+}
 ```
 
-**Description:** Timestamp when device went online or last status update.
-
-**Example:**
-```
-2026-01-25T17:00:00+00:00
-```
+`device`, `fw`, `ip`, and `ota_port` are required by [scripts/status/device_fleet.py](../scripts/status/device_fleet.py). `wifi` and `mqtt` stay so the Node-RED dashboard can keep treating both `"connected"` as online. The ISO8601 clock is also published alone on `sms/gateway/status/timestamp`.
 
 ---
 
@@ -1300,127 +1306,25 @@ The ESP32 device keeps MQTT **in the same “connected” state as the user-visi
 
 ---
 
-### OTA Update Command
+### OTA events (SMS gateway)
 
-**Topic:** `sms/gateway/command/ota`
-
-**Schema:**
-```json
-{
-  "action": "enable|disable"
-}
-```
-
-**Fields:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `action` | string | Yes | Must be "enable" or "disable" |
-
-**Example (Enable):**
-```json
-{
-  "action": "enable"
-}
-```
-
-**Example (Disable):**
-```json
-{
-  "action": "disable"
-}
-```
-
----
-
-### OTA Update Status
+OTA listens on UDP/TCP port 3232 after Wi-Fi has an address. `sms/gateway/command/ota` is not subscribed.
 
 **Topic:** `sms/gateway/ota/status`
 
-**Schema:**
 ```json
-{
-  "status": "started|completed|error",
-  "type": "sketch|filesystem",
-  "timestamp": "ISO8601 timestamp",
-  "duration_ms": 5000,
-  "error": "Error message",
-  "error_code": 1
-}
+{"device":"PlatformIO_esp32-sms-gateway","fw":"1.1.0","state":"started","detail":"sketch"}
 ```
 
-**Fields:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | string | Update status: "started", "completed", or "error" |
-| `type` | string | Update type: "sketch" or "filesystem" (only when status="started") |
-| `timestamp` | string | ISO8601 timestamp |
-| `duration_ms` | integer | Update duration in milliseconds (only when status="completed") |
-| `error` | string | Error message (only when status="error") |
-| `error_code` | integer | Error code (only when status="error") |
-
-**Example (Started):**
-```json
-{
-  "status": "started",
-  "type": "sketch",
-  "timestamp": "2026-01-25T17:00:00+00:00"
-}
-```
-
-**Example (Completed):**
-```json
-{
-  "status": "completed",
-  "duration_ms": 45230,
-  "timestamp": "2026-01-25T17:00:45+00:00"
-}
-```
-
-**Example (Error):**
-```json
-{
-  "status": "error",
-  "error": "Receive Failed",
-  "error_code": 3,
-  "timestamp": "2026-01-25T17:00:00+00:00"
-}
-```
-
----
-
-### OTA Update Progress
+`state` is `started`, `completed`, or `error`.
 
 **Topic:** `sms/gateway/ota/progress`
 
-**Schema:**
 ```json
-{
-  "progress": 50,
-  "bytes": 524288,
-  "total": 1048576
-}
+{"device":"PlatformIO_esp32-sms-gateway","progress":524288,"total":1048576,"percent":50}
 ```
 
-**Fields:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `progress` | integer | Progress percentage (0-100) |
-| `bytes` | integer | Bytes received so far |
-| `total` | integer | Total bytes to receive |
-
-**Example:**
-```json
-{
-  "progress": 50,
-  "bytes": 524288,
-  "total": 1048576
-}
-```
-
-**Note:** Progress updates are published every 10% increment.
+Progress is published about every 10 percent.
 
 ---
 

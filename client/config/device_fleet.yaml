@@ -2,7 +2,8 @@
 # Source of truth in the monorepo: scripts/status/device_fleet.yaml
 # status_topic: any message means the device is live.
 # expected: false excludes a device from the "should be online" count (default true).
-# flash: post-build auto-OTA only; the client UI can still Upload when online+IP.
+# flash: true is the default for every new ESP device (post-build fleet OTA).
+# The client UI can still Upload when online+IP even if flash is false.
 
 broker:
   host: "192.168.2.4"
@@ -20,8 +21,9 @@ devices:
   - id: PlatformIO_esp32-sms-gateway
     path: device/PlatformIO_esp32-sms-gateway
     status_topic: sms/gateway/status
-    timeout_sec: 720
-    flash: false
+    timeout_sec: 180
+    flash: true
+    pio_env: lilygo-t-call
     ota_port: 3232
 
   - id: PlatformIO_ESP8266_Main_Entry

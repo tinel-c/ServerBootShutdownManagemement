@@ -1,7 +1,8 @@
 # Repo firmware devices watched by scripts/status/device_fleet.py.
 # status_topic: any message means the device is live.
 # expected: false excludes from the Windows client "should be online" count (default true).
-# flash: when true, flash may run after a PlatformIO build if a fresh IP is known.
+# flash: true is the default for every new ESP device (post-build fleet OTA).
+# Set false only when that firmware cannot accept ArduinoOTA yet.
 # Keep client/config/device_fleet.yaml in sync for Program Files installs.
 
 broker:
@@ -20,8 +21,9 @@ devices:
   - id: PlatformIO_esp32-sms-gateway
     path: device/PlatformIO_esp32-sms-gateway
     status_topic: sms/gateway/status
-    timeout_sec: 720
-    flash: false
+    timeout_sec: 180
+    flash: true
+    pio_env: lilygo-t-call
     ota_port: 3232
 
   - id: PlatformIO_ESP8266_Main_Entry

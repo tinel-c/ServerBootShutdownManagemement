@@ -1,6 +1,6 @@
 # Device firmware development (canonical)
 
-This is the **required** way to build and iterate ESP / PlatformIO firmware in this monorepo. Reference implementation: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (fw ≥ 0.2.2). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
+This is the **required** way to build and iterate ESP / PlatformIO firmware in this monorepo. Working copies: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (`fw` ≥ 0.2.2) and [`device/PlatformIO_esp32-sms-gateway`](../../device/PlatformIO_esp32-sms-gateway/) (`fw` ≥ 1.1.0). New devices start from [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
 
 ## Layout
 
@@ -11,7 +11,7 @@ This is the **required** way to build and iterate ESP / PlatformIO firmware in t
 | MQTT topics | Document in device `README.md` + [MQTT_PROTOCOL.md](../MQTT_PROTOCOL.md) |
 | Fleet registry | [scripts/status/device_fleet.yaml](../../scripts/status/device_fleet.yaml) |
 | Fleet tool | [scripts/status/device_fleet.py](../../scripts/status/device_fleet.py) |
-| Post-build OTA | Device `scripts/ota_after_build.py` → monorepo `device_fleet.py flash` |
+| Post-build OTA | Device `scripts/ota_after_build.py` → monorepo [`scripts/status/fleet_ota_hook.py`](../../scripts/status/fleet_ota_hook.py) → `device_fleet.py flash` |
 
 Prefer `PlatformIO_*` repo names for PlatformIO boards. Register every new device in [device/README.md](../../device/README.md).
 
@@ -24,7 +24,9 @@ Status JSON (not retained unless there is a strong reason) must include at least
 - `ip` — STA address after connect
 - `ota_port` — ArduinoOTA port (ESP32 default **3232**)
 
-Publish on a dedicated status topic listed in `device_fleet.yaml`. Commands and OTA event topics are optional but recommended (`…/command/…`, `…/ota/status`, `…/ota/progress`).
+Publish on a dedicated status topic listed in `device_fleet.yaml`. Commands and OTA event topics are optional but recommended (`…/command/…`, `…/ota/status`, `…/ota/progress`). OTA event payloads match the illumination board: `ota/status` is `{"device","fw","state":"started|completed|error","detail"}` and `ota/progress` is `{"device","progress","total","percent"}`.
+
+**Default for every new device:** `flash: true`, status interval about 30 s, `upload_protocol = esptool`, and the template post script. Set `flash: false` only when the firmware cannot accept ArduinoOTA yet (the ESP8266 main gate is the current exception).
 
 ## Flash paths (do not mix)
 
@@ -70,7 +72,7 @@ On Windows, local `espota` often fails after the UDP invite (`No response from d
 
 1. Submodule under `device/<name>`; secrets only via example templates.
 2. `platformio.ini`: `upload_protocol = esptool`; post-script calls fleet flash when appropriate.
-3. Status MQTT includes `device`, `fw`, `ip`, `ota_port`; entry in `device_fleet.yaml` (`flash: true` only if auto-OTA is desired).
+3. Status MQTT includes `device`, `fw`, `ip`, `ota_port`; entry in both fleet YAML files with `flash: true` unless ArduinoOTA is impossible.
 4. OTA begins after Wi-Fi IP; version bumped; safe defaults on boot/OTA.
 5. Docs: device README + HARDWARE (if any), MQTT_PROTOCOL, OTA guide if behavior changes.
 6. Commit **device repo first**, push, then pin gitlink + monorepo docs/scripts; push monorepo.

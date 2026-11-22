@@ -25,7 +25,7 @@ When installing or updating services on the automation host, the agent cannot us
 | Unit | `mosquitto.service` (apt; snap disabled) |
 | Version | **2.0.18-1build3** (held) — not 2.1.x from mosquitto-dev PPA |
 | Listen | `0.0.0.0:1883` via `/etc/mosquitto/conf.d/default.conf` |
-| SMS gateway | `192.168.2.60` / fleet id `PlatformIO_esp32-sms-gateway` / MQTT client id often still `esp32-sms-gateway` until reflash / topic `sms/gateway/status` |
+| SMS gateway | `192.168.2.60` / fleet id and MQTT client id `PlatformIO_esp32-sms-gateway` (`fw` ≥ 1.1.0; older images may still connect as `esp32-sms-gateway` until this build is flashed) / topic `sms/gateway/status` |
 
 **Do not upgrade to 2.1.2.** That build aborted with `free(): double free detected in tcache 2` (hundreds of restarts) and dropped all MQTT clients. Also keep `/` from filling (HA logs on the data disk — see [SERVER_DISK.md](SERVER_DISK.md)).
 

@@ -2,7 +2,9 @@
 
 This guide explains how to develop, test, and deploy Over-The-Air (OTA) firmware updates for embedded devices in the ServerBootShutdownManagement project.
 
-For the full device workflow (submodule, UART first flash, fleet OTA, Windows broker fallback), see [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md).
+For the full device workflow (submodule, UART first flash, fleet OTA, Windows broker fallback), see [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md). That playbook is the default for every new ESP device. Copy [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Post-build flashing goes through [scripts/status/fleet_ota_hook.py](../../scripts/status/fleet_ota_hook.py).
+
+ArduinoOTA listens whenever STA has an IP. There is no MQTT enable/disable command. `sms/gateway/command/ota` is retired as of SMS gateway `fw` 1.1.0.
 
 ## 📋 Table of Contents
 
@@ -32,9 +34,9 @@ Over-The-Air (OTA) updates allow firmware to be updated remotely without physica
 
 | Device | Path | Automatic post-build OTA |
 |--------|------|--------------------------|
-| SMS Gateway (ESP32 + SIM800) | `device/PlatformIO_esp32-sms-gateway/` | No (watch only until status publishes `ip`) |
+| SMS Gateway (ESP32 + SIM800), `fw` ≥ 1.1.0 | `device/PlatformIO_esp32-sms-gateway/` | Yes — after `pio run -e lilygo-t-call` when status has a fresh `ip` |
 | 4-ch thyristor illumination (RY1–4 IO32/26/27/12, LED IO5) | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | Yes — after `pio run` when the board is online |
-| ESP8266 main gate | `device/PlatformIO_ESP8266_Main_Entry/` | No (watch only) |
+| ESP8266 main gate | `device/PlatformIO_ESP8266_Main_Entry/` | No (watch only until it publishes `ip` and binds OTA) |
 
 ### Fleet monitor (dev PC)
 
@@ -75,8 +77,8 @@ Windows ClientMonitor tray → **Device Fleet…** shows online vs expected coun
 - **Transport**: WiFi (requires active WiFi connection)
 - **Port**: 3232 (default, configurable)
 - **Authentication**: Optional password protection
-- **Control**: MQTT commands for enable/disable (SMS gateway); thyristor OTA is always listening when Wi-Fi is up
-- **Monitoring**: MQTT topics for status and progress; fleet tool listens to status for IP memory
+- **Control**: OTA is always listening after Wi-Fi has an IP (illumination and SMS gateway). Do not gate it behind an MQTT enable command.
+- **Monitoring**: MQTT topics for status and progress; fleet tool listens to status for IP memory. Status JSON must include `device`, `fw`, `ip`, `ota_port`.
 
 ---
 
@@ -111,11 +113,14 @@ Windows ClientMonitor tray → **Device Fleet…** shows online vs expected coun
 
 ### MQTT Topics
 
-| Topic | Direction | Purpose |
+| Topic | Direction | Payload |
 |-------|-----------|---------|
-| `sms/gateway/command/ota` | Dashboard → Device | Enable/disable OTA |
-| `sms/gateway/ota/status` | Device → Dashboard | Update status (started/completed/error) |
-| `sms/gateway/ota/progress` | Device → Dashboard | Progress updates (0-100%) |
+| `sms/gateway/status` | Device → subscribers | JSON: `device`, `fw`, `ip`, `ota_port`, `wifi`, `mqtt`, `gsm`, `uptime_s`, `rssi`, `boot_count`, `timestamp` |
+| `sms/gateway/status/timestamp` | Device → subscribers | ISO8601 timestamp string |
+| `sms/gateway/ota/status` | Device → subscribers | `{"device","fw","state":"started\|completed\|error","detail"}` |
+| `sms/gateway/ota/progress` | Device → subscribers | `{"device","progress","total","percent"}` |
+
+`sms/gateway/command/ota` is not used. OTA binds after the STA address is up (`fw` ≥ 1.1.0).
 
 ### OTA States
 
@@ -131,81 +136,51 @@ Windows ClientMonitor tray → **Device Fleet…** shows online vs expected coun
 
 ### 1. Initial Setup
 
-#### Enable OTA in Code
+OTA is part of the firmware. It is not behind `#ifdef OTA_ENABLED` and it is not toggled with MQTT.
 
-OTA is automatically enabled when:
-- WiFi is connected
-- Device is initialized
-- OTA library is included
-
-**Check in `src/main.cpp`:**
-```cpp
-#ifdef OTA_ENABLED
-#include <ArduinoOTA.h>
-// ... OTA setup code
-#endif
-```
-
-#### Configure OTA Settings
-
-**In `include/config.h`:**
-```cpp
-#define OTA_PORT 3232
-#define OTA_HOSTNAME "esp32-sms-gateway"
-```
-
-**In `include/passwords.h`:**
-```cpp
-#define OTA_PASSWORD "your_secure_password"  // Optional but recommended
-```
+- `platformio.ini`: `upload_protocol = esptool` and `extra_scripts = post:scripts/ota_after_build.py`
+- `scripts/ota_after_build.py` sets `DEVICE_ID` and calls `fleet_ota_hook.register`
+- Status JSON includes `device`, `fw`, `ip`, `ota_port`
+- `ArduinoOTA.begin()` runs only after STA has an IP; `ArduinoOTA.handle()` runs from `loop()`
+- Optional `OTA_PASSWORD` in `include/passwords.h` (empty means no password)
 
 ### 2. Development Cycle
 
-#### Step 1: Build Firmware
+#### Step 1: First flash (UART)
 
 ```bash
 cd device/PlatformIO_esp32-sms-gateway
+# Skip post-build OTA while the serial adapter is attached:
+# PowerShell: $env:SKIP_FLEET_OTA = "1"
+SKIP_FLEET_OTA=1 pio run -e lilygo-t-call -t upload --upload-port COMx
+pio device monitor -b 115200
+```
 
-# Build for target device
+Serial should show `[OTA] listening on <ip>:3232` after Wi-Fi connects.
+
+#### Step 2: Later updates
+
+From the device directory, a plain build flashes when the fleet sighting is fresh:
+
+```bash
 pio run -e lilygo-t-call
-
-# Or for generic ESP32
-pio run -e esp32dev
 ```
 
-#### Step 2: Initial Flash (USB)
-
-**First time setup requires USB:**
-```bash
-# Connect device via USB
-pio run --target upload
-
-# Monitor output
-pio device monitor
-```
-
-#### Step 3: Enable OTA on Device
-
-**Via MQTT:**
-```bash
-mosquitto_pub -h <mqtt_broker> \
-  -t "sms/gateway/command/ota" \
-  -m '{"action": "enable"}'
-```
-
-**Or via Serial Monitor:**
-- Check device IP address from serial output
-- OTA is automatically enabled when WiFi connects
-
-#### Step 4: Subsequent Updates (OTA)
+Or from the monorepo root:
 
 ```bash
-# Get device IP (from serial monitor or MQTT status)
-DEVICE_IP="192.168.1.50"
-
-# Upload via OTA
-pio run --target upload --upload-port $DEVICE_IP
+python scripts/status/device_fleet.py flash \
+  --id PlatformIO_esp32-sms-gateway \
+  --bin device/PlatformIO_esp32-sms-gateway/.pio/build/lilygo-t-call/firmware.bin
 ```
+
+Do not use `pio run -t upload --upload-port <ip>`. That path is UART (`esptool`), and a placeholder IP breaks the IDE Upload button.
+
+#### Step 3: Confirm
+
+`sms/gateway/status` publishes `fw` `1.1.0` or newer, plus `ip` and `ota_port`. `device_fleet.py status` shows the gateway online with that firmware.
+
+---
 
 ### 3. Version Management
 
@@ -296,12 +271,13 @@ pio run --target upload --upload-port <device_ip>
 
 **Phase 1: Single Device**
 ```bash
-# Test on one device first
-DEVICE_IP="192.168.1.50"
-pio run --target upload --upload-port $DEVICE_IP
+pio run -e lilygo-t-call
+# or, from the monorepo root:
+python scripts/status/device_fleet.py flash \
+  --id PlatformIO_esp32-sms-gateway \
+  --bin device/PlatformIO_esp32-sms-gateway/.pio/build/lilygo-t-call/firmware.bin
 
-# Monitor for 24 hours
-mosquitto_sub -h <mqtt_broker> -t "sms/gateway/+" -v
+mosquitto_sub -h 192.168.2.4 -t "sms/gateway/+" -v
 ```
 
 **Phase 2: Small Batch (10%)**
@@ -319,28 +295,10 @@ mosquitto_sub -h <mqtt_broker> -t "sms/gateway/+" -v
 
 ```bash
 #!/bin/bash
-# test_ota.sh
-
-DEVICE_IP=$1
-MQTT_BROKER=$2
-
-echo "Testing OTA update on $DEVICE_IP"
-
-# 1. Enable OTA
-mosquitto_pub -h $MQTT_BROKER \
-  -t "sms/gateway/command/ota" \
-  -m '{"action": "enable"}'
-
-sleep 2
-
-# 2. Upload firmware
-pio run --target upload --upload-port $DEVICE_IP
-
-# 3. Wait for completion
-sleep 10
-
-# 4. Verify version
-# (Check MQTT or serial output)
+# Fleet OTA. Run from the monorepo root after a build.
+python scripts/status/device_fleet.py flash \
+  --id PlatformIO_esp32-sms-gateway \
+  --bin device/PlatformIO_esp32-sms-gateway/.pio/build/lilygo-t-call/firmware.bin
 ```
 
 ---
@@ -368,42 +326,10 @@ ls -lh .pio/build/lilygo-t-call/firmware.bin
 
 ```bash
 #!/bin/bash
-# deploy_ota.sh
-
-# Configuration
-MQTT_BROKER="192.168.1.100"
-DEVICE_IPS=(
-    "192.168.1.50"
-    "192.168.1.51"
-    "192.168.1.52"
-)
-
-FIRMWARE_VERSION="1.0.1"
-
-echo "Deploying firmware version $FIRMWARE_VERSION"
-
-for DEVICE_IP in "${DEVICE_IPS[@]}"; do
-    echo "Updating device at $DEVICE_IP..."
-    
-    # Enable OTA
-    mosquitto_pub -h $MQTT_BROKER \
-        -t "sms/gateway/command/ota" \
-        -m '{"action": "enable"}' \
-        -q 1
-    
-    sleep 2
-    
-    # Upload firmware
-    pio run --target upload --upload-port $DEVICE_IP
-    
-    if [ $? -eq 0 ]; then
-        echo "✓ Successfully updated $DEVICE_IP"
-    else
-        echo "✗ Failed to update $DEVICE_IP"
-    fi
-    
-    sleep 5  # Wait between devices
-done
+# From the monorepo root, after pio run produced firmware.bin:
+python scripts/status/device_fleet.py flash \
+  --id PlatformIO_esp32-sms-gateway \
+  --bin device/PlatformIO_esp32-sms-gateway/.pio/build/lilygo-t-call/firmware.bin
 ```
 
 ### 2. Deployment Execution
@@ -469,24 +395,16 @@ done
 #### Issue 1: OTA Not Available
 
 **Symptoms:**
-- `pio run --target upload --upload-port <ip>` fails
-- "OTA not enabled" error
+- `device_fleet.py flash` reports offline, stale, or no IP
+- Serial never prints `[OTA] listening on …`
 
 **Solutions:**
-1. Check WiFi connection:
+1. Confirm status JSON includes `ip` and `ota_port`:
    ```bash
-   mosquitto_sub -h <mqtt_broker> -t "sms/gateway/status" -v
-   # Should show "wifi": "connected"
+   mosquitto_sub -h 192.168.2.4 -t "sms/gateway/status" -v
    ```
-
-2. Enable OTA via MQTT:
-   ```bash
-   mosquitto_pub -h <mqtt_broker> \
-     -t "sms/gateway/command/ota" \
-     -m '{"action": "enable"}'
-   ```
-
-3. Check device IP:
+2. OTA binds only after Wi-Fi has an address. A TCP probe of port 3232 while idle can look closed; ArduinoOTA’s invite is UDP.
+3. On Windows, if espota invites the board and then gets no TCP callback, the fleet tool retries on `192.168.2.4` (`FLEET_OTA_VIA=auto`).
    - Check serial monitor
    - Check MQTT status topic
    - Ping device: `ping <device_ip>`
@@ -757,14 +675,7 @@ jobs:
 **Quick Update:**
 ```bash
 cd device/PlatformIO_esp32-sms-gateway
-
-# Enable OTA
-mosquitto_pub -h <mqtt_broker> \
-  -t "sms/gateway/command/ota" \
-  -m '{"action": "enable"}'
-
-# Upload
-pio run --target upload --upload-port <device_ip>
+pio run -e lilygo-t-call
 ```
 
 **Monitor:**

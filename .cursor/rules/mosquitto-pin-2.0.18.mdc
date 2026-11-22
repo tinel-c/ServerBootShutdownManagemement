@@ -36,7 +36,7 @@ Verify: `mosquitto -h` → 2.0.18; `timeout 30 mosquitto_sub -h localhost -t 'sm
 |------|--------|
 | IP | `192.168.2.60` |
 | Fleet / repo id | `PlatformIO_esp32-sms-gateway` |
-| MQTT client id | Prefer `PlatformIO_esp32-sms-gateway`; live units may still use `esp32-sms-gateway` |
+| MQTT client id | `PlatformIO_esp32-sms-gateway` from `fw` 1.1.0 (older images may still use `esp32-sms-gateway`) |
 | Status topic | `sms/gateway/status` |
 
 Docs: [docs/developer/SERVER_DEPLOY.md](docs/developer/SERVER_DEPLOY.md).

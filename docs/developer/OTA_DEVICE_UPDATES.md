@@ -31,7 +31,7 @@ Over-The-Air (OTA) updates allow firmware to be updated remotely without physica
 | Device | Path | Automatic post-build OTA |
 |--------|------|--------------------------|
 | SMS Gateway (ESP32 + SIM800) | `device/esp32-sms-gateway/` | No (watch only until status publishes `ip`) |
-| 4-ch thyristor illumination | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | Yes — after `pio run` when the board is online |
+| 4-ch thyristor illumination (RY1–4 IO32/26/27/12, LED IO5) | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | Yes — after `pio run` when the board is online |
 | ESP8266 main gate | `device/PlatformIO_ESP8266_Main_Entry/` | No (watch only) |
 
 ### Fleet monitor (dev PC)

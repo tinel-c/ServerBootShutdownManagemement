@@ -1,0 +1,14 @@
+---
+description: Every git commit message credits Constantin Bogza
+alwaysApply: true
+---
+
+# Commit credit
+
+Every commit message must end with this trailer, including commits made by the agent:
+
+```
+Co-authored-by: Constantin Bogza <tinel.c@gmail.com>
+```
+
+The git author is already Constantin Bogza. The trailer names him on the message as well. Do not change git config. The hook `scripts/git/prepare-commit-msg` appends the line when it is installed as `.git/hooks/prepare-commit-msg`.

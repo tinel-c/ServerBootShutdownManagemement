@@ -942,10 +942,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.14.0  
-**Last Updated:** 2026-07-05
+**Version:** 3.21.0  
+**Last Updated:** 2026-11-22  
+**Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.21.0 (2026-11-22) - SMS gateway fleet OTA
+- 📱 **SMS gateway fw 1.1.2** — status JSON (`device`, `fw`, `ip`, `ota_port`); `pio run` flashes via the fleet hook; SIM800 is probed before PWRKEY so a reboot does not turn it off
+- 🔧 **Default for new ESP devices** — [device/templates/platformio-esp32](device/templates/platformio-esp32/README.md), [DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md)
+- See [RELEASE_NOTES_v3.21.0.md](docs/releases/RELEASE_NOTES_v3.21.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.20.0 (2026-09-20) - Host metrics dashboard & data-drive expansion
 - 📊 **Host metrics** — `host-metrics-publisher.service` → `system/automation/*`; flow **910** `/dashboard/host` (1h / 25h / 1m charts) — [HOST_METRICS.md](docs/HOST_METRICS.md)

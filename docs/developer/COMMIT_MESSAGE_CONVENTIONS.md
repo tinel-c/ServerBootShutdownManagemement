@@ -1,5 +1,13 @@
 # Commit Message for GitHub
 
+Every commit message ends with this trailer so the author is named on the message as well as in git:
+
+```
+Co-authored-by: Constantin Bogza <tinel.c@gmail.com>
+```
+
+`scripts/git/prepare-commit-msg` appends it when that file is installed as `.git/hooks/prepare-commit-msg`. Do not change git config to do this.
+
 ## Title
 ```
 Fix Dell T310 status monitoring and add management scripts

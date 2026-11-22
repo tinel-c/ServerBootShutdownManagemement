@@ -37,6 +37,8 @@ gh release create vX.Y.Z --title "vX.Y.Z — …" --notes-file docs/releases/REL
 
 | Version | Notes |
 |---------|-------|
+| v3.21.0 | [RELEASE_NOTES_v3.21.0.md](RELEASE_NOTES_v3.21.0.md) — SMS gateway fleet OTA, SIM800 boot |
+| v3.20.0 | [RELEASE_NOTES_v3.20.0.md](RELEASE_NOTES_v3.20.0.md) — Host metrics dashboard, data drive, Mosquitto pin |
 | v3.17.1 | [RELEASE_NOTES_v3.17.1.md](RELEASE_NOTES_v3.17.1.md) — Camera credential hygiene, Gazon Curte fix |
 | v3.17.0 | [RELEASE_NOTES_v3.17.0.md](RELEASE_NOTES_v3.17.0.md) — Camera registry, watchdog thumbnails |
 | v3.16.0 | [RELEASE_NOTES_v3.16.0.md](RELEASE_NOTES_v3.16.0.md) — Tasmota energy consumers, Garden Power Hut |

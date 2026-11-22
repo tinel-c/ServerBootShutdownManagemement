@@ -370,15 +370,19 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 ### 510-sms-gateway-controls.json
 **SMS Gateway Control Dashboard**
 
+Live page: http://192.168.2.4:1880/dashboard/page7. Layout CSS and the panel templates live in `sms-dashboard/`; apply them with `node nodered/live-connection/scripts/patch-sms-dashboard-ui.mjs`. From 720px the message takes three quarters of the row and spans the phone, Send, and call cards. Devices sit beside the inbox from 980px. Narrow screens keep one full-width column and 44px controls.
+
 - Dashboard UI for sending SMS messages (phone number + message input)
-- Real-time gateway status display (WiFi, MQTT, GSM state)
+- **Call**, **Hang up**, and **Alarm · 5 calls** on the same number (`fw` ≥ 1.1.5). Alarm rings about 15 s, hangs up, and repeats until five calls are done. Hang up cancels it.
+- Compact status strip (online, Wi-Fi, MQTT, GSM, last report)
 - Send response tracking with success/error notifications
 - Configuration UI for:
   - **Allowed phones (SMS commands)**: Comma-separated list of numbers authorized to send SMS commands
 
 **MQTT Topics**:
 - Publish: `sms/gateway/command/send` (to send SMS)
-- Subscribe: `sms/gateway/status`, `sms/gateway/send/response`
+- Publish: `sms/gateway/command/call` (`call`, `hangup`, or `alarm` with `times` 5)
+- Subscribe: `sms/gateway/status`, `sms/gateway/send/response`, `sms/gateway/call/status`
 
 **Default Config** (set at flow init):
 - Allowed phones: `+40740244845`, `+40745218721`

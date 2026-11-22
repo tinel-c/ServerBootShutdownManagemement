@@ -986,11 +986,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.26.4  
+**Version:** 3.27.0  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.27.0 (2026-11-22) - SMS voice call and five-call alarm
+- 📞 **SMS gateway fw 1.1.5** dials a number, or rings it five times and hangs up
+- 📱 **SMS page** keeps the status strip to one row and puts Call, Hang up, and Alarm under the phone number
+- See [RELEASE_NOTES_v3.27.0.md](docs/releases/RELEASE_NOTES_v3.27.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.26.4 (2026-11-22) - ESP firmware harness
 - 🔩 **ESP32 and ESP8266** firmware starts from one template: MQTT, OTA, watchdog, Node-RED, and Device Fleet

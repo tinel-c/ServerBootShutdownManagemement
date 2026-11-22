@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Device firmware development
 
-Canonical playbook: [docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md). Reference: illumination `fw` ≥ 0.2.7 (flow 330) and SMS gateway `fw` ≥ 1.1.4. New ESP firmware copies [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md).
+Canonical playbook: [docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md). Reference: illumination `fw` ≥ 0.2.7 (flow 330) and SMS gateway `fw` ≥ 1.1.5. New ESP firmware copies [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md).
 
 One fleet id for the repo name, MQTT client id, status `device`, watchdog `name`, and both YAML `id`s. A device is unfinished until MQTT, OTA, watchdog, the Windows client, and Node-RED all use that id.
 

@@ -1,0 +1,92 @@
+<div class="sx-card">
+    <div class="sx-head">
+        <div>
+            <div class="sx-kicker">Watchdog</div>
+            <h3 class="sx-title">Monitored devices</h3>
+        </div>
+        <div class="sx-count">{{ (msg.payload && msg.payload.length) || 0 }} active</div>
+    </div>
+
+    <div class="sx-scroll">
+        <div v-if="!msg.payload || msg.payload.length === 0" class="sx-empty">No devices enrolled</div>
+        <div v-for="dev in msg.payload" :key="dev.name" class="sx-dev" :class="{ 'is-on': dev.online }">
+            <div>
+                <div class="sx-dev-name">
+                    <span class="sx-live"></span>
+                    <span>{{ dev.name }}</span>
+                </div>
+                <div class="sx-meta">
+                    <span>Every {{ dev.interval }}s</span>
+                    <span>Last pulse {{ dev.age }}s ago</span>
+                </div>
+            </div>
+            <div class="sx-actions">
+                <button type="button" class="sx-btn sx-btn-pulse" @click="pulseDevice(dev.name)">Pulse</button>
+                <button type="button" class="sx-btn sx-btn-danger" @click="deleteDevice(dev.name)">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sx-form">
+        <div class="sx-note">Enroll a device</div>
+        <div class="sx-enroll">
+            <input class="sx-input" v-model="newName" placeholder="Device name" aria-label="Device name" @keyup.enter="enrollDevice">
+            <input class="sx-input" v-model.number="newInterval" type="number" min="1" placeholder="Seconds" aria-label="Sync interval in seconds">
+            <button type="button" class="sx-btn sx-btn-primary sx-add" @click="enrollDevice">Add</button>
+        </div>
+        <div class="sx-note">Test device</div>
+        <div class="sx-tests">
+            <button type="button" class="sx-btn" @click="enrollTest">Enroll test</button>
+            <button type="button" class="sx-btn" @click="deleteDevice('test-device')">Remove test</button>
+            <button type="button" class="sx-btn sx-btn-pulse" @click="pulseDevice('test-device')">Test pulse</button>
+            <button type="button" class="sx-btn" :class="{ 'is-hot': dummyActive }" :aria-pressed="dummyActive" @click="toggleDummy">{{ dummyActive ? 'Stop auto' : 'Auto pulse' }}</button>
+        </div>
+    </div>
+</div>
+
+<script>
+export default {
+    data() {
+        return {
+            newName: '',
+            newInterval: 60,
+            dummyActive: false
+        }
+    },
+    methods: {
+        enrollDevice() {
+            if (!this.newName) return;
+            this.send({
+                topic: "enroll",
+                payload: { name: this.newName, interval: this.newInterval || 60 }
+            });
+            this.newName = '';
+        },
+        enrollTest() {
+            this.send({
+                topic: "enroll",
+                payload: { name: "test-device", interval: this.newInterval || 60 }
+            });
+        },
+        deleteDevice(name) {
+            this.send({
+                topic: "delete",
+                payload: { name: name }
+            });
+        },
+        pulseDevice(name) {
+            this.send({
+                topic: "pulse",
+                payload: { name: name }
+            });
+        },
+        toggleDummy() {
+            this.dummyActive = !this.dummyActive;
+            this.send({
+                topic: "dummy",
+                payload: this.dummyActive
+            });
+        }
+    }
+}
+</script>

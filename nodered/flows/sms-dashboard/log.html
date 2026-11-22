@@ -1,0 +1,51 @@
+<div class="sx-card">
+    <div class="sx-head">
+        <div>
+            <div class="sx-kicker">Inbox</div>
+            <h3 class="sx-title">Received messages</h3>
+        </div>
+        <div class="sx-head" style="align-items: center;">
+            <div class="sx-count">{{ (msg.payload && msg.payload.messageCount) || 0 }}</div>
+            <button type="button" class="sx-btn sx-btn-ghost" @click="clearLog">Clear</button>
+        </div>
+    </div>
+
+    <div v-if="!msg.payload || !msg.payload.messageCount" class="sx-empty">No messages received yet</div>
+
+    <div v-else class="sx-scroll">
+        <div v-for="(item, index) in msg.payload.messages" :key="index" class="sx-msg" :class="{ 'is-new': index === 0 }">
+            <div class="sx-msg-top">
+                <div class="sx-from">
+                    <span>{{ item.from }}</span>
+                    <span v-if="index === 0" class="sx-badge">New</span>
+                </div>
+                <span class="sx-time">{{ formatTime(item.timestamp) }}</span>
+            </div>
+            <div class="sx-body">{{ item.text }}</div>
+        </div>
+    </div>
+</div>
+
+<script>
+export default {
+    methods: {
+        formatTime(timestamp) {
+            if (!timestamp) return 'Unknown';
+            try {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffSec = Math.floor((now - date) / 1000);
+                if (diffSec < 60) return `${diffSec}s ago`;
+                if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+                if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+                return date.toLocaleString();
+            } catch (e) {
+                return timestamp;
+            }
+        },
+        clearLog() {
+            this.$send({ payload: { action: 'clear' } });
+        }
+    }
+}
+</script>

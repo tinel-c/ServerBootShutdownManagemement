@@ -1,0 +1,65 @@
+<div class="sx-card sx-strip" v-if="msg && msg.payload">
+    <div class="sx-strip-row">
+        <span class="sx-chip" :class="online ? 'is-on' : 'is-off'" title="Gateway">
+            <span class="sx-dot"></span>
+            <span>{{ online ? 'Online' : 'Offline' }}</span>
+        </span>
+        <span class="sx-chip" :class="msg.payload.wifi === 'connected' ? 'is-good' : 'is-bad'" :title="'Wi-Fi: ' + (msg.payload.wifi || 'unknown')">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 18.2a1.6 1.6 0 1 0 .01 3.2A1.6 1.6 0 0 0 12 18.2Zm-4.1-2.6a5.8 5.8 0 0 1 8.2 0l1.5-1.5a7.9 7.9 0 0 0-11.2 0l1.5 1.5Zm-3.1-3.1a10.2 10.2 0 0 1 14.4 0l1.5-1.5a12.3 12.3 0 0 0-17.4 0l1.5 1.5Z"/></svg>
+            <span>{{ msg.payload.wifi || 'unknown' }}</span>
+        </span>
+        <span class="sx-chip" :class="msg.payload.mqtt === 'connected' ? 'is-good' : 'is-bad'" :title="'MQTT: ' + (msg.payload.mqtt || 'unknown')">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.2 10.6h7.6v2.8H8.2v-2.8Z"/><circle cx="5.2" cy="12" r="2.5" fill="currentColor"/><circle cx="18.8" cy="12" r="2.5" fill="currentColor"/></svg>
+            <span>{{ msg.payload.mqtt || 'unknown' }}</span>
+        </span>
+        <span class="sx-chip" :class="msg.payload.gsm === 'initialized' ? 'is-good' : 'is-bad'" :title="'GSM: ' + (msg.payload.gsm || 'unknown')">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 16h3v4H4v-4Zm4.5-4h3v8h-3v-8ZM13 8h3v12h-3V8Zm4.5-4h3v16h-3V4Z"/></svg>
+            <span>{{ msg.payload.gsm || 'unknown' }}</span>
+        </span>
+        <span class="sx-chip is-neutral" :title="'Last report ' + formatDelta(msg.metadata && msg.metadata.lastReportedMs)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a8 8 0 1 0 8 8 8 8 0 0 0-8-8Zm1 8.6 3.1 1.8-.9 1.5L11 13.2V8h2v4.6Z"/></svg>
+            <span>{{ formatDelta(msg.metadata && msg.metadata.lastReportedMs) }}</span>
+        </span>
+    </div>
+</div>
+<div class="sx-card sx-strip" v-else>
+    <div class="sx-strip-row">
+        <span class="sx-chip">Waiting for gateway</span>
+    </div>
+</div>
+
+<script>
+export default {
+    data() {
+        return {
+            now: Date.now(),
+            timer: null
+        }
+    },
+    mounted() {
+        this.timer = setInterval(() => {
+            this.now = Date.now()
+        }, 1000)
+    },
+    unmounted() {
+        clearInterval(this.timer)
+    },
+    methods: {
+        formatDelta(ms) {
+            if (!ms) return 'Never'
+            const seconds = Math.floor((this.now - ms) / 1000)
+            if (seconds < 2) return 'Just now'
+            if (seconds < 60) return `${seconds}s ago`
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+            return new Date(ms).toLocaleDateString()
+        }
+    },
+    computed: {
+        online() {
+            const payload = this.msg && this.msg.payload
+            return !!(payload && payload.wifi === 'connected' && payload.mqtt === 'connected')
+        }
+    }
+}
+</script>

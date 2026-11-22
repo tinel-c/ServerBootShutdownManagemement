@@ -1,6 +1,6 @@
 # Device firmware development (canonical)
 
-This is the **required** way to add or change an ESP / PlatformIO device in this monorepo. Copy [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Working copies: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (`fw` ≥ 0.2.7, dashboard flow 330) and [`device/PlatformIO_esp32-sms-gateway`](../../device/PlatformIO_esp32-sms-gateway/) (`fw` ≥ 1.1.4). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
+This is the **required** way to add or change an ESP / PlatformIO device in this monorepo. Copy [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Working copies: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (`fw` ≥ 0.2.7, dashboard flow 330) and [`device/PlatformIO_esp32-sms-gateway`](../../device/PlatformIO_esp32-sms-gateway/) (`fw` ≥ 1.1.5, voice call and 5-call alarm). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
 
 A new device is not done when the firmware compiles. It is done when the five defaults below are in git and a fresh board shows up in Device Fleet, on the SMS watchdog, and on a Node-RED page that sends the same commands the client buttons send.
 

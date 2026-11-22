@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.27.0] - 2026-11-22
+
+### Added - SMS voice call and five-call alarm
+
+- **SMS gateway firmware 1.1.5** dials a number from `sms/gateway/command/call`. `call` stays up until hang up or 60 seconds. `alarm` rings about 15 seconds, hangs up, and repeats until five calls are done. Progress is on `sms/gateway/call/status`. Text messages wait until the call finishes.
+- The SMS dashboard (`/dashboard/page7`) has **Call**, **Hang up**, and **Alarm · 5 calls** beside the phone number. The page is a compact status strip plus a phone-and-PC layout: the message takes three quarters of the row.
+
 ## [3.26.4] - 2026-11-22
 
 ### Added - ESP firmware harness on the front page

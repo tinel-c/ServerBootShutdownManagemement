@@ -1,0 +1,21 @@
+<div class="sx-call">
+    <div class="sx-call-row">
+        <button type="button" class="sx-btn sx-btn-primary" @click="send({topic:'call'})">Call</button>
+        <button type="button" class="sx-btn" @click="send({topic:'hangup'})">Hang up</button>
+    </div>
+    <button type="button" class="sx-btn sx-btn-alarm" @click="send({topic:'alarm'})">Alarm · 5 calls</button>
+    <div class="sx-call-status">{{ statusText }}</div>
+</div>
+
+<script>
+export default {
+    computed: {
+        statusText() {
+            const payload = this.msg && this.msg.payload
+            if (!payload) return 'Call once, or ring 5 times and hang up'
+            if (typeof payload === 'string') return payload
+            return payload.detail || payload.state || 'Call once, or ring 5 times and hang up'
+        }
+    }
+}
+</script>

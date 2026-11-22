@@ -203,20 +203,23 @@
         "z": "tab_dashboard",
         "group": "ui_group_sms_logs",
         "name": "SMS Messages Log",
-        "order": 1,
+        "order": 7,
         "width": 0,
         "height": 0,
-        "format": "<div style=\"font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); max-height: 600px; overflow-y: auto;\">\n    <div style=\"margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;\">\n        <h3 style=\"margin: 0; color: #e2e8f0; font-size: 1.2em;\">📱 Received Messages ({{msg.payload.messageCount || 0}})</h3>\n        <button @click=\"clearLog\" style=\"background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;\">Clear</button>\n    </div>\n    \n    <div v-if=\"msg.payload.messageCount === 0\" style=\"text-align: center; padding: 40px; color: #94a3b8;\">\n        <div style=\"font-size: 3em; margin-bottom: 10px;\">📭</div>\n        <div>No messages received yet</div>\n    </div>\n    \n    <div v-else style=\"display: flex; flex-direction: column; gap: 12px;\">\n        <div v-for=\"(msg, index) in msg.payload.messages\" :key=\"index\" style=\"background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; border-left: 3px solid #3b82f6; transition: all 0.2s ease;\" :style=\"{ borderLeftColor: index === 0 ? '#10b981' : '#3b82f6' }\">\n            <div style=\"display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;\">\n                <div style=\"display: flex; align-items: center; gap: 8px;\">\n                    <span style=\"font-size: 1.2em;\">📨</span>\n                    <span style=\"color: #e2e8f0; font-weight: 600; font-size: 0.95em;\">{{msg.from}}</span>\n                    <span v-if=\"index === 0\" style=\"background: #10b981; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; font-weight: 600;\">NEW</span>\n                </div>\n                <span style=\"color: #94a3b8; font-size: 0.8em; font-family: 'Consolas', monospace;\">{{formatTime(msg.timestamp)}}</span>\n            </div>\n            <div style=\"color: #cbd5e1; font-size: 0.9em; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word;\">{{msg.text}}</div>\n        </div>\n    </div>\n</div>\n\n<script>\nexport default {\n    methods: {\n        formatTime(timestamp) {\n            if (!timestamp) return 'Unknown';\n            try {\n                const date = new Date(timestamp);\n                const now = new Date();\n                const diffMs = now - date;\n                const diffSec = Math.floor(diffMs / 1000);\n                \n                if (diffSec < 60) return `${diffSec}s ago`;\n                if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;\n                if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;\n                return date.toLocaleString();\n            } catch (e) {\n                return timestamp;\n            }\n        },\n        clearLog() {\n            // Clear log via flow context\n            this.$send({ payload: { action: 'clear' } });\n        }\n    }\n}\n</script>",
+        "format": "<div class=\"sx-card\">\r\n    <div class=\"sx-head\">\r\n        <div>\r\n            <div class=\"sx-kicker\">Inbox</div>\r\n            <h3 class=\"sx-title\">Received messages</h3>\r\n        </div>\r\n        <div class=\"sx-head\" style=\"align-items: center;\">\r\n            <div class=\"sx-count\">{{ (msg.payload && msg.payload.messageCount) || 0 }}</div>\r\n            <button type=\"button\" class=\"sx-btn sx-btn-ghost\" @click=\"clearLog\">Clear</button>\r\n        </div>\r\n    </div>\r\n\r\n    <div v-if=\"!msg.payload || !msg.payload.messageCount\" class=\"sx-empty\">No messages received yet</div>\r\n\r\n    <div v-else class=\"sx-scroll\">\r\n        <div v-for=\"(item, index) in msg.payload.messages\" :key=\"index\" class=\"sx-msg\" :class=\"{ 'is-new': index === 0 }\">\r\n            <div class=\"sx-msg-top\">\r\n                <div class=\"sx-from\">\r\n                    <span>{{ item.from }}</span>\r\n                    <span v-if=\"index === 0\" class=\"sx-badge\">New</span>\r\n                </div>\r\n                <span class=\"sx-time\">{{ formatTime(item.timestamp) }}</span>\r\n            </div>\r\n            <div class=\"sx-body\">{{ item.text }}</div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<script>\r\nexport default {\r\n    methods: {\r\n        formatTime(timestamp) {\r\n            if (!timestamp) return 'Unknown';\r\n            try {\r\n                const date = new Date(timestamp);\r\n                const now = new Date();\r\n                const diffSec = Math.floor((now - date) / 1000);\r\n                if (diffSec < 60) return `${diffSec}s ago`;\r\n                if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;\r\n                if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;\r\n                return date.toLocaleString();\r\n            } catch (e) {\r\n                return timestamp;\r\n            }\r\n        },\r\n        clearLog() {\r\n            this.$send({ payload: { action: 'clear' } });\r\n        }\r\n    }\r\n}\r\n</script>\r\n",
         "storeOutMessages": true,
-        "fwdInMessages": true,
+        "fwdInMessages": false,
         "resendOnRefresh": true,
         "templateScope": "local",
-        "className": "",
+        "className": "sms-log",
         "x": 640,
         "y": 180,
         "wires": [
-            []
-        ]
+            [
+                "func_clear_sms_log"
+            ]
+        ],
+        "passthru": false
     },
     {
         "id": "inject_clear_log",

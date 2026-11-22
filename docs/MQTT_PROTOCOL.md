@@ -59,6 +59,8 @@ Published by `host-metrics-publisher.service` every ~15 s. See [HOST_METRICS.m
 | Topic | Purpose | QoS | Direction |
 |-------|---------|-----|-----------|
 | `sms/gateway/command/send` | Send SMS command | 1 | Dashboard → Device |
+| `sms/gateway/command/call` | Voice call, hang up, or 5-call alarm (`fw` ≥ 1.1.5) | 1 | Dashboard → Device |
+| `sms/gateway/call/status` | Call progress (`state`, `to`, `attempt`, `times`, `alarm`, `detail`) | 1 | Device → Dashboard |
 | `sms/gateway/status` | Fleet status JSON (`device`, `fw`, `ip`, `ota_port`, `wifi`, `mqtt`, `gsm`, `uptime_s`, `rssi`, `boot_count`, `timestamp`) | 1 | Device → Dashboard |
 | `sms/gateway/status/timestamp` | Last status update (ISO8601) | 1 | Device → Dashboard |
 | `sms/gateway/receive/from` | Phone number of received SMS | 1 | Device → Dashboard |
@@ -931,6 +933,30 @@ JPEG files: `data/camera-snapshots/`. Flow **613** serves `http://<host>:1880/ca
   "timestamp": "2026-01-25T17:00:00+00:00"
 }
 ```
+
+### Voice call (`fw` ≥ 1.1.5)
+
+**Topic:** `sms/gateway/command/call`
+
+```json
+{ "action": "call", "to": "40740244845" }
+```
+
+| `action` | Behavior |
+|----------|----------|
+| `call` | Dial `to` and stay connected until `hangup`, or 60 s |
+| `hangup` | Hang up now and cancel an alarm |
+| `alarm` | Dial `to` five times. Each attempt rings about 15 s, then the modem hangs up |
+
+`to` is digits. The gateway adds `+` if it is missing.
+
+**Topic:** `sms/gateway/call/status`
+
+```json
+{ "state": "ringing", "to": "+40740244845", "attempt": 2, "times": 5, "alarm": true, "detail": "Ringing 2 of 5" }
+```
+
+`state` is `dialing`, `ringing`, `hungup`, or `error`.
 
 ---
 

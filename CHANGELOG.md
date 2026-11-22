@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.26.0] - 2026-11-22
+
+### Fixed - Device builds on a new PC
+
+- **Fleet OTA hook** installs `pyyaml` and `paho-mqtt` into a system Python before `device_fleet.py flash`. PlatformIO’s own Python does not ship those packages, so a first build on a new PC aborted after `firmware.bin` was already written. If pip cannot run, the `.bin` is left in place and the compile still succeeds.
+
+### Changed - Gate and SMS gateway firmware
+
+- **Main gate firmware 1.0.1** accepts `ON` / `OFF` with any case and surrounding space. `flash` stays false until 1.0.0 has been UART-flashed once.
+- **SMS gateway firmware 1.1.4** texts a watchdog device only after it has been offline for 10 minutes, at most once per 30 minutes, and sends the online text only after that lost text. A short MQTT flap no longer sends SMS.
+
 ## [3.25.0] - 2026-11-22
 
 ### Added - Windows client self-update for every installed PC

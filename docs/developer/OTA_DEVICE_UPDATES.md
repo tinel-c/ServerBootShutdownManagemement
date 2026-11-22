@@ -64,7 +64,7 @@ python scripts/status/device_fleet.py flash \
   --bin device/PlatformIO_esp32-4ch-thyristor-board-illumination/.pio/build/esp32dev/firmware.bin
 ```
 
-The thyristor `platformio.ini` uses **esptool** for `pio run -t upload` (Serial Burn / first flash). It also runs `scripts/ota_after_build.py` after every successful `firmware.bin` from `pio run`. That hook calls `device_fleet.py flash`. Offline or missing IP is a soft success (the `.bin` remains) — do not rely on PlatformIO’s Upload button for OTA. A failed `espota` to a live board fails the build post-step.
+The thyristor `platformio.ini` uses **esptool** for `pio run -t upload` (Serial Burn / first flash). It also runs `scripts/ota_after_build.py` after every successful `firmware.bin` from `pio run`. That hook calls `device_fleet.py flash`. On a new PC it installs `pyyaml` and `paho-mqtt` into a system Python first, because PlatformIO’s Python does not have them. Offline or missing IP is a soft success (the `.bin` remains) — do not rely on PlatformIO’s Upload button for OTA. A failed `espota` to a live board fails the build post-step.
 
 `device_fleet.py flash` binds espota with `-I` to the PC’s LAN IP. If the local attempt fails (common on Windows when the firewall blocks the ESP’s TCP callback), it retries over SSH on `192.168.2.4` (`FLEET_OTA_VIA=auto`). Force with `FLEET_OTA_VIA=broker` or `local`. SSH uses `%USERPROFILE%\.ssh\serverside_192_168_2_4_ed25519` (override with `FLEET_OTA_SSH_KEY`). Set `SKIP_FLEET_OTA=1` during `pio run` / UART upload when you must not touch a live board.
 

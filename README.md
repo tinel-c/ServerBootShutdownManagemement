@@ -942,11 +942,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.24.0  
+**Version:** 3.26.0  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.26.0 (2026-11-22) - Device builds on a new PC
+- 🔧 **Fleet OTA hook** installs PyYAML and paho-mqtt before flashing, so a first `pio run` on a new PC finishes
+- 🚪 **Main gate fw 1.0.1** — `ON` / `OFF` accepted in any case, with surrounding space
+- 📱 **SMS gateway fw 1.1.4** — watchdog SMS only after 10 minutes offline
+- See [RELEASE_NOTES_v3.26.0.md](docs/releases/RELEASE_NOTES_v3.26.0.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.24.0 (2026-11-22) - Main gate fleet status
 - 🚪 **ESP8266 fw 1.0.0** — `gate/main/status` plus ArduinoOTA on port 8266; `MainGate` relay topics unchanged

@@ -1,6 +1,6 @@
 # Device firmware development (canonical)
 
-This is the **required** way to build and iterate ESP / PlatformIO firmware in this monorepo. Working copies: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (`fw` ≥ 0.2.7) and [`device/PlatformIO_esp32-sms-gateway`](../../device/PlatformIO_esp32-sms-gateway/) (`fw` ≥ 1.1.3). New devices start from [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
+This is the **required** way to build and iterate ESP / PlatformIO firmware in this monorepo. Working copies: [`device/PlatformIO_esp32-4ch-thyristor-board-illumination`](../../device/PlatformIO_esp32-4ch-thyristor-board-illumination/) (`fw` ≥ 0.2.7) and [`device/PlatformIO_esp32-sms-gateway`](../../device/PlatformIO_esp32-sms-gateway/) (`fw` ≥ 1.1.4). New devices start from [device/templates/platformio-esp32](../../device/templates/platformio-esp32/README.md). Submodule policy: [DEVICE_SUBMODULES.md](DEVICE_SUBMODULES.md). OTA details: [OTA_DEVICE_UPDATES.md](OTA_DEVICE_UPDATES.md).
 
 ## Layout
 

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.26.3] - 2026-11-22
+
+### Added - Device Fleet commands
+
+- The Device Fleet window has its own icon. Selecting a device shows its fleet and live MQTT status, and a button for every command that device already accepts (thyristor channels, main-gate relays, SMS, Tasmota power, garden lights, irrigation, the pump, and sliding gates).
+- `device_commands.py` is packaged in the client zip and copied by the updater.
+
+### Fixed - Client self-update stopped before copying files
+
+- `apply_update.bat` waited with `timeout.exe`, which exits when stdin is not a console. The copy never ran and the tray still logged success. The wait is now `ping 127.0.0.1 -n 6`.
+
+### Changed - Main gate fleet flash
+
+- Firmware 1.0.1 is on the board and answers ArduinoOTA on UDP 8266. `flash` is true. Later updates are `pio run -e esp12e` when `gate/main/status` has a fresh IP.
+
 ## [3.26.2] - 2026-11-22
 
 ### Fixed - UART upload when fleet flash is off

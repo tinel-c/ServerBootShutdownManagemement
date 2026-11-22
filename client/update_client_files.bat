@@ -110,6 +110,11 @@ if exist "%UPDATE_SOURCE%device_fleet_panel.py" (
     echo  - device_fleet_panel.py
 )
 
+if exist "%UPDATE_SOURCE%device_commands.py" (
+    copy /Y "%UPDATE_SOURCE%device_commands.py" "%INSTALL_DIR%\" >nul
+    echo  - device_commands.py
+)
+
 if exist "%UPDATE_SOURCE%requirements_client.txt" (
     copy /Y "%UPDATE_SOURCE%requirements_client.txt" "%INSTALL_DIR%\" >nul
     echo  - requirements_client.txt

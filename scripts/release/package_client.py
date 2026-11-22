@@ -23,6 +23,7 @@ INCLUDE = (
     "device_catalog.py",
     "tasmota_discover.py",
     "device_fleet_panel.py",
+    "device_commands.py",
     "update_client_files.bat",
     "install_client.bat",
     "uninstall_client.bat",

@@ -123,7 +123,7 @@ The ESP8266 firmware [PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/
 | `MainGate/CMD/Relay3` | Dashboard → device | `ON` / `OFF` gate pulse. Unchanged |
 | `MainGate/STAT/reccurentStatusRelay4` | Device → Node-RED | `ON` / `OFF`. Still the Node-RED liveness topic |
 
-`flash` stays false in the fleet registry until this image is UART-flashed once. Later updates are `pio run -e esp12e`. OTA start forces Relay 3 off. Mains-off mode drops Wi-Fi, so OTA runs only while mains is on.
+`flash` is true. Later updates are `pio run -e esp12e` when `gate/main/status` has a fresh `ip`. OTA start forces Relay 3 off. Mains-off mode drops Wi-Fi, so OTA runs only while mains is on.
 
 ### Victron Energy Topics (Domain: energy/victron)
 

@@ -32,7 +32,7 @@ devices:
     path: device/PlatformIO_ESP8266_Main_Entry
     status_topic: gate/main/status
     timeout_sec: 90
-    # Stay false until firmware 1.0.0 is on the board. The previous image has no OTA listener.
-    flash: false
+    # 1.0.1 is on the board and answered ArduinoOTA on UDP 8266.
+    flash: true
     pio_env: esp12e
     ota_port: 8266

@@ -6,7 +6,7 @@ The Gate Automation system provides comprehensive control and monitoring for the
 
 ### Hardware
 
-The **main gate** controller runs **[PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)** firmware on an ESP8266 4-relay board (keypad, MQTT, mains failover, coil protection). The **gate actuator is Relay 3** (`MainGate/CMD/Relay3` / `MainGate/STAT/Relay3` and recurrent status on `MainGate/STAT/reccurentStatusRelay3`). From firmware **1.0.0**, `gate/main/status` is the fleet JSON snapshot (`device`, `fw`, `ip`, `ota_port` 8266). Relay topics are unchanged. ArduinoOTA listens on UDP 8266 after Wi-Fi has an address. The first 1.0.0 image still needs a UART flash; later updates use `pio run -e esp12e`.
+The **main gate** controller runs **[PlatformIO_ESP8266_Main_Entry](https://github.com/tinel-c/PlatformIO_ESP8266_Main_Entry)** firmware on an ESP8266 4-relay board (keypad, MQTT, mains failover, coil protection). The **gate actuator is Relay 3** (`MainGate/CMD/Relay3` / `MainGate/STAT/Relay3` and recurrent status on `MainGate/STAT/reccurentStatusRelay3`). From firmware **1.0.0**, `gate/main/status` is the fleet JSON snapshot (`device`, `fw`, `ip`, `ota_port` 8266). Relay topics are unchanged. ArduinoOTA listens on UDP 8266 after Wi-Fi has an address. The running image is `fw` 1.0.1. Later updates use `pio run -e esp12e`.
 
 **Source in this repository:** `device/PlatformIO_ESP8266_Main_Entry` (git submodule; `git submodule update --init --recursive` after clone).
 

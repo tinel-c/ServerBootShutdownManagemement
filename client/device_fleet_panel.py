@@ -5,12 +5,14 @@ from __future__ import annotations
 
 import logging
 import queue
+import tempfile
 import threading
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Dict, List, Optional
 
+from device_commands import commands_for, format_status, status_topics
 from fleet_bridge import FleetBridge, summarize_rows
 
 logger = logging.getLogger(__name__)
@@ -49,6 +51,48 @@ def raise_device_fleet_panel() -> bool:
         return False
 
 
+def fleet_icon(size: int):
+    """Square fleet mark: a blue tile and four device dots."""
+    from PIL import Image, ImageDraw
+
+    image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    margin = max(1, size // 16)
+    radius = max(3, size // 5)
+    draw.rounded_rectangle(
+        (margin, margin, size - margin - 1, size - margin - 1),
+        radius=radius,
+        fill=(22, 64, 110, 255),
+    )
+    colors = ((72, 199, 116, 255), (72, 199, 116, 255), (245, 184, 61, 255), (180, 198, 214, 255))
+    dot = max(3, size // 7)
+    gap = max(dot + 2, size // 5)
+    origin = (size - gap) // 2
+    for index, color in enumerate(colors):
+        col = index % 2
+        row_index = index // 2
+        left = origin + col * gap - dot // 2
+        top = origin + row_index * gap - dot // 2
+        draw.ellipse((left, top, left + dot, top + dot), fill=color)
+    return image
+
+
+def apply_window_icon(root: tk.Tk) -> None:
+    """Title-bar and taskbar icon. Keeps the PhotoImage alive on the window."""
+    from PIL import ImageTk
+
+    image = fleet_icon(32)
+    photo = ImageTk.PhotoImage(image)
+    root.iconphoto(True, photo)
+    root._fleet_icon_photo = photo  # type: ignore[attr-defined]
+    try:
+        icon_path = Path(tempfile.gettempdir()) / "device_fleet.ico"
+        fleet_icon(32).save(icon_path, format="ICO", sizes=[(16, 16), (32, 32)])
+        root.iconbitmap(default=str(icon_path))
+    except Exception:
+        logger.debug("Taskbar icon was not applied", exc_info=True)
+
+
 def open_device_fleet_panel(config: Optional[Dict[str, Any]] = None) -> None:
     """Open (or raise) the single Device Fleet window (call from the Tk/main thread)."""
     global _open_panel
@@ -67,14 +111,18 @@ class DeviceFleetPanel:
         self.bridge = FleetBridge(config)
         self.root = tk.Tk()
         self.root.title("Device Fleet")
-        self.root.geometry("1120x560")
-        self.root.minsize(860, 420)
+        self.root.geometry("1120x780")
+        self.root.minsize(900, 640)
+        apply_window_icon(self.root)
 
         self._rows: List[Dict[str, Any]] = []
         self._selected_id: Optional[str] = None
         self._busy = False
         self._ui_queue: queue.Queue = queue.Queue()
         self._ui_open = True
+        self._live_status: Dict[str, str] = {}
+        self._detail_stop: Optional[threading.Event] = None
+        self._command_device: Optional[str] = None
 
         self._build()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -124,10 +172,33 @@ class DeviceFleetPanel:
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
 
-        bottom = ttk.Frame(self.root, padding=8)
+        detail = ttk.LabelFrame(self.root, text="Selected device", padding=8)
+        detail.pack(fill=tk.BOTH, expand=False, padx=8, pady=(8, 0))
+        self.detail_title = tk.StringVar(value="Select a device")
+        ttk.Label(detail, textvariable=self.detail_title, font=("Segoe UI", 10, "bold")).pack(
+            anchor=tk.W
+        )
+        self.status_text = tk.Text(detail, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        self.status_text.pack(fill=tk.BOTH, expand=True, pady=(4, 6))
+
+        cmd_wrap = ttk.Frame(detail)
+        cmd_wrap.pack(fill=tk.BOTH, expand=False)
+        self.cmd_canvas = tk.Canvas(cmd_wrap, height=150, highlightthickness=0)
+        cmd_scroll = ttk.Scrollbar(cmd_wrap, orient=tk.VERTICAL, command=self.cmd_canvas.yview)
+        self.cmd_inner = ttk.Frame(self.cmd_canvas)
+        self.cmd_inner.bind(
+            "<Configure>",
+            lambda _event: self.cmd_canvas.configure(scrollregion=self.cmd_canvas.bbox("all")),
+        )
+        self.cmd_canvas.create_window((0, 0), window=self.cmd_inner, anchor="nw")
+        self.cmd_canvas.configure(yscrollcommand=cmd_scroll.set)
+        self.cmd_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        cmd_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        bottom = ttk.Frame(self.root, padding=(8, 4, 8, 0))
         bottom.pack(fill=tk.BOTH)
         ttk.Label(bottom, text="Log").pack(anchor=tk.W)
-        self.log = tk.Text(bottom, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        self.log = tk.Text(bottom, height=4, wrap=tk.WORD, state=tk.DISABLED)
         self.log.pack(fill=tk.BOTH, expand=True)
 
         self.status_var = tk.StringVar(value="")
@@ -176,6 +247,7 @@ class DeviceFleetPanel:
     def _on_close(self) -> None:
         global _open_panel
         self._ui_open = False
+        self._stop_detail_listen()
         self.bridge.stop_watching()
         _open_panel = None
         self.root.destroy()
@@ -198,6 +270,15 @@ class DeviceFleetPanel:
             f"Online {summary['online_expected']} / Expected {summary['expected']}{extra}"
         )
         selected = self._selected_id
+        self.tree.unbind("<<TreeviewSelect>>")
+        try:
+            self._fill_tree(selected)
+        finally:
+            self.tree.bind("<<TreeviewSelect>>", self._on_select)
+        self._update_upload_button()
+        self._show_status()
+
+    def _fill_tree(self, selected: Optional[str]) -> None:
         for item in self.tree.get_children():
             self.tree.delete(item)
         for row in self._rows:
@@ -222,12 +303,126 @@ class DeviceFleetPanel:
         if selected and self.tree.exists(selected):
             self.tree.selection_set(selected)
             self.tree.see(selected)
-        self._update_upload_button()
+        elif selected:
+            self._selected_id = None
 
     def _on_select(self, _event=None) -> None:
         sel = self.tree.selection()
-        self._selected_id = sel[0] if sel else None
+        device_id = sel[0] if sel else None
+        changed = device_id != self._selected_id
+        self._selected_id = device_id
         self._update_upload_button()
+        if changed:
+            self._live_status = {}
+            self._show_commands()
+            self._listen_selected()
+        self._show_status()
+
+    def _show_commands(self) -> None:
+        for child in self.cmd_inner.winfo_children():
+            child.destroy()
+        row = self._selected_row()
+        if row is None:
+            self.detail_title.set("Select a device")
+            self._command_device = None
+            return
+        self.detail_title.set(_device_label(row))
+        self._command_device = str(row["id"])
+        commands = commands_for(row)
+        if not commands:
+            ttk.Label(self.cmd_inner, text="No commands for this device").grid(row=0, column=0, sticky="w")
+            return
+        columns = 4
+        for index, (label, topic, payload) in enumerate(commands):
+            button = ttk.Button(
+                self.cmd_inner,
+                text=label,
+                command=lambda topic=topic, payload=payload, label=label: self._send_command(
+                    label, topic, payload
+                ),
+            )
+            button.grid(row=index // columns, column=index % columns, padx=3, pady=3, sticky="ew")
+
+    def _show_status(self) -> None:
+        row = self._selected_row()
+        text = "Select a device to see its status." if row is None else format_status(row, self._live_status)
+        self.status_text.configure(state=tk.NORMAL)
+        self.status_text.delete("1.0", tk.END)
+        self.status_text.insert(tk.END, text)
+        self.status_text.configure(state=tk.DISABLED)
+
+    def _listen_selected(self) -> None:
+        self._stop_detail_listen()
+        row = self._selected_row()
+        topics = status_topics(row) if row else []
+        if not topics:
+            return
+        stop = threading.Event()
+        self._detail_stop = stop
+
+        def on_message(topic: str, payload: str) -> None:
+            self.post(lambda topic=topic, payload=payload: self._note_live(topic, payload))
+
+        def work() -> None:
+            try:
+                self.bridge.listen_topics(topics, on_message, stop)
+            except Exception as exc:
+                self.post(lambda exc=exc: self._append_log(f"Status listen failed: {exc}"))
+
+        threading.Thread(target=work, name="fleet-detail", daemon=True).start()
+
+    def _stop_detail_listen(self) -> None:
+        if self._detail_stop is not None:
+            self._detail_stop.set()
+            self._detail_stop = None
+
+    def _note_live(self, topic: str, payload: str) -> None:
+        self._live_status[topic] = payload
+        self._show_status()
+
+    def _send_command(self, label: str, topic: str, payload: str) -> None:
+        if topic == "sms/gateway/command/send" and payload == "":
+            self._sms_dialog()
+            return
+        self._append_log(f"{label} → {topic} {payload}")
+
+        def work() -> None:
+            try:
+                self.bridge.publish_mqtt(topic, payload)
+                self.post(lambda: self._append_log(f"Sent {label}"))
+            except Exception as exc:
+                self.post(lambda exc=exc: self._append_log(f"{label} failed: {exc}"))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _sms_dialog(self) -> None:
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Send SMS")
+        dialog.transient(self.root)
+        dialog.resizable(False, False)
+        frame = ttk.Frame(dialog, padding=12)
+        frame.pack(fill=tk.BOTH, expand=True)
+        ttk.Label(frame, text="Number").grid(row=0, column=0, sticky="w")
+        number = ttk.Entry(frame, width=28)
+        number.grid(row=0, column=1, padx=(8, 0), pady=4)
+        ttk.Label(frame, text="Text").grid(row=1, column=0, sticky="w")
+        body = ttk.Entry(frame, width=28)
+        body.grid(row=1, column=1, padx=(8, 0), pady=4)
+
+        def send() -> None:
+            import json
+
+            to = number.get().strip()
+            text = body.get().strip()
+            if not to or not text:
+                messagebox.showerror("Send SMS", "Number and text are required.", parent=dialog)
+                return
+            payload = json.dumps({"to": to, "text": text}, ensure_ascii=False)
+            dialog.destroy()
+            self._send_command("Send SMS", "sms/gateway/command/send", payload)
+
+        ttk.Button(frame, text="Send", command=send).grid(row=2, column=1, sticky="e", pady=(8, 0))
+        number.focus_set()
 
     def _selected_row(self) -> Optional[Dict[str, Any]]:
         if not self._selected_id:

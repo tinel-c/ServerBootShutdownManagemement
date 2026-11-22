@@ -36,7 +36,7 @@ Over-The-Air (OTA) updates allow firmware to be updated remotely without physica
 |--------|------|--------------------------|
 | SMS Gateway (ESP32 + SIM800), `fw` ≥ 1.1.0 | `device/PlatformIO_esp32-sms-gateway/` | Yes — after `pio run -e lilygo-t-call` when status has a fresh `ip` |
 | 4-ch thyristor illumination (RY1–4 IO32/25/27/12, LED IO5) | `device/PlatformIO_esp32-4ch-thyristor-board-illumination/` | Yes — after `pio run` when the board is online |
-| ESP8266 main gate (`fw` ≥ 1.0.0, port 8266) | `device/PlatformIO_ESP8266_Main_Entry/` | After one UART flash of 1.0.0. `flash` stays false until `gate/main/status` has an `ip` |
+| ESP8266 main gate (`fw` 1.0.1, port 8266) | `device/PlatformIO_ESP8266_Main_Entry/` | Yes — `flash: true` after the UART image. `pio run -e esp12e` when `gate/main/status` has a fresh `ip` |
 
 ### Fleet monitor (dev PC)
 

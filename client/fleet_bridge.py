@@ -140,6 +140,8 @@ def build_device_rows(
                 "timeout_sec": timeout,
                 "status_topic": item.get("status_topic"),
                 "path": item.get("path"),
+                "rssi": entry.get("rssi"),
+                "last_payload": entry.get("last_payload") or "",
             }
         )
     return rows
@@ -262,6 +264,53 @@ class FleetBridge:
         self._watch_thread = thread
         thread.start()
 
+    def publish_mqtt(self, topic: str, payload: str) -> None:
+        """Publish one command. Raises on broker errors."""
+        host, port = self.broker()
+        client = _mqtt_client(f"fleet-cmd-{os.getpid()}")
+        client.connect(host, port, keepalive=15)
+        client.loop_start()
+        try:
+            info = client.publish(topic, payload, qos=1)
+            info.wait_for_publish(timeout=5)
+        finally:
+            client.loop_stop()
+            client.disconnect()
+
+    def listen_topics(
+        self,
+        topics: List[str],
+        on_message: Callable[[str, str], None],
+        stop: threading.Event,
+    ) -> None:
+        """Subscribe until stop is set. on_message runs on the MQTT thread."""
+        if not topics:
+            return
+        host, port = self.broker()
+        client = _mqtt_client(f"fleet-detail-{os.getpid()}")
+
+        def _on_message(_client, _userdata, msg) -> None:
+            try:
+                text = msg.payload.decode("utf-8", "replace")
+            except Exception:
+                text = ""
+            on_message(str(msg.topic), text)
+
+        client.on_message = _on_message
+        client.connect(host, port, keepalive=30)
+        for topic in topics:
+            client.subscribe(topic, qos=0)
+        client.loop_start()
+        try:
+            while not stop.wait(0.4):
+                pass
+        finally:
+            client.loop_stop()
+            try:
+                client.disconnect()
+            except Exception:
+                pass
+
     def stop_watching(self) -> None:
         if self._watch_stop is not None:
             self._watch_stop.set()
@@ -381,6 +430,14 @@ class FleetBridge:
         with self._lock:
             self.state = self._mod.load_state(self.state_path)
         return int(completed.returncode), log.strip()
+
+
+def _mqtt_client(client_id: str):
+    import paho.mqtt.client as mqtt
+
+    if hasattr(mqtt, "CallbackAPIVersion"):
+        return mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
+    return mqtt.Client(client_id=client_id)
 
 
 PANEL_TITLE = "Device Fleet"

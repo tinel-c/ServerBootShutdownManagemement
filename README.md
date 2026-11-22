@@ -942,11 +942,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.26.2  
+**Version:** 3.26.3  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.26.3 (2026-11-22) - Device Fleet commands
+- 🪟 **Device Fleet** shows an icon, live status for the selected device, and a button for every command that device accepts
+- 🔁 **Client update** waits with ping, so the file copy actually runs
+- 🚪 **Main gate** fleet flash is on now that firmware 1.0.1 answers OTA
+- See [RELEASE_NOTES_v3.26.3.md](docs/releases/RELEASE_NOTES_v3.26.3.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.26.2 (2026-11-22) - UART upload and SMS domain gateway
 - 🔧 **Fleet flash off** no longer fails a UART upload after the firmware image is written

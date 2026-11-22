@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The tray process was loading Tk beside pystray. Windows then aborted `python.exe` inside `tcl86t.dll` and the tray icon disappeared. Device Fleet now starts in its own process. A second click raises the existing window.
 
+### Fixed - UART upload when fleet flash is off
+
+- `device_fleet.py flash` returns 0 when `flash` is false, the device is offline, or the sighting has no IP. PlatformIO can continue to esptool. A failed `espota` to a live board still fails the post-step.
+
+### Added - SMS domain gateway
+
+- Flow 514 authorizes the sender and publishes `sms/command/dispatch`. Flow 515 runs the domain commands (per-switch lights, illumination, irrigation, energy) and replies on `sms/command/reply`. Flow 514 remains the only path that sends `sms/gateway/command/send`.
+
 ## [3.26.0] - 2026-11-22
 
 ### Fixed - Device builds on a new PC

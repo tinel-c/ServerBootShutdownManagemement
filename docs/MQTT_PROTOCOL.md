@@ -71,8 +71,12 @@ Published by `host-metrics-publisher.service` every ~15 s. See [HOST_METRICS.m
 | `sms/gateway/watchdog/heartbeat` | Heartbeat for an enrolled device (`name`) | 1 | Device → SMS gateway |
 | `sms/gateway/watchdog/status` | JSON array of enrolled devices (`name`, `interval`, `online`, `age`) | 1 | SMS gateway → Dashboard |
 | `sms/command/received` | Internal: new SMS for command processing | 1 | Node-RED 511 → 514 |
+| `sms/command/dispatch` | Authorized SMS command for domain handlers | 1 | Node-RED 514 → 515 |
+| `sms/command/reply` | SMS reply text(s) from domain handlers | 1 | Node-RED 515 → 514 |
+| `irrigation/command/area_a` | Lawn program control (`ON`/`pause`/`resume`/`skip`) | 1 | SMS 515 → irrigation bridge |
+| `irrigation/command/area_b` | Flowers program control (same payloads) | 1 | SMS 515 → irrigation bridge |
 
-**Device self-registration (required for new ESP firmware):** each device copies [`sms_watchdog_client.h`](../device/templates/platformio-esp32/include/sms_watchdog_client.h) and publishes enroll then heartbeat on MQTT connect and on its ~30 s status cadence. `name` is the fleet id. Timeout alert = **2 × interval** after the device has heartbeated once. The enroll list is RAM-only (max 10); same name + same interval is a silent no-op (`fw` ≥ 1.1.3) so periodic re-enroll recovers after a gateway reboot without SMS spam. Full table drops new enrolls silently.
+**Device self-registration (required for new ESP firmware):** each device copies [`sms_watchdog_client.h`](../device/templates/platformio-esp32/include/sms_watchdog_client.h) and publishes enroll then heartbeat on MQTT connect and on its ~30 s status cadence. `name` is the fleet id. The status topic marks a device offline after **2 × interval** with no heartbeat. From gateway `fw` 1.1.4, SMS waits until the device has been offline for **10 minutes**, then at most one “lost” text per device every **30 minutes**, plus one “online” text only if that lost text was sent. A short flap does not text. The enroll list is RAM-only (max 10); same name + same interval is a silent no-op (`fw` ≥ 1.1.3) so periodic re-enroll recovers after a gateway reboot without SMS spam. Full table drops new enrolls silently.
 
 ### 4-channel thyristor illumination (Domain: illumination/4ch-thyristor)
 
@@ -950,6 +954,33 @@ SMS message text string
 
 **Schema:** JSON string with `messages`, `messageCount`, `latest` fields. Flow 511 publishes; Flow 514 subscribes for command processing.
 
+### SMS Command Dispatch / Reply (Internal Node-RED)
+
+**Topic:** `sms/command/dispatch` (514 → 515)
+
+```json
+{
+  "from": "40740244845",
+  "command": "energy_status",
+  "args": [],
+  "originalText": "ENERGY STATUS"
+}
+```
+
+**Topic:** `sms/command/reply` (515 → 514)
+
+```json
+{ "to": "40740244845", "text": "Victron SOC 84% ..." }
+```
+
+Flow 514 alone publishes `sms/gateway/command/send` for command replies (3 s delay, then 1 message per 5 s). Full command grammar: [SMS_INTERFACE.md](SMS_INTERFACE.md).
+
+### Irrigation program bridge
+
+**Topics:** `irrigation/command/area_a`, `irrigation/command/area_b`
+
+**Payload:** string `ON` | `pause` | `resume` | `skip` (same as dashboard Start / Pause / Resume / Skip). Bridged into the sprinkler run-gate / timerctl nodes on the irrigation tab.
+
 ---
 
 **Example Usage:**
@@ -1334,7 +1365,7 @@ mosquitto_sub -h 192.168.2.4 -t 'water/grundfos/scala1/#' -v
 **Delete** — `sms/gateway/watchdog/delete` — `{"name":"<fleet id>"}`  
 **Status** — `sms/gateway/watchdog/status` — JSON array, e.g. `[{"name":"…","interval":60,"online":true,"age":12}]`
 
-Devices use [`sms_watchdog_client.h`](../device/templates/platformio-esp32/include/sms_watchdog_client.h). Gateway `fw` ≥ 1.1.3: re-enroll with the same interval is silent (no SMS). Interval changes still send an “updated” SMS. Cap: 10 devices.
+Devices use [`sms_watchdog_client.h`](../device/templates/platformio-esp32/include/sms_watchdog_client.h). Gateway `fw` ≥ 1.1.3: re-enroll with the same interval is silent (no SMS). Interval changes still send an “updated” SMS. Gateway `fw` ≥ 1.1.4: connection-lost SMS only after 10 minutes offline, at most once per 30 minutes per device; the online SMS follows that alert only. Cap: 10 devices.
 
 ---
 

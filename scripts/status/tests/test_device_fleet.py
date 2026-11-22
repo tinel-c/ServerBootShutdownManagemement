@@ -68,6 +68,13 @@ def test_flash_decision_disabled():
     ok, reason = mod.flash_decision(entry, cfg)
     assert ok is False
     assert "disabled" in reason
+    assert mod.flash_skip_exit(reason) == 0
+
+
+def test_flash_skip_exit_soft_and_hard():
+    assert mod.flash_skip_exit("device offline or sighting stale") == 0
+    assert mod.flash_skip_exit("no IP in state (device must publish ip in status)") == 0
+    assert mod.flash_skip_exit("unknown device") == 2
 
 
 def test_flash_decision_stale():

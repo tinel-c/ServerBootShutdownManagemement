@@ -92,7 +92,7 @@ To add a new domain to help:
 
 ## 📱 SMS Parity
 
-All Telegram commands are available via SMS. See [SMS_INTERFACE.md](SMS_INTERFACE.md) for the full SMS command reference and setup.
+Telegram commands are available via SMS, plus per-switch lights, illumination channels, irrigation zones, and energy breakers. See [SMS_INTERFACE.md](SMS_INTERFACE.md) for the grammar, help index, and MQTT bus (`sms/command/dispatch` / `sms/command/reply`).
 
 ---
 **Version**: 2.0.0  

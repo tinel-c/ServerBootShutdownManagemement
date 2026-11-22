@@ -11,8 +11,9 @@ When the firmware tree is a submodule of this monorepo, a successful build runs:
     python scripts/status/device_fleet.py flash --id <device id> --bin firmware.bin
 
 A standalone clone (no monorepo parent) leaves the .bin in place.
-Offline or missing IP is a soft success (exit 0). A failed espota to a live
-device fails the post step. SKIP_FLEET_OTA=1 skips the fleet tool.
+Offline, missing IP, or flash disabled in the registry is a soft success
+(exit 0) so a UART upload can continue. A failed espota to a live device
+fails the post step. SKIP_FLEET_OTA=1 skips the fleet tool.
 
 The fleet tool needs PyYAML and paho-mqtt. PlatformIO's own Python does not
 ship them, so a new PC falls through to that interpreter and the post step

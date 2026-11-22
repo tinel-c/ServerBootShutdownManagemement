@@ -1,157 +1,128 @@
 # SMS Interface Documentation
 
-This document provides a comprehensive guide to the SMS command interface and emergency forwarding for the automation system.
+SMS is a command gateway with the same reach as Telegram, plus per-switch control for lights, illumination channels, irrigation zones, and energy breakers. Texts are pull-only: you send a command, the gateway replies. State-change alerts stay on Telegram.
 
 ## Overview
 
-The SMS interface mirrors the full Telegram command set. Send commands via SMS to the gateway SIM; only numbers in the allowed list can execute commands. All received SMS are forwarded to the emergency phone for monitoring.
+1. Phone texts the SIM on the ESP32 SMS gateway.
+2. Gateway publishes `sms/gateway/receive/*`.
+3. Flow 511 forwards the message for monitoring and publishes `sms/command/received`.
+4. Flow 514 authorizes the sender, normalizes the command, and either answers `HELP` or publishes `sms/command/dispatch`.
+5. Flow 515 runs the domain handler and publishes `sms/command/reply` (and device MQTT commands).
+6. Flow 514 is the only path that sends `sms/gateway/command/send` for command replies (3 s delay, then 1 SMS / 5 s).
 
----
+## Prerequisites
 
-## 🚀 Prerequisites
+- SMS gateway online (MQTT + GSM)
+- Flows 510, 511, 514, 515 deployed
+- Your number on the allowlist (Dashboard → SMS Gateway → Allowed phones)
 
-- SMS Gateway device (ESP32 + SIM800) connected to MQTT
-- Node-RED flows 510, 511, 514 imported and deployed
-- Your phone number added to the allowed list (Dashboard → SMS Gateway tab)
+## Protocol
 
----
+- Case-insensitive. Optional leading `/`.
+- Underscores and spaces are equivalent: `ENERGY_STATUS` = `ENERGY STATUS`, `LIGHT_3_ON` = `LIGHT 3 ON`.
+- Replies are ASCII (no emoji). Each part ≤ 150 characters.
+- Only allowlisted numbers can run commands. Other SMS are still forwarded to the emergency phone.
 
-## 📱 Command Reference
+### Help
 
-Commands are case-insensitive. Use with or without `/` prefix (e.g. `help`, `/help`, `HELP` all work).
+| Command | Reply |
+|---------|--------|
+| `HELP` / `COMMANDS` / `LIST` / `START` | One SMS: domain index |
+| `HELP ENERGY` (or `LIGHTS`, `ILLUM`, `IRRIG`, `GATE`, `SERVER`, …) | That domain’s commands |
 
-### 🖥️ Server Management
+### Servers
+
 | Command | Description |
 |---------|-------------|
-| `BOOT [dell\|hp]` | Boot a server (default: dell) |
-| `SHUTDOWN [dell\|hp]` | Graceful shutdown (default: dell) |
-| `FORCE [dell\|hp]` | Immediate power-off |
-| `STATUS` | Get all server statuses |
+| `BOOT [dell\|hp\|media]` | Boot (default dell) |
+| `SHUTDOWN [dell\|hp\|media]` | Graceful shutdown |
+| `FORCE [dell\|hp\|media]` | Force power-off |
+| `STATUS` | Dell / HP / media status |
 
-### 🚪 Main Gate
+### Gates
+
 | Command | Description |
 |---------|-------------|
-| `GATE_OPEN` or `GATE` | Open main gate (pulse) |
-| `GATE_STATUS` | Get gate status |
+| `GATE_OPEN` / `GATE` | Open main gate |
+| `GATE_STATUS` | Main gate status |
+| `SLIDING_OPEN` / `CLOSE` / `TRIGGER` / `STATUS` | Sliding gate |
+| `SECONDARY_OPEN` / `CLOSE` / `TRIGGER` / `STOP` / `STATUS` | Secondary gate |
+| `SECONDARY_LIGHT_LEFT` / `SECONDARY_LIGHT_RIGHT` | Gate lights (120 s) |
 
-### 🚪 Sliding Gate
+### Garden power and lights
+
 | Command | Description |
 |---------|-------------|
-| `SLIDING_OPEN` | Open sliding gate |
-| `SLIDING_CLOSE` | Close sliding gate |
-| `SLIDING_TRIGGER` | Trigger automation |
-| `SLIDING_STATUS` | Get status |
+| `GARDEN_ON` / `OFF` / `TOGGLE` / `STATUS` | Garden power outlet |
+| `LIGHTS_ON` / `LIGHTS_OFF` / `LIGHTS_STATUS` | All 16 lights |
+| `LIGHT <n> ON\|OFF` | Light 1–16 |
 
-### 🚪 Secondary Gate
+### Illumination (4-channel thyristor)
+
 | Command | Description |
 |---------|-------------|
-| `SECONDARY_OPEN` | Open gate |
-| `SECONDARY_CLOSE` | Close gate |
-| `SECONDARY_TRIGGER` | Trigger automation |
-| `SECONDARY_STOP` | Stop gate |
-| `SECONDARY_LIGHT_LEFT` | Left light (120s) |
-| `SECONDARY_LIGHT_RIGHT` | Right light (120s) |
-| `SECONDARY_STATUS` | Get status |
+| `ILLUM <n> ON\|OFF` | Channel 1–4 |
+| `ILLUM OFF` | All channels off |
+| `ILLUM_STATUS` | Channel states |
 
-### 💡 Garden Power & Lights
+### Irrigation
+
 | Command | Description |
 |---------|-------------|
-| `GARDEN_ON` | Turn garden power ON |
-| `GARDEN_OFF` | Turn garden power OFF |
-| `GARDEN_TOGGLE` | Toggle power |
-| `GARDEN_STATUS` | Get power status |
-| `LIGHTS_ON` | Turn all 16 lights ON |
-| `LIGHTS_OFF` | Turn all 16 lights OFF |
-| `LIGHTS_STATUS` | Get lights summary |
+| `IRRIG <n> ON\|OFF` | Zone I1–I12 |
+| `IRRIG_STATUS` | Zone summary |
+| `IRRIG_A_START` / `PAUSE` / `RESUME` / `SKIP` | Lawn program (Area A) |
+| `IRRIG_B_START` / `PAUSE` / `RESUME` / `SKIP` | Flowers program (Area B) |
 
-### 💧 Water Pump
+### Water pump / aquarium / camera / SMS
+
 | Command | Description |
 |---------|-------------|
-| `PUMP_START` | Start pump |
-| `PUMP_STOP` | Stop pump |
-| `PUMP_DRAIN` | Drain water (10s pulse) |
-| `PUMP_TRENCH1_ON` / `PUMP_TRENCH1_OFF` | Feed trench 1 |
-| `PUMP_TRENCH2_ON` / `PUMP_TRENCH2_OFF` | Feed trench 2 |
-| `PUMP_STATUS` | Get pump status |
+| `PUMP_START` / `STOP` / `DRAIN` / `STATUS` | Pump |
+| `PUMP_TRENCH1_ON` / `OFF`, `PUMP_TRENCH2_ON` / `OFF` | Trenches |
+| `AQUARIUM_ON` / `OFF` / `TOGGLE` / `STATUS` | Aquarium light |
+| `CAMERA_STATUS` / `CAMERA_HELP` | Tapo health |
+| `SMS_STATUS` / `SMS_LOG` | Gateway status / last SMS |
 
-### 🐠 Aquarium
+### Energy
+
 | Command | Description |
 |---------|-------------|
-| `AQUARIUM_ON` | Light ON |
-| `AQUARIUM_OFF` | Light OFF |
-| `AQUARIUM_TOGGLE` | Toggle light |
-| `AQUARIUM_STATUS` | Get status |
+| `ENERGY_STATUS` / `START` / `STOP` | Victron + discretionary load |
+| `HUAWEI_STATUS` | Huawei PV |
+| `SCALA1_STATUS` / `START` / `STOP` | Grundfos SCALA1 |
+| `CONSUMER_STATUS` | All breakers |
+| `CONSUMER <id> ON\|OFF` | `front-lights-breaker`, `breaker-inside`, `breaker-outside`, `garden-power-hut` (aliases: `front`, `inside`, `outside`, `hut`) |
 
-### 📷 Camera (Tapo ICMP watchdog)
-| Command | Description |
-|---------|-------------|
-| `CAMERA_STATUS` | Camera health and last detection event |
-| `CAMERA_HELP` | Camera system help |
+Unknown command → one SMS: `Unknown. Send HELP`.
 
-### 📱 SMS Gateway
-| Command | Description |
-|---------|-------------|
-| `SMS_STATUS` | Gateway WiFi/MQTT/GSM status |
-| `SMS_LOG` | Last 3 received SMS |
+## MQTT bus (Node-RED internal)
 
-### ❓ Help
-| Command | Description |
-|---------|-------------|
-| `HELP` or `COMMANDS` or `LIST` or `START` | Full command list: **8 SMS messages** with descriptions (sent with 3s then 5s spacing) |
+| Topic | Direction | Payload |
+|-------|-----------|---------|
+| `sms/command/received` | 511 → 514 | `{ messages, messageCount, latest }` |
+| `sms/command/dispatch` | 514 → 515 | `{ from, command, args, originalText }` |
+| `sms/command/reply` | 515 → 514 | `{ to, text }` or array of parts |
+| `sms/gateway/command/send` | 514 → gateway | `{ to, text }` (JSON string) |
+| `irrigation/command/area_a` | 515 → 420 bridge | `ON` / `pause` / `resume` / `skip` |
+| `irrigation/command/area_b` | 515 → 420 bridge | same |
 
----
+## Configuration
 
-## 🔄 Message Flow
+### Allowed phones
 
-1. **Receive**: SMS arrives on gateway SIM → device publishes to `sms/gateway/receive/*`
-2. **Forward**: Flow 511 forwards all SMS to emergency phone (`+40740244845`) via `sms/gateway/command/send`
-3. **Process**: Flow 511 publishes to `sms/command/received` → Flow 514 subscribes
-4. **Parse**: Flow 514 extracts command from text (strips modem `+CMGR:` lines if present)
-5. **Authorize**: Only allowed phone numbers can trigger commands
-6. **Reply**: Flow 514 sends reply with 3-second delay (avoids modem conflict with forward). For HELP/COMMANDS/LIST, **multiple SMS** are sent (8 chunks) with 5-second spacing between each (rate limit) so the modem can send one at a time.
+Dashboard → SMS Gateway → Allowed phones (comma-separated with country code). Defaults: `+40740244845`, `+40745218721`.
 
----
+### Emergency forward
 
-## ⚙️ Configuration
+Hardcoded in flow 511. All received SMS are forwarded; only allowlisted numbers execute commands.
 
-### Allowed Phones
-- **Location**: Dashboard → SMS Gateway tab → Allowed phones (SMS commands)
-- **Format**: Comma-separated with country code (e.g. `+40740244845, +40745218721`)
-- **Default**: `+40740244845`, `+40745218721` (set at flow init)
+## Troubleshooting
 
-### Emergency Phone
-- **Hardcoded**: `+40740244845` in flow 511
-- All received SMS are forwarded to this number
+- No reply: number must be on the allowlist with country code.
+- Late reply: 3 s delay before the first reply, then 5 s between parts.
+- Unknown command: send `HELP`, then `HELP <domain>`.
 
----
-
-## 🔧 Technical Details
-
-### MQTT Topics
-| Topic | Purpose |
-|-------|---------|
-| `sms/command/received` | Internal: Flow 511 → 514 (JSON payload with `latest`) |
-| `sms/gateway/command/send` | Send SMS (JSON: `{ to, text }`) |
-
-### Payload Format
-- **Send SMS**: JSON string `{"to":"40740244845","text":"Hello"}` (digits-only for `to`)
-- **Internal**: Flow 511 publishes `JSON.stringify({ messages, messageCount, latest })`
-
-### Modem Output Handling
-Gateway may include raw AT response lines (e.g. `+CMGR: "REC READ",...`) in the SMS text. Flow 514 strips these and extracts the actual command line.
-
-### Reply Delay
-A 3-second delay before sending command replies avoids GSM modem conflicts when both the forward and reply are queued in quick succession. **Multi-SMS**: When the reply is multiple messages (e.g. HELP), a rate-limit delay (1 message per 5 seconds) after the 3s delay spaces them so the device sends one SMS at a time.
-
----
-
-## 🆘 Troubleshooting
-
-- **No reply to HELP**: Ensure your number is in the allowed list with full country code (`+40...`)
-- **Reply arrives late**: Expected—3-second delay to avoid modem conflict with forward
-- **Forward not received**: Check emergency phone is correct and gateway has GSM signal
-- **Unknown command**: Send `HELP` for the command list; commands are case-insensitive
-
----
-**Version**: 1.0.0  
-**Last Updated**: February 2026
+**Version:** 2.0.0  
+**Last Updated:** November 2026

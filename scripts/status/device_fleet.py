@@ -145,6 +145,21 @@ def is_online(entry: Optional[Dict[str, Any]], timeout_sec: int, *, now: Optiona
     return (when - float(last)) <= float(timeout_sec)
 
 
+def flash_skip_exit(reason: str) -> int:
+    """Exit code when flash_decision refuses a flash.
+
+    A disabled registry flag, a stale sighting, or a missing IP must not fail
+    the PlatformIO post-step. UART upload runs only after that step returns 0.
+    """
+    if (
+        reason.startswith("flash disabled")
+        or reason.startswith("device offline")
+        or reason.startswith("no IP")
+    ):
+        return 0
+    return 2
+
+
 def flash_decision(
     entry: Optional[Dict[str, Any]],
     device_cfg: Dict[str, Any],
@@ -421,10 +436,7 @@ def cmd_flash(args: argparse.Namespace) -> int:
     ok, reason = flash_decision(entry, device_cfg)
     if not ok:
         print(f"skip OTA for {args.id}: {reason}")
-        # Offline / no IP is a soft success for post-build hooks.
-        if reason.startswith("device offline") or reason.startswith("no IP"):
-            return 0
-        return 2
+        return flash_skip_exit(reason)
 
     bin_path = Path(args.bin).resolve()
     if not bin_path.is_file():

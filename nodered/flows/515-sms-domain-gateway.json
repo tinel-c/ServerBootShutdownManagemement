@@ -1,0 +1,313 @@
+[
+    {
+        "id": "sms_domain_comment",
+        "type": "comment",
+        "z": "tab_dashboard",
+        "name": "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 SMS DOMAIN GATEWAY (515) \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
+        "info": "## SMS Domain Gateway\n\n**Flow 515** \u2014 handles `sms/command/dispatch`, publishes `sms/command/reply` and device MQTT commands.\nSee docs/SMS_INTERFACE.md.",
+        "x": 420,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_sms_dispatch",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "SMS Dispatch (In)",
+        "topic": "sms/command/dispatch",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 120,
+        "wires": [
+            [
+                "func_sms_domain_handler"
+            ]
+        ]
+    },
+    {
+        "id": "func_sms_domain_handler",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Handle SMS Domains",
+        "func": "let payload = msg.payload;\nif (Buffer.isBuffer(payload)) payload = payload.toString('utf8');\nif (typeof payload === 'string') {\n    try { payload = JSON.parse(payload); } catch (e) { return null; }\n}\nif (!payload || !payload.command || payload.from == null) return null;\n\nconst cmd = String(payload.command).toLowerCase();\nconst args = Array.isArray(payload.args) ? payload.args.map(a => String(a).toLowerCase()) : [];\nconst to = String(payload.from).replace(/\\D/g, '') || String(payload.from);\n\nfunction reply(text) {\n    const parts = [];\n    let t = String(text || '');\n    while (t.length > 150) {\n        parts.push(t.substring(0, 150));\n        t = t.substring(150);\n    }\n    if (t.length) parts.push(t);\n    if (!parts.length) parts.push('OK');\n    return parts.map(p => ({ payload: JSON.stringify({ to: to, text: p }), topic: 'sms/command/reply' }));\n}\nfunction mqttAndReply(topic, mqttPayload, replyText) {\n    const out = reply(replyText);\n    out.push({ topic: topic, payload: mqttPayload });\n    return out;\n}\nfunction sendMany(mqttMsgs, replyText) {\n    const out = reply(replyText);\n    for (const m of mqttMsgs) out.push(m);\n    return out;\n}\n\nconst IRRIG_ZONE_POWER = {\n    1: 'POWER2', 2: 'POWER3', 3: 'POWER4', 4: 'POWER5',\n    5: 'POWER10', 6: 'POWER11', 7: 'POWER12', 8: 'POWER13',\n    9: 'POWER14', 10: 'POWER15', 11: 'POWER16', 12: 'POWER17'\n};\nconst CONSUMER_IDS = {\n    'front-lights-breaker': 'front-lights-breaker',\n    front: 'front-lights-breaker',\n    flb: 'front-lights-breaker',\n    'breaker-inside': 'breaker-inside',\n    inside: 'breaker-inside',\n    'breaker-outside': 'breaker-outside',\n    outside: 'breaker-outside',\n    'garden-power-hut': 'garden-power-hut',\n    hut: 'garden-power-hut',\n    'garden-hut': 'garden-power-hut'\n};\n\nif (cmd === 'boot') {\n    const server = (args[0] || 'dell');\n    if (server === 'hp' || server === 'dl360p') {\n        return mqttAndReply('hp/dl360p/command/boot', { action: 'boot', method: 'ilo', source: 'sms' }, 'Booting HP DL360p...');\n    }\n    if (server === 'media' || server === 'media_server') {\n        return mqttAndReply('media/server/command/boot', { action: 'boot', source: 'sms' }, 'Booting Media Server...');\n    }\n    return mqttAndReply('dell/t310/command/boot', { action: 'boot', method: 'wol', source: 'sms' }, 'Booting Dell T310...');\n}\nif (cmd === 'shutdown' || cmd === 'stop') {\n    const server = (args[0] || 'dell');\n    if (server === 'hp' || server === 'dl360p') {\n        return mqttAndReply('hp/dl360p/command/shutdown', { action: 'shutdown', type: 'graceful', timeout: 300, source: 'sms' }, 'Shutdown HP DL360p...');\n    }\n    if (server === 'media' || server === 'media_server') {\n        return mqttAndReply('media/server/command/shutdown', { action: 'shutdown', type: 'graceful', source: 'sms' }, 'Shutdown Media Server...');\n    }\n    return mqttAndReply('dell/t310/command/shutdown', { action: 'shutdown', type: 'graceful', timeout: 300, source: 'sms' }, 'Shutdown Dell T310...');\n}\nif (cmd === 'force' || cmd === 'force_shutdown') {\n    const server = (args[0] || 'dell');\n    if (server === 'hp' || server === 'dl360p') {\n        return mqttAndReply('hp/dl360p/command/shutdown', { action: 'shutdown', type: 'force', source: 'sms' }, 'FORCE shutdown HP!');\n    }\n    if (server === 'media' || server === 'media_server') {\n        return mqttAndReply('media/server/command/shutdown', { action: 'shutdown', type: 'force', source: 'sms' }, 'FORCE shutdown Media!');\n    }\n    return mqttAndReply('dell/t310/command/shutdown', { action: 'shutdown', type: 'force', source: 'sms' }, 'FORCE shutdown Dell!');\n}\nif (cmd === 'status' || cmd === 'state') {\n    const dell = flow.get('status_dell_t310_status') || {};\n    const hp = flow.get('status_hp_dl360p_status') || {};\n    const media = flow.get('status_media_server_status') || {};\n    const d = (dell.server_state || 'unknown').toUpperCase();\n    const h = (hp.server_state || 'unknown').toUpperCase();\n    const m = (media.server_state || 'unknown').toUpperCase();\n    return reply('Servers: Dell=' + d + ' HP=' + h + ' Media=' + m);\n}\n\nif (cmd === 'gate_open' || cmd === 'gate') {\n    return mqttAndReply('MainGate/CMD/Relay3', 'ON', 'Opening Main Gate...');\n}\nif (cmd === 'gate_status') {\n    const g = (flow.get('gate_state') || {}).mainGate || {};\n    return reply('Main Gate: Power=' + (g.power||'?') + ' R1=' + (g.relay1||'?') + ' R2=' + (g.relay2||'?') + ' R3=' + (g.relay3||'?') + ' R4=' + (g.relay4||'?'));\n}\n\nif (cmd === 'sliding_open') return mqttAndReply('cmnd/automatizare_poarta/Power1', true, 'Sliding OPEN...');\nif (cmd === 'sliding_close') return mqttAndReply('cmnd/automatizare_poarta/Power2', true, 'Sliding CLOSE...');\nif (cmd === 'sliding_trigger') return mqttAndReply('cmnd/automatizare_poarta/Power3', true, 'Sliding TRIGGER...');\nif (cmd === 'sliding_status') {\n    const s = flow.get('sliding_gate_state') || {};\n    return reply('Sliding: R1=' + (s.relay1||'?') + ' R2=' + (s.relay2||'?') + ' R3=' + (s.relay3||'?') + ' R4=' + (s.relay4||'?'));\n}\n\nif (cmd === 'secondary_open') return mqttAndReply('SecondGate/CMD/Relay2', 'ON', 'Secondary OPEN...');\nif (cmd === 'secondary_close') return mqttAndReply('SecondGate/CMD/Relay1', 'ON', 'Secondary CLOSE...');\nif (cmd === 'secondary_trigger') return mqttAndReply('SecondGate/CMD/Relay3', 'ON', 'Secondary TRIGGER...');\nif (cmd === 'secondary_stop') return mqttAndReply('SecondGate/CMD/Relay4', 'ON', 'Secondary STOP...');\nif (cmd === 'secondary_light_left') return mqttAndReply('SecondGate/CMD/Relay5', 'ON', 'Left light ON 120s...');\nif (cmd === 'secondary_light_right') return mqttAndReply('SecondGate/CMD/Relay6', 'ON', 'Right light ON 120s...');\nif (cmd === 'secondary_status') {\n    const s = flow.get('secondary_gate_state') || {};\n    return reply('Secondary: R1=' + (s.relay1||'?') + ' R2=' + (s.relay2||'?') + ' R3=' + (s.relay3||'?') + ' R4=' + (s.relay4||'?') + ' L=' + (s.relay5||'?') + ' R=' + (s.relay6||'?'));\n}\n\nif (cmd === 'garden_on') return mqttAndReply('cmnd/sonoffPower320D_afara/Power', 'ON', 'Garden power ON...');\nif (cmd === 'garden_off') return mqttAndReply('cmnd/sonoffPower320D_afara/Power', 'OFF', 'Garden power OFF...');\nif (cmd === 'garden_toggle') return mqttAndReply('cmnd/sonoffPower320D_afara/Power', 'TOGGLE', 'Garden power TOGGLE...');\nif (cmd === 'garden_status') {\n    const g = global.get('garden_power_state') || {};\n    return reply('Garden Power: ' + (g.powerStatus||'?') + ' V=' + (g.voltage||'?') + ' A=' + (g.current||'?') + ' W=' + (g.power||'?'));\n}\n\nif (cmd === 'lights_on' || cmd === 'lights_off') {\n    const state = cmd === 'lights_on' ? 'ON' : 'OFF';\n    const msgs = [];\n    for (let i = 1; i <= 12; i++) msgs.push({ topic: 'GardenAutomationLights/CMD/Relay' + i, payload: state });\n    for (let i = 1; i <= 4; i++) msgs.push({ topic: 'cmnd/frontHousePower/POWER' + i, payload: state });\n    return sendMany(msgs, 'All 16 lights ' + state + '...');\n}\nif (cmd === 'lights_status') {\n    const st = global.get('garden_lights_state') || {};\n    let on = 0, off = 0;\n    for (let i = 1; i <= 16; i++) {\n        if (st['light_' + i] === 'ON') on++;\n        else if (st['light_' + i] === 'OFF') off++;\n    }\n    return reply('Lights: ' + on + ' ON, ' + off + ' OFF, ' + (16 - on - off) + ' unknown');\n}\nif (cmd === 'light') {\n    const n = parseInt(args[0], 10);\n    const state = (args[1] || '').toUpperCase();\n    if (!(n >= 1 && n <= 16) || (state !== 'ON' && state !== 'OFF')) {\n        return reply('Usage: LIGHT 1-16 ON|OFF');\n    }\n    if (n <= 12) return mqttAndReply('GardenAutomationLights/CMD/Relay' + n, state, 'Light ' + n + ' ' + state);\n    return mqttAndReply('cmnd/frontHousePower/POWER' + (n - 12), state, 'Light ' + n + ' ' + state);\n}\n\nif (cmd === 'illum_status') {\n    const ill = flow.get('sms_illum_status') || {};\n    const ch = Array.isArray(ill.channels) ? ill.channels : [];\n    if (!ch.length) return reply('Illum: no status yet');\n    const parts = ch.map(c => 'C' + c.id + '=' + String(c.state || '?').toUpperCase());\n    return reply('Illum: ' + parts.join(' ') + ' fw=' + (ill.fw || '?'));\n}\nif (cmd === 'illum') {\n    if (args.length === 1 && args[0] === 'off') {\n        return mqttAndReply('illumination/4ch-thyristor/command/set', JSON.stringify({ channel: 0, state: 'off' }), 'Illum all OFF...');\n    }\n    const n = parseInt(args[0], 10);\n    const state = (args[1] || '').toLowerCase();\n    if (!(n >= 1 && n <= 4) || (state !== 'on' && state !== 'off')) {\n        return reply('Usage: ILLUM 1-4 ON|OFF or ILLUM OFF');\n    }\n    return mqttAndReply('illumination/4ch-thyristor/command/set', JSON.stringify({ channel: n, state: state }), 'Illum C' + n + ' ' + state.toUpperCase());\n}\n\nif (cmd === 'irrig_status') {\n    const z = flow.get('sms_irrig_zones') || {};\n    const bits = [];\n    for (let i = 1; i <= 12; i++) {\n        const key = IRRIG_ZONE_POWER[i];\n        bits.push('I' + i + '=' + (z[key] || '?'));\n    }\n    return reply('Irrig: ' + bits.join(' '));\n}\nif (cmd === 'irrig_a_start') return mqttAndReply('irrigation/command/area_a', 'ON', 'Irrig Lawn START...');\nif (cmd === 'irrig_a_pause') return mqttAndReply('irrigation/command/area_a', 'pause', 'Irrig Lawn PAUSE...');\nif (cmd === 'irrig_a_resume') return mqttAndReply('irrigation/command/area_a', 'resume', 'Irrig Lawn RESUME...');\nif (cmd === 'irrig_a_skip') return mqttAndReply('irrigation/command/area_a', 'skip', 'Irrig Lawn SKIP...');\nif (cmd === 'irrig_b_start') return mqttAndReply('irrigation/command/area_b', 'ON', 'Irrig Flowers START...');\nif (cmd === 'irrig_b_pause') return mqttAndReply('irrigation/command/area_b', 'pause', 'Irrig Flowers PAUSE...');\nif (cmd === 'irrig_b_resume') return mqttAndReply('irrigation/command/area_b', 'resume', 'Irrig Flowers RESUME...');\nif (cmd === 'irrig_b_skip') return mqttAndReply('irrigation/command/area_b', 'skip', 'Irrig Flowers SKIP...');\nif (cmd === 'irrig') {\n    const n = parseInt(args[0], 10);\n    const state = (args[1] || '').toUpperCase();\n    if (!(n >= 1 && n <= 12) || (state !== 'ON' && state !== 'OFF')) {\n        return reply('Usage: IRRIG 1-12 ON|OFF');\n    }\n    const power = IRRIG_ZONE_POWER[n];\n    return mqttAndReply('cmnd/IrigationSystem/' + power, state, 'Irrig I' + n + ' ' + state);\n}\n\nif (cmd === 'pump_start') return mqttAndReply('cmnd/pompaApa/Power1', 'ON', 'Pump START...');\nif (cmd === 'pump_stop') return mqttAndReply('cmnd/pompaApa/Power1', 'OFF', 'Pump STOP...');\nif (cmd === 'pump_drain') return mqttAndReply('cmnd/pompaApa/Power2', 'ON', 'Drain 10s...');\nif (cmd === 'pump_trench1_on') return mqttAndReply('cmnd/pompaApa/Power3', 'ON', 'Trench1 ON...');\nif (cmd === 'pump_trench1_off') return mqttAndReply('cmnd/pompaApa/Power3', 'OFF', 'Trench1 OFF...');\nif (cmd === 'pump_trench2_on') return mqttAndReply('cmnd/pompaApa/Power4', 'ON', 'Trench2 ON...');\nif (cmd === 'pump_trench2_off') return mqttAndReply('cmnd/pompaApa/Power4', 'OFF', 'Trench2 OFF...');\nif (cmd === 'pump_status') {\n    const p = global.get('water_pump_state') || {};\n    return reply('Pump=' + (p.pump_power||'?') + ' Drain=' + (p.drain_water||'?') + ' T1=' + (p.feed_trench_1||'?') + ' T2=' + (p.feed_trench_2||'?'));\n}\n\nif (cmd === 'aquarium_on') return mqttAndReply('cmnd/sursaAcvariu/POWER', 'ON', 'Aquarium ON...');\nif (cmd === 'aquarium_off') return mqttAndReply('cmnd/sursaAcvariu/POWER', 'OFF', 'Aquarium OFF...');\nif (cmd === 'aquarium_toggle') return mqttAndReply('cmnd/sursaAcvariu/POWER', 'TOGGLE', 'Aquarium TOGGLE...');\nif (cmd === 'aquarium_status') {\n    const a = global.get('aquarium_state') || {};\n    return reply('Aquarium: ' + (a.light_power || 'unknown'));\n}\n\nif (cmd === 'camera_status') {\n    const healthStore = flow.get('camera_health') || {};\n    const cameras = Object.keys(healthStore);\n    if (!cameras.length) return reply('Cameras: none reporting');\n    let text = 'Cameras: ';\n    cameras.forEach(name => {\n        const health = healthStore[name] || {};\n        text += name + '=' + String(health.state || 'unknown').toUpperCase() + '; ';\n    });\n    return reply(text);\n}\nif (cmd === 'camera_help') return reply('CAMERA_STATUS health. Alerts on Telegram.');\n\nif (cmd === 'sms_status') {\n    const sd = flow.get('sms_gateway_status') || {};\n    return reply('SMS GW: WiFi=' + (sd.wifi||'?') + ' MQTT=' + (sd.mqtt||'?') + ' GSM=' + (sd.gsm||'?') + ' fw=' + (sd.fw||'?'));\n}\nif (cmd === 'sms_log') {\n    const log = flow.get('sms_message_log') || [];\n    if (!log.length) return reply('No SMS received yet');\n    const recent = log.slice(0, 3);\n    let text = 'Recent: ';\n    recent.forEach((m, i) => {\n        text += (i + 1) + '.' + (m.from || '?') + ':' + String(m.text || '').substring(0, 24) + ' ';\n    });\n    return reply(text);\n}\n\nif (cmd === 'energy_status') {\n    const energy = global.get('victron_energy_state') || {};\n    if (!energy.timestamp) return reply('Victron: no data yet');\n    const bat = energy.battery || {};\n    const pv = energy.pv || {};\n    const load = energy.load || {};\n    const auto = energy.automation || {};\n    const soc = bat.soc_pct != null ? bat.soc_pct + '%' : '?';\n    const pvW = pv.power_w != null ? Math.round(Number(pv.power_w)) : '?';\n    const loadW = load.power_w != null ? Math.round(Number(load.power_w)) : '?';\n    const hr = auto.headroom_w != null ? Math.round(Number(auto.headroom_w)) : '?';\n    return reply('Victron SOC ' + soc + ' PV ' + pvW + 'W Load ' + loadW + 'W Headroom ' + hr + 'W');\n}\nif (cmd === 'energy_start') {\n    const energy = global.get('victron_energy_state') || {};\n    const auto = energy.automation || {};\n    if (!auto.can_add_load) {\n        const hr = auto.headroom_w != null ? Math.round(Number(auto.headroom_w)) : '?';\n        return reply('Cannot start load. Headroom ' + hr + 'W');\n    }\n    const body = JSON.stringify({ action: 'start', source: 'sms', timestamp: new Date().toISOString(), enabled: true });\n    return sendMany([\n        { topic: 'energy/victron/command/discretionary/start', payload: body },\n        { topic: 'energy/victron/automation/discretionary_load/state', payload: body }\n    ], 'Discretionary load START...');\n}\nif (cmd === 'energy_stop') {\n    const body = JSON.stringify({ action: 'stop', source: 'sms', timestamp: new Date().toISOString(), enabled: false });\n    return sendMany([\n        { topic: 'energy/victron/command/discretionary/stop', payload: body },\n        { topic: 'energy/victron/automation/discretionary_load/state', payload: body }\n    ], 'Discretionary load STOP...');\n}\n\nif (cmd === 'huawei_status') {\n    const energy = global.get('huawei_energy_state') || {};\n    if (!energy.timestamp) return reply('Huawei: no data yet');\n    const inv = energy.inverter || {};\n    const pv = energy.pv || {};\n    const ap = inv.active_power_w != null ? Math.round(Number(inv.active_power_w)) : '?';\n    const dc = pv.input_power_w != null ? Math.round(Number(pv.input_power_w)) : '?';\n    const day = inv.daily_yield_kwh != null ? inv.daily_yield_kwh : '?';\n    return reply('Huawei P=' + ap + 'W DC=' + dc + 'W Day=' + day + 'kWh');\n}\n\nif (cmd === 'scala1_status') {\n    const s = global.get('grundfos_scala1_state') || {};\n    if (!s.timestamp) return reply('SCALA1: no data yet');\n    const run = s.running === true ? 'RUN' : (s.running === false ? 'STOP' : '?');\n    const bar = s.pressure_bar != null ? Number(s.pressure_bar).toFixed(2) : '?';\n    const w = s.power_w != null ? Math.round(Number(s.power_w)) : '?';\n    return reply('SCALA1 ' + run + ' ' + bar + 'bar ' + w + 'W');\n}\nif (cmd === 'scala1_start') return mqttAndReply('water/grundfos/scala1/command', { action: 'start' }, 'SCALA1 start (BLE)...');\nif (cmd === 'scala1_stop') return mqttAndReply('water/grundfos/scala1/command', { action: 'stop' }, 'SCALA1 stop (BLE)...');\n\nif (cmd === 'consumer_status') {\n    const store = flow.get('sms_consumer_status') || {};\n    const ids = ['front-lights-breaker', 'breaker-inside', 'breaker-outside', 'garden-power-hut'];\n    const bits = ids.map(id => {\n        const p = store[id] || {};\n        const st = p.state || p.switch || (p.online === false ? 'offline' : '?');\n        return id.replace('breaker-', '').replace('-breaker', '') + '=' + st;\n    });\n    return reply('Consumers: ' + bits.join(' '));\n}\nif (cmd === 'consumer') {\n    const rawId = args[0] || '';\n    const state = (args[1] || '').toLowerCase();\n    const id = CONSUMER_IDS[rawId];\n    if (!id || (state !== 'on' && state !== 'off')) {\n        return reply('Usage: CONSUMER front|inside|outside|hut ON|OFF');\n    }\n    const body = { action: state, source: 'sms', consumer_id: id };\n    return mqttAndReply('energy/consumers/' + id + '/command/switch', body, 'Consumer ' + id + ' ' + state.toUpperCase());\n}\n\nreturn reply('Unknown. Send HELP');\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 120,
+        "wires": [
+            [
+                "switch_sms_domain_out"
+            ]
+        ]
+    },
+    {
+        "id": "switch_sms_domain_out",
+        "type": "switch",
+        "z": "tab_dashboard",
+        "name": "Reply vs device cmd",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "sms/command/reply",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 620,
+        "y": 120,
+        "wires": [
+            [
+                "mqtt_out_sms_domain_reply"
+            ],
+            [
+                "mqtt_out_sms_domain_cmd"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_sms_domain_reply",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "SMS Reply Bus",
+        "topic": "sms/command/reply",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 880,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "mqtt_out_sms_domain_cmd",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "Device Command",
+        "topic": "",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 880,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_sms_illum_cache",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Illum status cache",
+        "topic": "illumination/4ch-thyristor/status",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 260,
+        "wires": [
+            [
+                "func_sms_illum_cache"
+            ]
+        ]
+    },
+    {
+        "id": "func_sms_illum_cache",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Cache illum status",
+        "func": "let p = msg.payload;\nif (Buffer.isBuffer(p)) p = p.toString('utf8');\nif (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { return null; } }\nif (p && typeof p === 'object') flow.set('sms_illum_status', p);\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "mqtt_in_sms_irrig_cache",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Irrig zone cache",
+        "topic": "stat/IrigationSystem/#",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 320,
+        "wires": [
+            [
+                "func_sms_irrig_cache"
+            ]
+        ]
+    },
+    {
+        "id": "func_sms_irrig_cache",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Cache irrig zones",
+        "func": "const topic = msg.topic || '';\nconst seg = topic.split('/');\nconst key = seg[seg.length - 1];\nif (!key || key.indexOf('POWER') !== 0) return null;\nlet v = msg.payload;\nif (Buffer.isBuffer(v)) v = v.toString('utf8');\nif (typeof v === 'object' && v) {\n    if (v[key] != null) v = v[key];\n    else if (v.POWER != null) v = v.POWER;\n}\nv = String(v).trim().toUpperCase();\nconst z = flow.get('sms_irrig_zones') || {};\nz[key] = v;\nflow.set('sms_irrig_zones', z);\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "mqtt_in_sms_consumer_cache",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "Consumer status cache",
+        "topic": "energy/consumers/+/status",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 380,
+        "wires": [
+            [
+                "func_sms_consumer_cache"
+            ]
+        ]
+    },
+    {
+        "id": "func_sms_consumer_cache",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Cache consumer status",
+        "func": "let p = msg.payload;\nif (Buffer.isBuffer(p)) p = p.toString('utf8');\nif (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { return null; } }\nconst topic = msg.topic || '';\nconst m = topic.match(/^energy\\/consumers\\/([^/]+)\\/status$/);\nif (!m || !p) return null;\nconst store = flow.get('sms_consumer_status') || {};\nstore[m[1]] = p;\nflow.set('sms_consumer_status', store);\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "sms_irrig_bridge_comment",
+        "type": "comment",
+        "z": "b3b5bbeab11d67eb",
+        "name": "SMS irrigation program bridge (515)",
+        "info": "MQTT irrigation/command/area_a|b -> Lawn/Flowers run-gate and timerctl",
+        "x": 200,
+        "y": 4520,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_sms_irrig_area_a",
+        "type": "mqtt in",
+        "z": "b3b5bbeab11d67eb",
+        "name": "SMS irrig area A",
+        "topic": "irrigation/command/area_a",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 4580,
+        "wires": [
+            [
+                "func_sms_irrig_program_bridge"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_in_sms_irrig_area_b",
+        "type": "mqtt in",
+        "z": "b3b5bbeab11d67eb",
+        "name": "SMS irrig area B",
+        "topic": "irrigation/command/area_b",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 4640,
+        "wires": [
+            [
+                "func_sms_irrig_program_bridge"
+            ]
+        ]
+    },
+    {
+        "id": "func_sms_irrig_program_bridge",
+        "type": "function",
+        "z": "b3b5bbeab11d67eb",
+        "name": "Route SMS irrig program",
+        "func": "const topic = msg.topic || '';\nlet p = msg.payload;\nif (Buffer.isBuffer(p)) p = p.toString('utf8');\np = String(p).trim();\nconst area = topic.indexOf('area_b') >= 0 ? 'b' : 'a';\nmsg.payload = p;\nif (p === 'ON') {\n    msg.topic = 'topic';\n    return area === 'a' ? [msg, null, null, null] : [null, null, msg, null];\n}\nmsg.topic = p;\nreturn area === 'a' ? [null, msg, null, null] : [null, null, null, msg];",
+        "outputs": 4,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 4610,
+        "wires": [
+            [
+                "c51a5cdc8046bb29"
+            ],
+            [
+                "33780971f401840a"
+            ],
+            [
+                "a1b2c3d4e5f67890"
+            ],
+            [
+                "e7f8a9b0c1d2e3f4"
+            ]
+        ]
+    }
+]

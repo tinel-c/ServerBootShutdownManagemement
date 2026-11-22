@@ -416,85 +416,37 @@ If FlowFuse reports multiple `ui-base` nodes: `node nodered/live-connection/scri
 ---
 
 ### 514-sms-gateway-interface.json
-**SMS Gateway Command Interface** (mirrors ALL Telegram commands)
+**SMS command ingress**
 
-- Subscribes to `sms/command/received` (published by flow 511 when new SMS arrives).
-- Parses SMS text as a command (with or without `/`) and replies via SMS to the sender.
-- **3-second delay** before reply, then **rate limit 1 per 5s** for multi-SMS (e.g. HELP sends 8 messages with descriptions).
-- **HELP / COMMANDS / LIST / START**: Sends **8 SMS chunks** with full command descriptions (same as Telegram).
-- **Full Telegram parity**: All commands available on Telegram work via SMS, including CAMERA_STATUS and CAMERA_HELP.
+- Subscribes to `sms/command/received` (from 511).
+- Authorizes the sender, normalizes the command (`ENERGY STATUS` = `ENERGY_STATUS`).
+- Answers `HELP` / `HELP <domain>` with a one-SMS index.
+- Publishes other commands to `sms/command/dispatch`.
+- Subscribes to `sms/command/reply` and is the only path that publishes `sms/gateway/command/send` for command replies (3 s delay, then 1 SMS / 5 s).
 
-**Commands (send via SMS to the gateway SIM):**
+Deploy: `node nodered/live-connection/scripts/deploy-flow-514.mjs`
 
-*Server Management:*
-- `BOOT [dell|hp]` – Boot server (WoL/iLO)
-- `SHUTDOWN [dell|hp]` – Graceful shutdown
-- `FORCE [dell|hp]` – Force shutdown
-- `STATUS` – Get server status
+### 515-sms-domain-gateway.json
+**SMS domain handlers**
 
-*Main Gate:*
-- `GATE_OPEN` or `GATE` – Open main gate
-- `GATE_STATUS` – Get main gate status
+- Subscribes to `sms/command/dispatch`.
+- Implements Telegram parity plus per-switch lights, illumination, irrigation zones, energy consumers, Victron / Huawei / SCALA1.
+- Publishes `sms/command/reply` and device MQTT commands.
+- Caches illumination / irrigation / consumer status for SMS status replies.
+- Irrigation program bridge on the irrigation tab: `irrigation/command/area_a|b` → Lawn / Flowers run-gate.
 
-*Sliding Gate:*
-- `SLIDING_OPEN` – Open sliding gate
-- `SLIDING_CLOSE` – Close sliding gate
-- `SLIDING_TRIGGER` – Trigger automation
-- `SLIDING_STATUS` – Get status
+Full command list: [docs/SMS_INTERFACE.md](../../docs/SMS_INTERFACE.md).
 
-*Secondary Gate:*
-- `SECONDARY_OPEN` – Open gate
-- `SECONDARY_CLOSE` – Close gate
-- `SECONDARY_TRIGGER` – Trigger automation
-- `SECONDARY_STOP` – Stop gate
-- `SECONDARY_LIGHT_LEFT` – Left light (120s)
-- `SECONDARY_LIGHT_RIGHT` – Right light (120s)
-- `SECONDARY_STATUS` – Get status
-
-*Garden Power:*
-- `GARDEN_ON` – Turn on garden power
-- `GARDEN_OFF` – Turn off garden power
-- `GARDEN_TOGGLE` – Toggle power
-- `GARDEN_STATUS` – Get power status & metrics
-
-*Garden Lights:*
-- `LIGHTS_ON` – Turn all 16 lights ON
-- `LIGHTS_OFF` – Turn all 16 lights OFF
-- `LIGHTS_STATUS` – Get lights summary
-
-*Water Pump:*
-- `PUMP_START` – Start water pump
-- `PUMP_STOP` – Stop water pump
-- `PUMP_DRAIN` – Drain water (10s pulse)
-- `PUMP_TRENCH1_ON/OFF` – Feed trench 1
-- `PUMP_TRENCH2_ON/OFF` – Feed trench 2
-- `PUMP_STATUS` – Get pump status
-
-*Aquarium:*
-- `AQUARIUM_ON` – Light ON
-- `AQUARIUM_OFF` – Light OFF
-- `AQUARIUM_TOGGLE` – Toggle light
-- `AQUARIUM_STATUS` – Get status
-
-*Camera (Tapo ONVIF):*
-- `CAMERA_STATUS` – Camera health and last detection event
-- `CAMERA_HELP` – Camera system help
-
-*SMS Gateway:*
-- `SMS_STATUS` – Gateway WiFi/MQTT/GSM status
-- `SMS_LOG` – Last 3 received SMS
-
-*Help:*
-- `HELP` or `COMMANDS` or `LIST` or `START` – Full command list (8 SMS with descriptions)
+Deploy: `node nodered/live-connection/scripts/deploy-flow-515.mjs`
 
 **Configuration (Dashboard → SMS Gateway tab):**
-- **Allowed phones (SMS commands)**: Comma-separated numbers (e.g. `+40123456789, +40987654321`). Only these can send commands. Leave empty to allow all. Default: `+40740244845, +40745218721`.
+- **Allowed phones (SMS commands)**: Comma-separated numbers. Default: `+40740244845, +40745218721`.
 
-**SMS Forwarding**: All received SMS are automatically forwarded to the hardcoded emergency number `+40740244845` (see flow 511).
+**SMS Forwarding**: All received SMS are forwarded to the emergency number in flow 511; only allowlisted numbers execute commands.
 
-**Dependencies**: Flow 511 (publishes to `sms/command/received`), `mqtt_broker_local`, flow/global context for device states.
+**Dependencies**: Flow 511 (`sms/command/received`), flow 515 (`sms/command/dispatch` / reply), `mqtt_broker_local`.
 
-**Import**: After 511-sms-gateway-status.json so the topic is available.
+**Import**: After 511; deploy 515 with 514.
 
 ---
 

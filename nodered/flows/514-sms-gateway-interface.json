@@ -3,8 +3,8 @@
         "id": "sms_interface_comment",
         "type": "comment",
         "z": "tab_dashboard",
-        "name": "═══════════════ SMS GATEWAY INTERFACE (mirrors all Telegram) ═══════════════",
-        "info": "## SMS Gateway Command Interface\n\n**Flow Number:** 514\n**Domain:** SMS/Notifications (500-599)\n\n### Purpose\nMirrors ALL Telegram commands via SMS. Parse incoming SMS as commands and reply via SMS. Multi-SMS: HELP sends 8 messages with descriptions.\n\n### Commands (same as Telegram, via SMS)\nSERVER: BOOT [dell|hp], SHUTDOWN [dell|hp], FORCE [dell|hp], STATUS\nGATE: GATE_OPEN, GATE_STATUS\nSLIDING: SLIDING_OPEN, SLIDING_CLOSE, SLIDING_TRIGGER, SLIDING_STATUS\nSECONDARY: SECONDARY_OPEN, SECONDARY_CLOSE, SECONDARY_TRIGGER, SECONDARY_STOP, SECONDARY_LIGHT_LEFT, SECONDARY_LIGHT_RIGHT, SECONDARY_STATUS\nGARDEN: GARDEN_ON, GARDEN_OFF, GARDEN_TOGGLE, GARDEN_STATUS\nLIGHTS: LIGHTS_ON, LIGHTS_OFF, LIGHTS_STATUS\nPUMP: PUMP_START, PUMP_STOP, PUMP_DRAIN, PUMP_TRENCH1_ON/OFF, PUMP_TRENCH2_ON/OFF, PUMP_STATUS\nAQUARIUM: AQUARIUM_ON, AQUARIUM_OFF, AQUARIUM_TOGGLE, AQUARIUM_STATUS\nCAMERA: CAMERA_STATUS, CAMERA_HELP\nSMS: SMS_STATUS, SMS_LOG\nOTHER: HELP, COMMANDS, LIST, START\n\n### Authorization\nSet flow context 'sms_allowed_phones' to array of phone numbers to restrict access.",
+        "name": "═══════════════ SMS GATEWAY INTERFACE (514 ingress) ═══════════════",
+        "info": "## SMS Gateway Command Interface\n\n**Flow Number:** 514\n**Domain:** SMS/Notifications (500-599)\n\n### Purpose\nAuthorize and normalize inbound SMS. Answer HELP index locally. Dispatch all other commands to flow 515 via `sms/command/dispatch`. Queue replies from `sms/command/reply` onto `sms/gateway/command/send` (sole reply path).\n\n### Docs\n[docs/SMS_INTERFACE.md](../../docs/SMS_INTERFACE.md)",
         "x": 400,
         "y": 40,
         "wires": []
@@ -34,8 +34,8 @@
         "id": "func_parse_sms_command",
         "type": "function",
         "z": "tab_dashboard",
-        "name": "Parse SMS Command (All)",
-        "func": "// Payload from 511 (via sms/command/received): { messages, messageCount, latest }\n// Handle parsed object, JSON string, or Buffer (mqtt_in datatype varies)\nlet payload = msg.payload;\nif (Buffer.isBuffer(payload)) payload = payload.toString('utf8');\nif (typeof payload === 'string') {\n    try { payload = JSON.parse(payload); } catch (e) { return null; }\n}\nconst latest = (payload && payload.latest) || null;\nif (!latest || latest.from == null || latest.from === '' || typeof latest.text !== 'string') {\n    return null;\n}\n\nconst from = String(latest.from).trim();\nlet rawText = (latest.text || '').trim();\nif (!rawText) {\n    return null;\n}\n\n// Gateway may send raw modem format: +CMGR: \"REC READ\",...\\n/command\n// Extract actual message line (skip +CMGR / AT response lines)\nconst lines = rawText.split(/[\\r\\n]+/).map(s => s.trim()).filter(s => s.length > 0);\nconst commandLine = lines.find(l => !/^\\+[A-Z]/.test(l) && !l.startsWith('AT')) || lines[lines.length - 1] || rawText;\nrawText = commandLine;\n\n// Normalize phone: digits only for gateway (510 strips +)\nconst digitsFrom = from.replace(/\\D/g, '');\nconst replyTo = digitsFrom.length > 0 ? digitsFrom : from;\n\n// Parse command: with or without /, case-insensitive, trim\nconst parts = rawText.split(/\\s+/);\nconst rawCommand = (parts[0] || '').toLowerCase().replace(/^\\//, '').replace(/_/g, '_').trim();\nconst args = parts.slice(1);\n\n// Authorization check\nconst allowedPhones = flow.get('sms_allowed_phones');\nif (Array.isArray(allowedPhones) && allowedPhones.length > 0) {\n    const allowed = allowedPhones.some(p => {\n        const normP = String(p).replace(/\\D/g, '');\n        if (!normP) return false;\n        if (digitsFrom === normP) return true;\n        const longer = digitsFrom.length >= normP.length ? digitsFrom : normP;\n        const shorter = digitsFrom.length < normP.length ? digitsFrom : normP;\n        return longer.endsWith(shorter) || shorter.endsWith(longer);\n    });\n    if (!allowed) {\n        node.warn('SMS from unauthorized number: ' + from + ' (digits: ' + digitsFrom + ')');\n        return null;\n    }\n}\n\nmsg.sms = {\n    from: replyTo,\n    command: rawCommand,\n    args: args,\n    originalText: rawText\n};\nmsg.payload = latest;\n\nreturn msg;",
+        "name": "Parse + authorize SMS",
+        "func": "// Payload from 511: { messages, messageCount, latest }\nlet payload = msg.payload;\nif (Buffer.isBuffer(payload)) payload = payload.toString('utf8');\nif (typeof payload === 'string') {\n    try { payload = JSON.parse(payload); } catch (e) { return null; }\n}\nconst latest = (payload && payload.latest) || null;\nif (!latest || latest.from == null || latest.from === '' || typeof latest.text !== 'string') {\n    return null;\n}\n\nconst from = String(latest.from).trim();\nlet rawText = (latest.text || '').trim();\nif (!rawText) return null;\n\nconst lines = rawText.split(/[\\r\\n]+/).map(s => s.trim()).filter(s => s.length > 0);\nconst commandLine = lines.find(l => !/^\\+[A-Z]/.test(l) && !l.startsWith('AT')) || lines[lines.length - 1] || rawText;\nrawText = commandLine;\n\nconst digitsFrom = from.replace(/\\D/g, '');\nconst replyTo = digitsFrom.length > 0 ? digitsFrom : from;\n\nconst allowedPhones = flow.get('sms_allowed_phones');\nif (Array.isArray(allowedPhones) && allowedPhones.length > 0) {\n    const allowed = allowedPhones.some(p => {\n        const normP = String(p).replace(/\\D/g, '');\n        if (!normP) return false;\n        if (digitsFrom === normP) return true;\n        const longer = digitsFrom.length >= normP.length ? digitsFrom : normP;\n        const shorter = digitsFrom.length < normP.length ? digitsFrom : normP;\n        return longer.endsWith(shorter) || shorter.endsWith(longer);\n    });\n    if (!allowed) {\n        node.warn('SMS from unauthorized number: ' + from + ' (digits: ' + digitsFrom + ')');\n        return null;\n    }\n}\n\nconst KNOWN = new Set([\n    'help','commands','list','start',\n    'boot','shutdown','stop','force','force_shutdown','status','state',\n    'gate','gate_open','gate_status',\n    'sliding_open','sliding_close','sliding_trigger','sliding_status',\n    'secondary_open','secondary_close','secondary_trigger','secondary_stop',\n    'secondary_light_left','secondary_light_right','secondary_status',\n    'garden_on','garden_off','garden_toggle','garden_status',\n    'lights_on','lights_off','lights_status','light',\n    'illum','illum_status',\n    'irrig','irrig_status',\n    'irrig_a_start','irrig_a_pause','irrig_a_resume','irrig_a_skip',\n    'irrig_b_start','irrig_b_pause','irrig_b_resume','irrig_b_skip',\n    'pump_start','pump_stop','pump_drain','pump_status',\n    'pump_trench1_on','pump_trench1_off','pump_trench2_on','pump_trench2_off',\n    'aquarium_on','aquarium_off','aquarium_toggle','aquarium_status',\n    'camera_status','camera_help',\n    'sms_status','sms_log',\n    'energy_status','energy_start','energy_stop',\n    'huawei_status',\n    'scala1_status','scala1_start','scala1_stop',\n    'consumer','consumer_status'\n]);\n\nconst tokens = rawText\n    .replace(/^\\//, '')\n    .replace(/_/g, ' ')\n    .split(/\\s+/)\n    .map(s => s.trim().toLowerCase())\n    .filter(s => s.length > 0);\n\nif (tokens.length === 0) return null;\n\nlet command = tokens[0];\nlet args = tokens.slice(1);\nfor (let n = Math.min(tokens.length, 4); n >= 2; n--) {\n    const cand = tokens.slice(0, n).join('_');\n    if (KNOWN.has(cand)) {\n        command = cand;\n        args = tokens.slice(n);\n        break;\n    }\n}\n\nmsg.sms = {\n    from: replyTo,\n    command: command,\n    args: args,\n    originalText: rawText\n};\nmsg.payload = latest;\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -45,16 +45,16 @@
         "y": 140,
         "wires": [
             [
-                "func_sms_command_handler"
+                "func_sms_ingress_router"
             ]
         ]
     },
     {
-        "id": "func_sms_command_handler",
+        "id": "func_sms_ingress_router",
         "type": "function",
         "z": "tab_dashboard",
-        "name": "Handle All SMS Commands",
-        "func": "const cmd = msg.sms.command;\nconst args = msg.sms.args;\nconst to = msg.sms.from;\n\n// Helper to send single SMS reply (payload must be JSON string for gateway)\nfunction reply(text) {\n    const smsPayload = JSON.stringify({ to: to, text: text });\n    return [{ payload: smsPayload, topic: 'sms/gateway/command/send' }, null];\n}\n\n// Helper to send multiple SMS replies (sends one per chunk with 5s spacing via delay node)\nfunction replyMultiple(texts) {\n    if (!texts || texts.length === 0) return reply('No content.');\n    const msgs = texts.map(t => ({ payload: JSON.stringify({ to: to, text: t }), topic: 'sms/gateway/command/send' }));\n    return [msgs, null];\n}\n\n// Helper to send MQTT + reply\nfunction mqttAndReply(topic, payload, replyText) {\n    const smsPayload = JSON.stringify({ to: to, text: replyText });\n    return [\n        { payload: smsPayload, topic: 'sms/gateway/command/send' },\n        { payload: payload, topic: topic }\n    ];\n}\n\n// ==================== HELP (multi-SMS with descriptions) ====================\nif (cmd === 'help' || cmd === 'commands' || cmd === 'start' || cmd === 'list') {\n    const chunks = [\n        'Automation SMS (1/8): SERVER: BOOT dell|hp - boot. SHUTDOWN dell|hp - graceful off. FORCE dell|hp - force off. STATUS - server status.',\n        '(2/8) GATE: GATE_OPEN - open main gate. GATE_STATUS - main gate status. SLIDING_OPEN, SLIDING_CLOSE, SLIDING_TRIGGER, SLIDING_STATUS.',\n        '(3/8) SECONDARY: SECONDARY_OPEN, SECONDARY_CLOSE, SECONDARY_TRIGGER, SECONDARY_STOP. SECONDARY_LIGHT_LEFT, SECONDARY_LIGHT_RIGHT, SECONDARY_STATUS.',\n        '(4/8) GARDEN: GARDEN_ON, GARDEN_OFF, GARDEN_TOGGLE, GARDEN_STATUS. LIGHTS: LIGHTS_ON, LIGHTS_OFF, LIGHTS_STATUS (16 lights).',\n        '(5/8) PUMP: PUMP_START, PUMP_STOP, PUMP_DRAIN (10s). PUMP_TRENCH1_ON/OFF, PUMP_TRENCH2_ON/OFF, PUMP_STATUS.',\n        '(6/8) AQUARIUM: AQUARIUM_ON, AQUARIUM_OFF, AQUARIUM_TOGGLE, AQUARIUM_STATUS.',\n        '(7/8) CAMERA: CAMERA_STATUS - Tapo camera health & last event. CAMERA_HELP - camera help.',\n        '(8/8) SMS: SMS_STATUS - gateway WiFi/MQTT/GSM. SMS_LOG - recent SMS. HELP, COMMANDS, LIST - this list.'\n    ];\n    return replyMultiple(chunks);\n}\n\n// ==================== SERVER ====================\nif (cmd === 'boot') {\n    const server = (args[0] || 'dell').toLowerCase();\n    if (server === 'hp' || server === 'dl360p') {\n        return mqttAndReply('hp/dl360p/command/boot', { action: 'boot', method: 'ilo' }, 'Booting HP DL360p via iLO...');\n    } else {\n        return mqttAndReply('dell/t310/command/boot', { action: 'boot', method: 'wol' }, 'Booting Dell T310 via WoL...');\n    }\n}\nif (cmd === 'shutdown' || cmd === 'stop') {\n    const server = (args[0] || 'dell').toLowerCase();\n    if (server === 'hp' || server === 'dl360p') {\n        return mqttAndReply('hp/dl360p/command/shutdown', { action: 'shutdown', type: 'graceful', timeout: 300 }, 'Graceful shutdown HP DL360p...');\n    } else {\n        return mqttAndReply('dell/t310/command/shutdown', { action: 'shutdown', type: 'graceful', timeout: 300 }, 'Graceful shutdown Dell T310...');\n    }\n}\nif (cmd === 'force' || cmd === 'force_shutdown') {\n    const server = (args[0] || 'dell').toLowerCase();\n    if (server === 'hp' || server === 'dl360p') {\n        return mqttAndReply('hp/dl360p/command/shutdown', { action: 'shutdown', type: 'force' }, 'FORCE shutdown HP DL360p!');\n    } else {\n        return mqttAndReply('dell/t310/command/shutdown', { action: 'shutdown', type: 'force' }, 'FORCE shutdown Dell T310!');\n    }\n}\nif (cmd === 'status' || cmd === 'state') {\n    const dell = flow.get('status_dell_t310_status') || {};\n    const hp = flow.get('status_hp_dl360p_status') || {};\n    const dellState = (dell.server_state || 'unknown').toUpperCase();\n    const hpState = (hp.server_state || 'unknown').toUpperCase();\n    return reply('Server Status: Dell T310: ' + dellState + ', HP DL360p: ' + hpState);\n}\n\n// ==================== MAIN GATE ====================\nif (cmd === 'gate_open' || cmd === 'gate') {\n    return mqttAndReply('MainGate/CMD/Relay3', 'ON', 'Opening Main Gate (Relay 3)...');\n}\nif (cmd === 'gate_status') {\n    const g = (flow.get('gate_state') || {}).mainGate || {};\n    return reply('Main Gate: Power=' + (g.power||'?') + ', R1=' + (g.relay1||'?') + ', R2=' + (g.relay2||'?') + ', R3=' + (g.relay3||'?') + ', R4=' + (g.relay4||'?'));\n}\n\n// ==================== SLIDING GATE ====================\nif (cmd === 'sliding_open') {\n    return mqttAndReply('cmnd/automatizare_poarta/Power1', true, 'Opening Sliding Gate (R1)...');\n}\nif (cmd === 'sliding_close') {\n    return mqttAndReply('cmnd/automatizare_poarta/Power2', true, 'Closing Sliding Gate (R2)...');\n}\nif (cmd === 'sliding_trigger') {\n    return mqttAndReply('cmnd/automatizare_poarta/Power3', true, 'Triggering Sliding Gate (R3)...');\n}\nif (cmd === 'sliding_status') {\n    const s = flow.get('sliding_gate_state') || {};\n    return reply('Sliding Gate: R1=' + (s.relay1||'?') + ', R2=' + (s.relay2||'?') + ', R3=' + (s.relay3||'?') + ', R4=' + (s.relay4||'?'));\n}\n\n// ==================== SECONDARY GATE ====================\nif (cmd === 'secondary_open') {\n    return mqttAndReply('SecondGate/CMD/Relay2', 'ON', 'Opening Secondary Gate (R2)...');\n}\nif (cmd === 'secondary_close') {\n    return mqttAndReply('SecondGate/CMD/Relay1', 'ON', 'Closing Secondary Gate (R1)...');\n}\nif (cmd === 'secondary_trigger') {\n    return mqttAndReply('SecondGate/CMD/Relay3', 'ON', 'Triggering Secondary Gate (R3)...');\n}\nif (cmd === 'secondary_stop') {\n    return mqttAndReply('SecondGate/CMD/Relay4', 'ON', 'Stopping Secondary Gate (R4)...');\n}\nif (cmd === 'secondary_light_left') {\n    return mqttAndReply('SecondGate/CMD/Relay5', 'ON', 'Left Light ON (R5, 120s)...');\n}\nif (cmd === 'secondary_light_right') {\n    return mqttAndReply('SecondGate/CMD/Relay6', 'ON', 'Right Light ON (R6, 120s)...');\n}\nif (cmd === 'secondary_status') {\n    const s = flow.get('secondary_gate_state') || {};\n    return reply('Secondary Gate: R1=' + (s.relay1||'?') + ', R2=' + (s.relay2||'?') + ', R3=' + (s.relay3||'?') + ', R4=' + (s.relay4||'?') + ', R5(L)=' + (s.relay5||'?') + ', R6(R)=' + (s.relay6||'?'));\n}\n\n// ==================== GARDEN POWER ====================\nif (cmd === 'garden_on') {\n    return mqttAndReply('cmnd/sonoffPower320D_afara/Power', 'ON', 'Garden power ON...');\n}\nif (cmd === 'garden_off') {\n    return mqttAndReply('cmnd/sonoffPower320D_afara/Power', 'OFF', 'Garden power OFF...');\n}\nif (cmd === 'garden_toggle') {\n    return mqttAndReply('cmnd/sonoffPower320D_afara/Power', 'TOGGLE', 'Garden power TOGGLE...');\n}\nif (cmd === 'garden_status') {\n    const g = global.get('garden_power_state') || {};\n    return reply('Garden Power: ' + (g.powerStatus||'?') + ', V=' + (g.voltage||'?') + 'V, A=' + (g.current||'?') + 'A, W=' + (g.power||'?') + 'W');\n}\n\n// ==================== GARDEN LIGHTS ====================\nif (cmd === 'lights_on') {\n    // Broadcast to all 16 lights\n    const msgs = [];\n    for (let i = 1; i <= 12; i++) {\n        msgs.push({ topic: 'GardenAutomationLights/CMD/Relay' + i, payload: 'ON' });\n    }\n    for (let i = 1; i <= 4; i++) {\n        msgs.push({ topic: 'cmnd/frontHousePower/POWER' + i, payload: 'ON' });\n    }\n    node.send([{ payload: JSON.stringify({ to: to, text: 'All 16 garden lights ON...' }), topic: 'sms/gateway/command/send' }, null]);\n    for (const m of msgs) {\n        node.send([null, m]);\n    }\n    return null;\n}\nif (cmd === 'lights_off') {\n    const msgs = [];\n    for (let i = 1; i <= 12; i++) {\n        msgs.push({ topic: 'GardenAutomationLights/CMD/Relay' + i, payload: 'OFF' });\n    }\n    for (let i = 1; i <= 4; i++) {\n        msgs.push({ topic: 'cmnd/frontHousePower/POWER' + i, payload: 'OFF' });\n    }\n    node.send([{ payload: JSON.stringify({ to: to, text: 'All 16 garden lights OFF...' }), topic: 'sms/gateway/command/send' }, null]);\n    for (const m of msgs) {\n        node.send([null, m]);\n    }\n    return null;\n}\nif (cmd === 'lights_status') {\n    const st = global.get('garden_lights_state') || {};\n    let on = 0, off = 0;\n    for (let i = 1; i <= 16; i++) {\n        if (st['light_' + i] === 'ON') on++;\n        else if (st['light_' + i] === 'OFF') off++;\n    }\n    return reply('Garden Lights: ' + on + ' ON, ' + off + ' OFF, ' + (16 - on - off) + ' unknown');\n}\n\n// ==================== WATER PUMP ====================\nif (cmd === 'pump_start') {\n    return mqttAndReply('cmnd/pompaApa/Power1', 'ON', 'Water pump starting...');\n}\nif (cmd === 'pump_stop') {\n    return mqttAndReply('cmnd/pompaApa/Power1', 'OFF', 'Water pump stopping...');\n}\nif (cmd === 'pump_drain') {\n    return mqttAndReply('cmnd/pompaApa/Power2', 'ON', 'Drain water (10s pulse)...');\n}\nif (cmd === 'pump_trench1_on') {\n    return mqttAndReply('cmnd/pompaApa/Power3', 'ON', 'Feed Trench 1 ON...');\n}\nif (cmd === 'pump_trench1_off') {\n    return mqttAndReply('cmnd/pompaApa/Power3', 'OFF', 'Feed Trench 1 OFF...');\n}\nif (cmd === 'pump_trench2_on') {\n    return mqttAndReply('cmnd/pompaApa/Power4', 'ON', 'Feed Trench 2 ON...');\n}\nif (cmd === 'pump_trench2_off') {\n    return mqttAndReply('cmnd/pompaApa/Power4', 'OFF', 'Feed Trench 2 OFF...');\n}\nif (cmd === 'pump_status') {\n    const p = global.get('water_pump_state') || {};\n    return reply('Pump: Power=' + (p.pump_power||'?') + ', Drain=' + (p.drain_water||'?') + ', T1=' + (p.feed_trench_1||'?') + ', T2=' + (p.feed_trench_2||'?'));\n}\n\n// ==================== AQUARIUM ====================\nif (cmd === 'aquarium_on') {\n    return mqttAndReply('cmnd/sursaAcvariu/POWER', 'ON', 'Aquarium light ON...');\n}\nif (cmd === 'aquarium_off') {\n    return mqttAndReply('cmnd/sursaAcvariu/POWER', 'OFF', 'Aquarium light OFF...');\n}\nif (cmd === 'aquarium_toggle') {\n    return mqttAndReply('cmnd/sursaAcvariu/POWER', 'TOGGLE', 'Aquarium light toggled...');\n}\nif (cmd === 'aquarium_status') {\n    const a = global.get('aquarium_state') || {};\n    return reply('Aquarium Light: ' + (a.light_power || 'unknown'));\n}\n\n// ==================== CAMERA ====================\nif (cmd === 'camera_status') {\n    const healthStore = flow.get('camera_health') || {};\n    const lastEvents = flow.get('camera_last_events') || {};\n    const cameras = Object.keys(healthStore);\n    if (cameras.length === 0) return reply('Cameras: none reporting.');\n    let text = 'Cameras: ';\n    cameras.forEach(name => {\n        const health = healthStore[name];\n        const event = lastEvents[name];\n        const st = (health.state || 'unknown').toUpperCase();\n        text += name + '=' + st;\n        if (event) text += ' last' + (event.type || '') + ' ' + (event.time ? new Date(event.time).toLocaleTimeString() : '');\n        text += '; ';\n    });\n    return reply(text.substring(0, 300));\n}\nif (cmd === 'camera_help') {\n    return reply('CAMERA: CAMERA_STATUS - health & last event. CAMERA_HELP - this msg. Tapo ONVIF monitoring.');\n}\n\n// ==================== SMS GATEWAY ====================\nif (cmd === 'sms_status') {\n    const st = flow.get('status_metadata_sms_gateway') || {};\n    const sd = flow.get('sms_gateway_status') || {};\n    let text = 'SMS Gateway: WiFi=' + (sd.wifi||'?') + ', MQTT=' + (sd.mqtt||'?') + ', GSM=' + (sd.gsm||'?');\n    if (st.lastReportedMs) {\n        const sec = Math.floor((Date.now() - st.lastReportedMs) / 1000);\n        if (sec < 60) text += '. ' + sec + 's ago';\n        else text += '. ' + Math.floor(sec/60) + 'm ago';\n    }\n    return reply(text);\n}\nif (cmd === 'sms_log') {\n    const log = flow.get('sms_message_log') || [];\n    if (log.length === 0) return reply('No SMS messages received yet.');\n    const recent = log.slice(0, 3);\n    let text = 'Recent SMS (' + log.length + ' total): ';\n    recent.forEach((m, i) => {\n        text += (i+1) + '. From ' + m.from + ': ' + (m.text||'').substring(0, 30) + ' ';\n    });\n    if (text.length > 300) text = text.substring(0, 297) + '...';\n    return reply(text);\n}\n\n// ==================== UNKNOWN ====================\nreturn reply('Unknown: ' + (msg.sms.originalText || '').substring(0, 60) + '. Text HELP for commands.');",
+        "name": "HELP index or dispatch",
+        "func": "const cmd = msg.sms.command;\nconst args = msg.sms.args || [];\nconst to = msg.sms.from;\n\nfunction replyParts(texts) {\n    const parts = (Array.isArray(texts) ? texts : [texts])\n        .map(t => String(t || '').substring(0, 150))\n        .filter(t => t.length > 0);\n    if (!parts.length) parts.push('No content.');\n    return parts.map(text => ({\n        payload: JSON.stringify({ to: to, text: text }),\n        topic: 'sms/gateway/command/send'\n    }));\n}\n\nif (cmd === 'help' || cmd === 'commands' || cmd === 'list' || cmd === 'start') {\n    const domain = (args[0] || '').toLowerCase();\n    const domainHelp = {\n        server: 'SERVER: BOOT|SHUTDOWN|FORCE [dell|hp|media]. STATUS.',\n        gate: 'GATE: GATE_OPEN, GATE_STATUS. SLIDING_OPEN|CLOSE|TRIGGER|STATUS. SECONDARY_OPEN|CLOSE|TRIGGER|STOP|LIGHT_LEFT|LIGHT_RIGHT|STATUS.',\n        garden: 'GARDEN: GARDEN_ON|OFF|TOGGLE|STATUS.',\n        lights: 'LIGHTS: LIGHTS_ON|OFF|STATUS. LIGHT <1-16> ON|OFF.',\n        illum: 'ILLUM: ILLUM <1-4> ON|OFF. ILLUM OFF (all). ILLUM_STATUS.',\n        irrig: 'IRRIG: IRRIG <1-12> ON|OFF. IRRIG_STATUS. IRRIG_A|B_START|PAUSE|RESUME|SKIP.',\n        pump: 'PUMP: PUMP_START|STOP|DRAIN|STATUS. PUMP_TRENCH1|2_ON|OFF.',\n        aquarium: 'AQUARIUM: AQUARIUM_ON|OFF|TOGGLE|STATUS.',\n        camera: 'CAMERA: CAMERA_STATUS, CAMERA_HELP.',\n        sms: 'SMS: SMS_STATUS, SMS_LOG.',\n        energy: 'ENERGY: ENERGY_STATUS|START|STOP. HUAWEI_STATUS. SCALA1_STATUS|START|STOP.',\n        consumer: 'CONSUMER: CONSUMER_STATUS. CONSUMER <id> ON|OFF (front|inside|outside|hut).'\n    };\n    if (domain && domainHelp[domain]) {\n        return [replyParts(domainHelp[domain]), null];\n    }\n    if (domain) {\n        return [replyParts('Unknown domain. Try HELP ENERGY, LIGHTS, ILLUM, IRRIG, GATE, SERVER, PUMP, CONSUMER.'), null];\n    }\n    return [replyParts('Domains: SERVER GATE GARDEN LIGHTS ILLUM IRRIG PUMP AQUARIUM CAMERA SMS ENERGY CONSUMER. Send HELP <domain>.'), null];\n}\n\nconst dispatch = {\n    from: to,\n    command: cmd,\n    args: args,\n    originalText: msg.sms.originalText || ''\n};\nreturn [null, { payload: JSON.stringify(dispatch), topic: 'sms/command/dispatch' }];",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
@@ -67,7 +67,65 @@
                 "delay_sms_reply"
             ],
             [
-                "mqtt_out_sms_cmd"
+                "mqtt_out_sms_dispatch"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_sms_dispatch",
+        "type": "mqtt out",
+        "z": "tab_dashboard",
+        "name": "SMS Dispatch",
+        "topic": "sms/command/dispatch",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 850,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_sms_reply",
+        "type": "mqtt in",
+        "z": "tab_dashboard",
+        "name": "SMS Reply (In)",
+        "topic": "sms/command/reply",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 260,
+        "wires": [
+            [
+                "func_format_sms_reply"
+            ]
+        ]
+    },
+    {
+        "id": "func_format_sms_reply",
+        "type": "function",
+        "z": "tab_dashboard",
+        "name": "Format reply for modem",
+        "func": "let payload = msg.payload;\nif (Buffer.isBuffer(payload)) payload = payload.toString('utf8');\nif (typeof payload === 'string') {\n    try { payload = JSON.parse(payload); } catch (e) { return null; }\n}\nif (!payload) return null;\n\nconst items = Array.isArray(payload) ? payload : [payload];\nconst out = [];\nfor (const item of items) {\n    if (!item || item.to == null || item.text == null) continue;\n    const to = String(item.to).replace(/\\D/g, '') || String(item.to);\n    const text = String(item.text).substring(0, 150);\n    if (!to || !text) continue;\n    out.push({\n        payload: JSON.stringify({ to: to, text: text }),\n        topic: 'sms/gateway/command/send'\n    });\n}\nreturn out.length ? [out] : null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 260,
+        "wires": [
+            [
+                "delay_sms_reply"
             ]
         ]
     },
@@ -88,8 +146,8 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 600,
-        "y": 120,
+        "x": 620,
+        "y": 260,
         "wires": [
             [
                 "delay_sms_rate"
@@ -113,8 +171,8 @@
         "drop": false,
         "allowrate": true,
         "outputs": 1,
-        "x": 830,
-        "y": 120,
+        "x": 860,
+        "y": 260,
         "wires": [
             [
                 "mqtt_out_sms_reply"
@@ -135,26 +193,8 @@
         "correl": "",
         "expiry": "",
         "broker": "mqtt_broker_local",
-        "x": 880,
-        "y": 120,
-        "wires": []
-    },
-    {
-        "id": "mqtt_out_sms_cmd",
-        "type": "mqtt out",
-        "z": "tab_dashboard",
-        "name": "Device Command",
-        "topic": "",
-        "qos": "1",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "mqtt_broker_local",
-        "x": 850,
-        "y": 160,
+        "x": 1080,
+        "y": 260,
         "wires": []
     }
 ]

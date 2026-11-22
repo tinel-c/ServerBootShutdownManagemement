@@ -2,6 +2,8 @@
 
 This guide explains how to develop, test, and deploy Over-The-Air (OTA) firmware updates for embedded devices in the ServerBootShutdownManagement project.
 
+For the full device workflow (submodule, UART first flash, fleet OTA, Windows broker fallback), see [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md).
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
@@ -40,9 +42,11 @@ Registry and state live in the monorepo:
 
 | Path | Role |
 |------|------|
-| [scripts/status/device_fleet.yaml](../../scripts/status/device_fleet.yaml) | Device list, status topics, flash flags |
+| [scripts/status/device_fleet.yaml](../../scripts/status/device_fleet.yaml) | Device list, status topics, flash flags (`expected` for client counts) |
 | [scripts/status/device_fleet.py](../../scripts/status/device_fleet.py) | `status` / `watch` / `flash` |
 | `scripts/status/device_fleet_state.json` | Local memory (IP, firmware, last_seen); gitignored |
+| [client/device_fleet_panel.py](../../client/device_fleet_panel.py) | Windows tray **Device Fleet…** UI (online/expected, `fw`, OTA upload) |
+| [client/config/device_fleet.yaml](../../client/config/device_fleet.yaml) | Bundled registry for Program Files installs (keep in sync) |
 
 ```bash
 # One-shot sighting (writes device_fleet_state.json)
@@ -62,6 +66,8 @@ The thyristor `platformio.ini` uses **esptool** for `pio run -t upload` (Serial 
 `device_fleet.py flash` binds espota with `-I` to the PC’s LAN IP. If the local attempt fails (common on Windows when the firewall blocks the ESP’s TCP callback), it retries over SSH on `192.168.2.4` (`FLEET_OTA_VIA=auto`). Force with `FLEET_OTA_VIA=broker` or `local`. SSH uses `%USERPROFILE%\.ssh\serverside_192_168_2_4_ed25519` (override with `FLEET_OTA_SSH_KEY`). Set `SKIP_FLEET_OTA=1` during `pio run` / UART upload when you must not touch a live board.
 
 Thyristor firmware ≥ **0.2.2** starts ArduinoOTA only after Wi-Fi has an IP (serial: `OTA listening on …:3232`). An OTA reboot turns the 230 V channels off; the firmware already forces channels off on OTA start and on boot.
+
+Windows ClientMonitor tray → **Device Fleet…** shows online vs expected counts, firmware versions, and per-device `.bin` upload (same `device_fleet.py` / broker fallback). See [client/README_CLIENT.md](../../client/README_CLIENT.md) and [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md).
 
 ### OTA Technology Stack
 

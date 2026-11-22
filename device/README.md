@@ -1,6 +1,6 @@
 # Device firmware
 
-Device projects live in **separate Git repositories** and are included here as **git submodules** so each firmware can have its own history, issues, and releases. The policy for adding and maintaining them is documented in [DEVICE_SUBMODULES.md](../docs/developer/DEVICE_SUBMODULES.md).
+Device projects live in **separate Git repositories** and are included here as **git submodules** so each firmware can have its own history, issues, and releases. Adding/pinning submodules: [DEVICE_SUBMODULES.md](../docs/developer/DEVICE_SUBMODULES.md). **Develop / UART / fleet OTA** (required pattern for agents): [DEVICE_FIRMWARE_DEVELOPMENT.md](../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
 
 | Path (this repo) | Upstream | Device |
 |------------------|----------|--------|

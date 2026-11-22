@@ -9,14 +9,15 @@ Windows client application for the Server Boot/Shutdown Management System. Monit
 - 🔄 **Auto-Reconnect** - Handles network interruptions gracefully
 - 🎨 **System Tray Icon** - Color-coded status indicator with server information
 - 📊 **Server Status Tracking** - Monitors target server state in real-time
+- 📟 **Device Fleet** - Tray → **Device Fleet…**: expected vs online counts, firmware version, IP, and per-device OTA upload (`.bin`)
 - 📝 **Logging** - Detailed logs for troubleshooting
 - ⚙️ **Easy Configuration** - Simple YAML with environment variable placeholder support
 - ⏱️ **Heartbeat Countdown** - Real-time countdown to next heartbeat in tray icon
 - 🛑 **Remote Shutdown** - Graceful and force shutdown via MQTT commands
 - 🔄 **Auto-Update** - Automatic updates from GitHub releases
 - 💾 **Application Save** - Saves open applications before shutdown
-- 📌 **Version Display** ⭐ NEW - Shows current and GitHub version in tooltip with update notifications
-- ⏰ **Update Schedule** ⭐ NEW - Displays time until next automatic update check
+- 📌 **Version Display** - Shows current and GitHub version in tooltip with update notifications
+- ⏰ **Update Schedule** - Displays time until next automatic update check
 
 ## Requirements
 
@@ -120,6 +121,11 @@ client:
   # Target server to monitor (for status display in tray icon)
   target_server: "dell/t310"
 
+device_fleet:
+  enabled: true
+  registry: ""          # optional path; default monorepo or config/device_fleet.yaml
+  listen_sec: 20
+
 mqtt:
   broker:
     host: "${MQTT_BROKER_HOST:localhost}"
@@ -133,6 +139,18 @@ mqtt:
   
   qos: 1
 ```
+
+### Device Fleet window
+
+Tray menu **Device Fleet…** opens a status panel driven by [`config/device_fleet.yaml`](config/device_fleet.yaml) (keep in sync with monorepo [`scripts/status/device_fleet.yaml`](../scripts/status/device_fleet.yaml)):
+
+| Column | Meaning |
+|--------|---------|
+| Online X / Expected Y | Fresh MQTT sightings vs registry entries (`expected: false` excluded from Y) |
+| Firmware | `fw` from JSON status when published (`—` otherwise) |
+| Upload firmware… | Pick a `.bin`; OTA via `device_fleet.py` (`FLEET_OTA_VIA=auto`, broker SSH fallback on Windows) |
+
+Requires MQTT broker access. OTA needs PlatformIO `espota.py` and (for broker fallback) the SSH key to `192.168.2.4`. See [DEVICE_FIRMWARE_DEVELOPMENT.md](../docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md).
 
 ## System Tray Icon
 

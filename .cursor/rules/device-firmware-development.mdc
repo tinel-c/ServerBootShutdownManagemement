@@ -1,0 +1,30 @@
+---
+description: Canonical PlatformIO device firmware workflow (submodule, UART first, fleet OTA)
+alwaysApply: true
+---
+
+# Device firmware development
+
+Canonical playbook: [docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md](docs/developer/DEVICE_FIRMWARE_DEVELOPMENT.md). Reference: `device/PlatformIO_esp32-4ch-thyristor-board-illumination` (fw ≥ 0.2.2).
+
+## Required pattern
+
+1. **Own repo** → submodule `device/<repo-name>/` ([DEVICE_SUBMODULES.md](docs/developer/DEVICE_SUBMODULES.md)). Register in `device/README.md`.
+2. **UART first flash**: `upload_protocol = esptool` only. Never `espota` + placeholder `127.0.0.1`.
+3. **Day-to-day**: `pio run` → `scripts/ota_after_build.py` → `device_fleet.py flash`. Upload button is not OTA.
+4. **Status MQTT** must publish `device`, `fw`, `ip`, `ota_port`; register in `scripts/status/device_fleet.yaml`.
+5. **`ArduinoOTA.begin()` only after STA has an IP**; `handle()` in loop. Log `OTA listening on …`.
+6. **Windows**: local espota often fails TCP callback — fleet retries via SSH `192.168.2.4` (`FLEET_OTA_VIA=auto`). Use `SKIP_FLEET_OTA=1` for UART when a live IP exists.
+7. Prefer board mains power for Wi-Fi; USB-only brownouts block MQTT/OTA.
+8. Commit/push **device repo first**, then pin gitlink + monorepo docs/scripts.
+
+## Quick commands
+
+```bash
+SKIP_FLEET_OTA=1 pio run -e esp32dev -t upload --upload-port COMx   # UART
+pio run -e esp32dev                                                 # build + fleet OTA
+python scripts/status/device_fleet.py status
+python scripts/status/device_fleet.py flash --id <id> --bin <firmware.bin>
+```
+
+Windows tray client: **Device Fleet…** for online/expected counts, `fw`, and manual `.bin` OTA (`client/device_fleet_panel.py`).

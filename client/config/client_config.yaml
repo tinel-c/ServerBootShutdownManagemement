@@ -17,6 +17,12 @@ client:
     check_interval_hours: ${AUTO_UPDATE_CHECK_INTERVAL:24}
     github_repo: "${GITHUB_REPO:}"  # Format: owner/repo
 
+# Firmware device fleet (tray → Device Fleet window)
+device_fleet:
+  enabled: ${DEVICE_FLEET_ENABLED:true}
+  registry: "${DEVICE_FLEET_REGISTRY:}"  # optional absolute path to device_fleet.yaml
+  listen_sec: ${DEVICE_FLEET_LISTEN_SEC:20}
+
 mqtt:
   broker:
     host: "${MQTT_BROKER_HOST:localhost}"  # Override with MQTT_BROKER_HOST env var

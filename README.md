@@ -504,7 +504,7 @@ mosquitto_sub -h <mqtt-broker> -t "clients/+/presence" -v
 mosquitto_sub -h <mqtt-broker> -t "clients/+/heartbeat" -v
 ```
 
-**See [client/README_CLIENT.md](client/README_CLIENT.md) for detailed client documentation.**
+**See [client/README_CLIENT.md](client/README_CLIENT.md) for detailed client documentation** (including tray **Device Fleet…** for online/expected device counts, firmware versions, and OTA upload).
 
 
 ## 🖥️ Node-RED Dashboard (Modular Architecture)
@@ -828,7 +828,7 @@ ServerBootShutdownManagemement/
 │   ├── templates/                  # Flow templates for new domains
 │   └── *.md                        # Node-RED development guides
 │
-├── client/                         # Windows client monitor (presence, shutdown, auto-update)
+├── client/                         # Windows client monitor (presence, shutdown, Device Fleet OTA UI)
 │
 ├── docs/
 │   ├── images/                     # README topic banners

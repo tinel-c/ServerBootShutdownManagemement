@@ -1,5 +1,7 @@
 # Device firmware as git submodules
 
+How to **develop, flash, and OTA** firmware once the submodule exists: [DEVICE_FIRMWARE_DEVELOPMENT.md](DEVICE_FIRMWARE_DEVELOPMENT.md) (canonical agent playbook).
+
 ## Goals
 
 - **One firmware = one repository** with its own tags, issues, and clone URL.

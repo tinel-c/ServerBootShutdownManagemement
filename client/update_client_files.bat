@@ -83,6 +83,16 @@ if exist "%UPDATE_SOURCE%auto_updater.py" (
     echo  - auto_updater.py
 )
 
+if exist "%UPDATE_SOURCE%fleet_bridge.py" (
+    copy /Y "%UPDATE_SOURCE%fleet_bridge.py" "%INSTALL_DIR%\" >nul
+    echo  - fleet_bridge.py
+)
+
+if exist "%UPDATE_SOURCE%device_fleet_panel.py" (
+    copy /Y "%UPDATE_SOURCE%device_fleet_panel.py" "%INSTALL_DIR%\" >nul
+    echo  - device_fleet_panel.py
+)
+
 if exist "%UPDATE_SOURCE%requirements_client.txt" (
     copy /Y "%UPDATE_SOURCE%requirements_client.txt" "%INSTALL_DIR%\" >nul
     echo  - requirements_client.txt
@@ -93,6 +103,20 @@ if exist "%UPDATE_SOURCE%config\client_config.yaml" (
     if not exist "%INSTALL_DIR%\config" mkdir "%INSTALL_DIR%\config"
     copy /Y "%UPDATE_SOURCE%config\client_config.yaml" "%INSTALL_DIR%\config\" >nul
     echo  - config\client_config.yaml
+)
+
+if exist "%UPDATE_SOURCE%config\device_fleet.yaml" (
+    if not exist "%INSTALL_DIR%\config" mkdir "%INSTALL_DIR%\config"
+    copy /Y "%UPDATE_SOURCE%config\device_fleet.yaml" "%INSTALL_DIR%\config\" >nul
+    echo  - config\device_fleet.yaml
+)
+
+if exist "%UPDATE_SOURCE%..\scripts\status\device_fleet.py" (
+    copy /Y "%UPDATE_SOURCE%..\scripts\status\device_fleet.py" "%INSTALL_DIR%\device_fleet.py" >nul
+    echo  - device_fleet.py
+) else if exist "%UPDATE_SOURCE%device_fleet.py" (
+    copy /Y "%UPDATE_SOURCE%device_fleet.py" "%INSTALL_DIR%\device_fleet.py" >nul
+    echo  - device_fleet.py
 )
 
 REM Copy documentation (optional, won't fail if missing)

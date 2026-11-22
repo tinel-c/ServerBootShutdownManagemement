@@ -1,6 +1,8 @@
 # Repo firmware devices watched by scripts/status/device_fleet.py.
 # status_topic: any message means the device is live.
+# expected: false excludes from the Windows client "should be online" count (default true).
 # flash: when true, flash may run after a PlatformIO build if a fresh IP is known.
+# Keep client/config/device_fleet.yaml in sync for Program Files installs.
 
 broker:
   host: "192.168.2.4"

@@ -1,0 +1,32 @@
+# Bundled copy for Windows ClientMonitor installs.
+# Source of truth in the monorepo: scripts/status/device_fleet.yaml
+# status_topic: any message means the device is live.
+# expected: false excludes a device from the "should be online" count (default true).
+# flash: post-build auto-OTA only; the client UI can still Upload when online+IP.
+
+broker:
+  host: "192.168.2.4"
+  port: 1883
+
+devices:
+  - id: PlatformIO_esp32-4ch-thyristor-board-illumination
+    path: device/PlatformIO_esp32-4ch-thyristor-board-illumination
+    status_topic: illumination/4ch-thyristor/status
+    timeout_sec: 90
+    flash: true
+    pio_env: esp32dev
+    ota_port: 3232
+
+  - id: esp32-sms-gateway
+    path: device/esp32-sms-gateway
+    status_topic: sms/gateway/status
+    timeout_sec: 720
+    flash: false
+    ota_port: 3232
+
+  - id: PlatformIO_ESP8266_Main_Entry
+    path: device/PlatformIO_ESP8266_Main_Entry
+    status_topic: MainGate/STAT/reccurentStatusRelay4
+    timeout_sec: 180
+    flash: false
+    ota_port: 8266

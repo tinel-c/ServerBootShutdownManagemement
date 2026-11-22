@@ -942,11 +942,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version:** 3.26.0  
+**Version:** 3.26.1  
 **Last Updated:** 2026-11-22  
 **Author:** Constantin Bogza
 
 ## Recent Releases
+
+### v3.26.1 (2026-11-22) - Tray client stays up when Device Fleet opens
+- 🪟 **Device Fleet** runs in its own process so Tk no longer aborts the tray client
+- See [RELEASE_NOTES_v3.26.1.md](docs/releases/RELEASE_NOTES_v3.26.1.md) and [CHANGELOG.md](CHANGELOG.md)
 
 ### v3.26.0 (2026-11-22) - Device builds on a new PC
 - 🔧 **Fleet OTA hook** installs PyYAML and paho-mqtt before flashing, so a first `pio run` on a new PC finishes

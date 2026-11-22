@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -380,3 +381,119 @@ class FleetBridge:
         with self._lock:
             self.state = self._mod.load_state(self.state_path)
         return int(completed.returncode), log.strip()
+
+
+PANEL_TITLE = "Device Fleet"
+PANEL_PID = STATE_DIR / "device_fleet_panel.pid"
+PANEL_CONFIG = STATE_DIR / "device_fleet_panel_config.json"
+_CREATE_NO_WINDOW = 0x08000000
+
+
+def gui_python() -> Path:
+    """pythonw so the fleet window does not open a console."""
+    exe = Path(sys.executable)
+    if os.name == "nt":
+        pythonw = exe.with_name("pythonw.exe")
+        if pythonw.is_file():
+            return pythonw
+    return exe
+
+
+def pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if os.name != "nt":
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        return True
+    import ctypes
+
+    handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))
+    if not handle:
+        return False
+    ctypes.windll.kernel32.CloseHandle(handle)
+    return True
+
+
+def read_panel_pid() -> int:
+    try:
+        return int(PANEL_PID.read_text(encoding="ascii").strip() or "0")
+    except (OSError, ValueError):
+        return 0
+
+
+def claim_panel_process(pid: Optional[int] = None) -> bool:
+    """Exclusive owner of the fleet window. A live owner keeps the claim."""
+    PANEL_PID.parent.mkdir(parents=True, exist_ok=True)
+    me = int(os.getpid() if pid is None else pid)
+    for _ in range(2):
+        try:
+            fd = os.open(str(PANEL_PID), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            other = read_panel_pid()
+            if pid_alive(other):
+                return False
+            try:
+                PANEL_PID.unlink()
+            except OSError:
+                return False
+            continue
+        os.write(fd, str(me).encode("ascii"))
+        os.close(fd)
+        return True
+    return False
+
+
+def release_panel_process() -> None:
+    if read_panel_pid() != os.getpid():
+        return
+    try:
+        PANEL_PID.unlink()
+    except OSError:
+        pass
+
+
+def raise_device_fleet_window() -> bool:
+    """Bring an existing Device Fleet window forward. No Tk import."""
+    if os.name != "nt":
+        return False
+    import ctypes
+
+    user32 = ctypes.windll.user32
+    hwnd = user32.FindWindowW(None, PANEL_TITLE)
+    if not hwnd:
+        return False
+    user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+    user32.SetForegroundWindow(hwnd)
+    return True
+
+
+def launch_device_fleet_panel(config: Optional[Dict[str, Any]] = None) -> None:
+    """Open Device Fleet in a separate process.
+
+    The tray client also runs pystray. Loading Tk in that same process aborts
+    python inside tcl86t.dll and takes the tray icon with it.
+    """
+    if raise_device_fleet_window():
+        return
+    if pid_alive(read_panel_pid()):
+        return
+    PANEL_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(config or {}, ensure_ascii=False, default=str)
+    tmp = PANEL_CONFIG.with_suffix(".json.tmp")
+    tmp.write_text(payload, encoding="utf-8")
+    tmp.replace(PANEL_CONFIG)
+    script = CLIENT_DIR / "device_fleet_panel.py"
+    exe = gui_python()
+    kwargs: Dict[str, Any] = {
+        "cwd": str(CLIENT_DIR),
+        "stdin": subprocess.DEVNULL,
+        "stdout": subprocess.DEVNULL,
+        "stderr": subprocess.DEVNULL,
+        "close_fds": True,
+    }
+    if os.name == "nt":
+        kwargs["creationflags"] = _CREATE_NO_WINDOW
+    subprocess.Popen([str(exe), str(script), "--config", str(PANEL_CONFIG)], **kwargs)

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.26.1] - 2026-11-22
+
+### Fixed - Windows client crash after opening Device Fleet
+
+- The tray process was loading Tk beside pystray. Windows then aborted `python.exe` inside `tcl86t.dll` and the tray icon disappeared. Device Fleet now starts in its own process. A second click raises the existing window.
+
 ## [3.26.0] - 2026-11-22
 
 ### Fixed - Device builds on a new PC

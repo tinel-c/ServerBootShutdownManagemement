@@ -141,3 +141,66 @@ def test_local_catalog_includes_tasmota_folder(tmp_path: Path):
     pump = next(row for row in bridge.rows() if row["id"] == "tasmota/pompaApa")
     assert pump["kind"] == "tasmota"
     assert pump["can_upload"] is False
+
+
+def test_tray_client_does_not_import_tk():
+    bridge = (CLIENT / "fleet_bridge.py").read_text(encoding="utf-8")
+    monitor = (CLIENT / "client_monitor.py").read_text(encoding="utf-8")
+    assert "import tkinter" not in bridge
+    assert "import device_fleet_panel" not in monitor
+    assert "from device_fleet_panel" not in monitor
+
+
+def test_claim_panel_rejects_live_owner(monkeypatch, tmp_path: Path):
+    import fleet_bridge as fb
+
+    monkeypatch.setattr(fb, "PANEL_PID", tmp_path / "panel.pid")
+    monkeypatch.setattr(fb, "pid_alive", lambda pid: pid == 42)
+    assert fb.claim_panel_process(42) is True
+    assert fb.claim_panel_process(99) is False
+
+
+def test_claim_replaces_dead_owner(monkeypatch, tmp_path: Path):
+    import fleet_bridge as fb
+
+    monkeypatch.setattr(fb, "PANEL_PID", tmp_path / "panel.pid")
+    monkeypatch.setattr(fb, "pid_alive", lambda pid: False)
+    (tmp_path / "panel.pid").write_text("7", encoding="ascii")
+    assert fb.claim_panel_process(8) is True
+    assert fb.read_panel_pid() == 8
+
+
+def test_launch_raises_existing_window_without_spawn(monkeypatch):
+    import fleet_bridge as fb
+
+    monkeypatch.setattr(fb, "raise_device_fleet_window", lambda: True)
+    spawned = []
+    monkeypatch.setattr(fb.subprocess, "Popen", lambda *args, **kwargs: spawned.append(args))
+    fb.launch_device_fleet_panel({})
+    assert spawned == []
+
+
+def test_launch_writes_config_and_spawns_panel(monkeypatch, tmp_path: Path):
+    import json
+
+    import fleet_bridge as fb
+
+    monkeypatch.setattr(fb, "PANEL_PID", tmp_path / "panel.pid")
+    monkeypatch.setattr(fb, "PANEL_CONFIG", tmp_path / "panel.json")
+    monkeypatch.setattr(fb, "raise_device_fleet_window", lambda: False)
+    monkeypatch.setattr(fb, "pid_alive", lambda pid: False)
+    monkeypatch.setattr(fb, "gui_python", lambda: Path("pythonw.exe"))
+    spawned = {}
+
+    def popen(cmd, **kwargs):
+        spawned["cmd"] = cmd
+        spawned["cwd"] = kwargs.get("cwd")
+        return type("Proc", (), {"pid": 99})()
+
+    monkeypatch.setattr(fb.subprocess, "Popen", popen)
+    fb.launch_device_fleet_panel({"mqtt": {"broker": {"host": "192.168.2.4"}}})
+    assert spawned["cmd"][0] == "pythonw.exe"
+    assert spawned["cmd"][1].endswith("device_fleet_panel.py")
+    assert spawned["cmd"][2:] == ["--config", str(tmp_path / "panel.json")]
+    saved = json.loads((tmp_path / "panel.json").read_text(encoding="utf-8"))
+    assert saved["mqtt"]["broker"]["host"] == "192.168.2.4"

@@ -322,15 +322,12 @@ class SystemTrayIcon:
         logger.info("Status requested from system tray")
 
     def on_device_fleet(self, icon, item):
-        """Open Device Fleet status / OTA window on the monitor main thread."""
+        """Open Device Fleet in its own process so Tk is not loaded beside pystray."""
         logger.info("Device Fleet requested from system tray")
         try:
-            from device_fleet_panel import raise_device_fleet_panel
-            if raise_device_fleet_panel():
-                return
+            self.monitor.open_device_fleet_panel()
         except Exception:
-            pass
-        self.monitor.request_device_fleet_panel()
+            logger.exception("Failed to open Device Fleet")
     
     def on_toggle_wake_server(self, icon, item):
         """Toggle local reminder: whether you intend this PC to participate in server wake automation."""
@@ -427,8 +424,6 @@ class ClientMonitor:
         self.use_tray = use_tray
         self.tray_icon = None
         self.next_heartbeat = 0
-        self._device_fleet_panel_request = False
-        self._device_fleet_panel_lock = threading.Lock()
         self._update_gate = threading.Lock()
         self.auto_updater = None
         
@@ -1149,22 +1144,14 @@ class ClientMonitor:
         
         logger.info("Client Monitor stopped")
     
-    def request_device_fleet_panel(self):
-        """Ask the main loop to open (or raise) the Device Fleet Tk window."""
-        self._device_fleet_panel_request = True
+    def open_device_fleet_panel(self):
+        """Start the Device Fleet window outside this process."""
+        client_dir = str(SCRIPT_DIR)
+        if client_dir not in sys.path:
+            sys.path.insert(0, client_dir)
+        from fleet_bridge import launch_device_fleet_panel
 
-    def _open_device_fleet_panel(self):
-        """Open Device Fleet UI (blocks this thread in Tk mainloop until closed)."""
-        with self._device_fleet_panel_lock:
-            try:
-                # Ensure client/ is on path when installed beside device_fleet_panel.py
-                client_dir = str(SCRIPT_DIR)
-                if client_dir not in sys.path:
-                    sys.path.insert(0, client_dir)
-                from device_fleet_panel import open_device_fleet_panel
-                open_device_fleet_panel(self.config)
-            except Exception as e:
-                logger.error(f"Failed to open Device Fleet panel: {e}", exc_info=True)
+        launch_device_fleet_panel(self.config)
 
     def run(self):
         """Run the client monitor (blocking)"""
@@ -1172,11 +1159,7 @@ class ClientMonitor:
             return
         
         try:
-            # Keep running until interrupted; open Tk fleet UI on this thread when requested
             while self.running:
-                if self._device_fleet_panel_request:
-                    self._device_fleet_panel_request = False
-                    self._open_device_fleet_panel()
                 time.sleep(0.25)
         except KeyboardInterrupt:
             logger.info("Keyboard interrupt received")

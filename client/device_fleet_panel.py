@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import queue
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -33,14 +34,15 @@ def raise_device_fleet_panel() -> bool:
     if _open_panel is None:
         return False
     try:
-        root = _open_panel.root
+        panel = _open_panel
 
         def _raise() -> None:
-            root.deiconify()
-            root.lift()
-            root.focus_force()
+            panel.root.deiconify()
+            panel.root.lift()
+            panel.root.focus_force()
 
-        root.after(0, _raise)
+        # The tray menu runs on another thread. Tk must be touched only on its own thread.
+        panel.post(_raise)
         return True
     except tk.TclError:
         _open_panel = None
@@ -71,6 +73,8 @@ class DeviceFleetPanel:
         self._rows: List[Dict[str, Any]] = []
         self._selected_id: Optional[str] = None
         self._busy = False
+        self._ui_queue: queue.Queue = queue.Queue()
+        self._ui_open = True
 
         self._build()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -142,11 +146,36 @@ class DeviceFleetPanel:
             self._apply_rows(self.bridge.rows())
         except Exception as exc:
             self._append_log(f"Initial rows failed: {exc}")
-        self.bridge.start_watching(lambda rows: self.root.after(0, self._apply_rows, rows))
+        self.bridge.start_watching(
+            lambda rows: self.post(lambda current=rows: self._apply_rows(current))
+        )
+        self._drain_ui()
         self.root.mainloop()
+
+    def post(self, callback) -> None:
+        """Queue a UI callback. Safe to call from MQTT and scan threads."""
+        self._ui_queue.put(callback)
+
+    def _drain_ui(self) -> None:
+        if not self._ui_open:
+            return
+        try:
+            while True:
+                callback = self._ui_queue.get_nowait()
+                try:
+                    callback()
+                except Exception:
+                    logger.exception("Device Fleet UI update failed")
+        except queue.Empty:
+            pass
+        try:
+            self.root.after(200, self._drain_ui)
+        except tk.TclError:
+            self._ui_open = False
 
     def _on_close(self) -> None:
         global _open_panel
+        self._ui_open = False
         self.bridge.stop_watching()
         _open_panel = None
         self.root.destroy()
@@ -237,9 +266,9 @@ class DeviceFleetPanel:
             try:
                 rows = self.bridge.refresh(reload_catalog=True)
                 note = self.bridge.catalog_note
-                self.root.after(0, lambda: self._refresh_done(rows, None, note))
+                self.post(lambda: self._refresh_done(rows, None, note))
             except Exception as exc:
-                self.root.after(0, lambda: self._refresh_done([], exc, ""))
+                self.post(lambda: self._refresh_done([], exc, ""))
 
         threading.Thread(target=work, daemon=True).start()
 
@@ -271,9 +300,9 @@ class DeviceFleetPanel:
             try:
                 report = self.bridge.scan_tasmota()
                 rows = self.bridge.rows()
-                self.root.after(0, lambda: self._scan_done(rows, report, None))
+                self.post(lambda: self._scan_done(rows, report, None))
             except Exception as exc:
-                self.root.after(0, lambda: self._scan_done([], {}, exc))
+                self.post(lambda: self._scan_done([], {}, exc))
 
         threading.Thread(target=work, daemon=True).start()
 
@@ -330,7 +359,7 @@ class DeviceFleetPanel:
 
         def work() -> None:
             rc, log = self.bridge.flash(row["id"], bin_path)
-            self.root.after(0, lambda: self._upload_done(row["id"], rc, log))
+            self.post(lambda: self._upload_done(row["id"], rc, log))
 
         threading.Thread(target=work, daemon=True).start()
 
@@ -350,6 +379,29 @@ class DeviceFleetPanel:
         self._on_refresh()
 
 
+def main(argv: Optional[list] = None) -> int:
+    """Entry point for the separate Device Fleet process."""
+    import argparse
+    import json
+
+    from fleet_bridge import claim_panel_process, raise_device_fleet_window, release_panel_process
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--config", default="")
+    args, _unknown = parser.parse_known_args(argv)
+    config: Dict[str, Any] = {}
+    if args.config:
+        config = json.loads(Path(args.config).read_text(encoding="utf-8"))
+    if not claim_panel_process():
+        raise_device_fleet_window()
+        return 0
+    try:
+        logging.basicConfig(level=logging.INFO)
+        open_device_fleet_panel(config)
+    finally:
+        release_panel_process()
+    return 0
+
+
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    open_device_fleet_panel({})
+    raise SystemExit(main())
